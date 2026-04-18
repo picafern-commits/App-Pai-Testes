@@ -609,6 +609,49 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   border-color:rgba(139,92,246,.26);
   color:#c4b5fd;
 }
+.badge[data-state="Agendado"]{
+  background:rgba(59,130,246,.16);
+  border-color:rgba(59,130,246,.24);
+  color:#93c5fd;
+}
+.badge[data-state="Em curso"]{
+  background:rgba(249,115,22,.16);
+  border-color:rgba(249,115,22,.24);
+  color:#fdba74;
+}
+.badge[data-state="Aguardar peça"]{
+  background:rgba(168,85,247,.16);
+  border-color:rgba(168,85,247,.24);
+  color:#d8b4fe;
+}
+.badge[data-state="Entregue"]{
+  background:rgba(148,163,184,.16);
+  border-color:rgba(148,163,184,.24);
+  color:#cbd5e1;
+}
+.badge[data-state="Cancelado"]{
+  background:rgba(239,68,68,.14);
+  border-color:rgba(239,68,68,.22);
+  color:#fca5a5;
+}
+.state-history{
+  display:grid;
+  gap:10px;
+  margin-top:12px;
+}
+.state-history-item{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);
+}
+.state-history-meta{
+  color:var(--muted);
+  font-size:12px;
+}
 .invoice-badge{
   display:inline-flex;
   align-items:center;
@@ -1583,7 +1626,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
               <div class="field"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" required /></div>
               <div class="field"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field"><label>Data de fim</label><input id="dataFim" type="date" /></div>
-              <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em andamento</option><option>Concluído</option><option>Pago</option></select></div>
+              <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Agendado</option><option>Em curso</option><option>Aguardar peça</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option></select></div>
               <div class="field"><label>Faturação</label><select id="trabalhoInvoiceType"><option>Com Fatura</option><option>Sem Fatura</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
@@ -1599,12 +1642,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
             <div class="toolbar">
               <input id="searchTrabalhos" type="text" placeholder="Pesquisar por cliente, ID ou tipo de trabalho" />
               <select id="filterEstado">
-                <option value="">Todos os estados</option>
-                <option>Pendente</option>
-                <option>Em andamento</option>
-                <option>Concluído</option>
-                <option>Pago</option>
-              </select>
+                <option value="">Todos os estados</option>                <option>Pendente</option><option>Agendado</option><option>Em curso</option><option>Aguardar peça</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option></select>
             </div>
             <div id="trabalhosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
@@ -1905,6 +1943,75 @@ const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<
 const isMasterAdmin = () => currentRole === 'master_admin';
 const isAdminLike = () => currentRole === 'admin' || currentRole === 'master_admin';
 
+const ESTADOS_TRABALHO = ['Pendente','Agendado','Em curso','Aguardar peça','Concluído','Pago','Entregue','Cancelado'];
+
+function normalizeEstado(value=''){
+  const raw = String(value || '').trim();
+  if(raw === 'Em andamento') return 'Em curso';
+  if(raw === 'Aguarda peça' || raw === 'Aguardando peça') return 'Aguardar peça';
+  if(raw === 'Fechado') return 'Concluído';
+  return ESTADOS_TRABALHO.includes(raw) ? raw : 'Pendente';
+}
+
+function makeStateHistoryEntry(estado, dateValue){
+  const iso = dateValue || new Date().toISOString();
+  return { estado: normalizeEstado(estado), data: iso };
+}
+
+function normalizeHistoricoEstados(list, fallbackEstado='Pendente', fallbackDate=''){
+  const source = Array.isArray(list) ? list : [];
+  const mapped = source
+    .map(item => {
+      if(!item) return null;
+      if(typeof item === 'string') return makeStateHistoryEntry(item, fallbackDate || new Date().toISOString());
+      const estado = normalizeEstado(item.estado || item.state || item.label || fallbackEstado);
+      const data = item.data || item.date || item.dataEstado || fallbackDate || new Date().toISOString();
+      return makeStateHistoryEntry(estado, data);
+    })
+    .filter(Boolean);
+
+  if(!mapped.length){
+    mapped.push(makeStateHistoryEntry(fallbackEstado, fallbackDate || new Date().toISOString()));
+  }
+
+  const deduped = [];
+  mapped.forEach(entry => {
+    const last = deduped[deduped.length - 1];
+    if(last && last.estado === entry.estado && String(last.data) === String(entry.data)) return;
+    deduped.push(entry);
+  });
+  return deduped;
+}
+
+function normalizeTrabalhoStateShape(t){
+  const estado = normalizeEstado(t?.estado || 'Pendente');
+  const dataEstado = t?.dataEstado || t?.updatedAt || t?.dataFim || t?.dataInicio || new Date().toISOString();
+  const historicoEstados = normalizeHistoricoEstados(t?.historicoEstados, estado, dataEstado);
+  const last = historicoEstados[historicoEstados.length - 1];
+  return {
+    ...t,
+    estado,
+    dataEstado: last?.data || dataEstado,
+    historicoEstados
+  };
+}
+
+function formatDateTime(value){
+  if(!value) return '-';
+  const d = new Date(value);
+  return isNaN(d) ? '-' : d.toLocaleString('pt-PT');
+}
+
+function buildStateHistoryHtml(t){
+  const history = normalizeHistoricoEstados(t?.historicoEstados, t?.estado || 'Pendente', t?.dataEstado || t?.dataInicio || '');
+  return history.slice().reverse().map(item => `
+    <div class="state-history-item">
+      <strong><span class="badge" data-state="${escapeHtml(item.estado || '-')}">${escapeHtml(item.estado || '-')}</span></strong>
+      <span class="state-history-meta">${escapeHtml(formatDateTime(item.data))}</span>
+    </div>
+  `).join('');
+}
+
 function genId(prefix='id'){
   if (window.crypto?.randomUUID) return `${prefix}_${window.crypto.randomUUID()}`;
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
@@ -1937,24 +2044,23 @@ function normalizeTrabalhosIds(){
   let changed = false;
   let maxExisting = trabalhos.reduce((max, t) => Math.max(max, getWorkCodeNumber(t.workCode || t.ordemId || '')), 0);
   trabalhos = trabalhos.map(t => {
-    if(t.workCode || t.ordemId) return { ...t, workCode: t.workCode || t.ordemId };
+    if(t.workCode || t.ordemId) return normalizeTrabalhoStateShape({ ...t, workCode: t.workCode || t.ordemId });
     changed = true;
     maxExisting += 1;
-    return { ...t, workCode: `TRAB-${String(maxExisting).padStart(4,'0')}` };
+    return normalizeTrabalhoStateShape({ ...t, workCode: `TRAB-${String(maxExisting).padStart(4,'0')}` });
   });
   if(changed) saveLocal();
 }
 
 
 function loadLocal(){
-  try{trabalhos=JSON.parse(localStorage.getItem(STORAGE_KEYS.trabalhos))||[]}catch{trabalhos=[]}
+  try{trabalhos=(JSON.parse(localStorage.getItem(STORAGE_KEYS.trabalhos))||[]).map(normalizeTrabalhoStateShape)}catch{trabalhos=[]}
   try{clientes=JSON.parse(localStorage.getItem(STORAGE_KEYS.clientes))||[]}catch{clientes=[]}
   try{pagamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.pagamentos))||[]}catch{pagamentos=[]}
   try{ lastTrabId = Number(localStorage.getItem(STORAGE_KEYS.lastTrabId) || 0) || 0 }catch{ lastTrabId = 0 }
 
   const maxExistingId = trabalhos.reduce((max, t) => {
-    const match = String(t.id || '').match(/^TRAB-(\d+)$/);
-    const n = match ? Number(match[1]) : 0;
+    const n = getWorkCodeNumber(t.workCode || t.ordemId || t.id || '');
     return Math.max(max, n);
   }, 0);
 
@@ -2191,7 +2297,7 @@ function attachRealtimeListeners(){
     });
     unsubs.push(unsub);
   };
-  bind('trabalhos', rows => { trabalhos = rows.map(r => ({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); });
+  bind('trabalhos', rows => { trabalhos = rows.map(r => normalizeTrabalhoStateShape({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); });
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
 }
@@ -2455,8 +2561,8 @@ function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!wi
 
 function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
-  const emAndamento = trabalhos.filter(t=>t.estado==='Em andamento'||t.estado==='Pendente').length;
-  const concluidos = trabalhos.filter(t=>t.estado==='Concluído'||t.estado==='Pago').length;
+  const emAndamento = trabalhos.filter(t=>['Pendente','Agendado','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
+  const concluidos = trabalhos.filter(t=>['Concluído','Pago','Entregue'].includes(normalizeEstado(t.estado))).length;
   const totalFaturado = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
   const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
   const clientesAtivos = new Set(trabalhos.map(t=>(t.cliente||'').trim()).filter(Boolean)).size;
@@ -2498,8 +2604,8 @@ function renderDashboard(){
   }
 }
 function renderAlerts(){
-  const pend = trabalhos.filter(t=>t.estado==='Pendente').length;
-  const andam = trabalhos.filter(t=>t.estado==='Em andamento').length;
+  const pend = trabalhos.filter(t=>['Pendente','Agendado'].includes(normalizeEstado(t.estado))).length;
+  const andam = trabalhos.filter(t=>['Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
   const pagos = trabalhos.filter(t=>t.estado==='Pago').length;
   const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
   const clientesAtivos = new Set(trabalhos.map(t=>(t.cliente||'').trim()).filter(Boolean)).size;
@@ -2516,7 +2622,7 @@ function renderAlerts(){
 }
 function trabalhoActions(t){
   const showInvoice = (t.invoiceType || 'Com Fatura') === 'Com Fatura';
-  const canMarkPaid = (t.estado || '') !== 'Pago';
+  const canMarkPaid = !['Pago','Entregue','Cancelado'].includes(normalizeEstado(t.estado || ''));
   const canEdit = isAdminLike();
   const canDelete = isAdminLike();
   const hasDesc = (t.descricao || '').trim().length > 0;
@@ -2743,7 +2849,7 @@ window.editTrabalho = function(id){
   $('valor').value=t.valor||'';
   $('dataInicio').value=t.dataInicio||'';
   $('dataFim').value=t.dataFim||'';
-  $('estado').value=t.estado||'Pendente';
+  $('estado').value=normalizeEstado(t.estado||'Pendente');
   if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fatura';
   $('descricao').value=t.descricao||'';
   switchTab('adicionar');
@@ -2846,7 +2952,7 @@ window.generateInvoice = function(id){
   `);
 };
 
-window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(t.estado||'-')}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div>`); };
+window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
 window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valor||0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
 window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
