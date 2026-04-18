@@ -1159,7 +1159,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 
 </style>
 </head>
-<body><div class="platform-badge">ANDROID</div><a class="env-switch-btn" href="../Gestao-Teste/">Ir para TESTE</a><div class="env-badge prod">PRODUÇÃO</div>
+<body><div class="platform-badge">ANDROID</div><div class="env-badge prod">PRODUÇÃO</div>
   <div class="bg-orb orb-1"></div>
   <div class="bg-orb orb-2"></div>
 
@@ -1455,18 +1455,107 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
     <button class="bottom-btn" data-tab="configuracoes">Configurações</button>
   </nav>
 
-  <script src="app.js"></script>
   <script>
-window.addEventListener('error', function(e){
-  const msg = e && e.message ? e.message : 'Erro JavaScript';
-  const note = document.getElementById('syncLoginNote');
-  if(note){
-    note.innerHTML = '<strong>Sync:</strong> Erro JS: ' + msg;
-    note.classList.remove('sync-ok','sync-warn');
-    note.classList.add('sync-bad');
+
+const DEFAULT_USERS = [
+  { username: 'jorge', password: 'jfernandes', role: 'admin' },
+  { username: 'fatima', password: 'ffernandes', role: 'user' },
+  { username: 'ricardo', password: '2297', role: 'master_admin' }
+];
+
+function normalizeUsers(users){
+  const list = Array.isArray(users) ? users.slice() : [];
+  const idx = list.findIndex(u => String(u.username || '').toLowerCase() === 'ricardo');
+  const ricardo = { username: 'ricardo', password: '2297', role: 'master_admin' };
+  if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
+  else list.push(ricardo);
+  return list;
+}
+
+function getUsers(){
+  try{
+    const stored = JSON.parse(localStorage.getItem('app_users') || 'null');
+    if(Array.isArray(stored) && stored.length){
+      const fixed = normalizeUsers(stored);
+      localStorage.setItem('app_users', JSON.stringify(fixed));
+      return fixed;
+    }
+  }catch{}
+  const fixedDefaults = normalizeUsers(DEFAULT_USERS);
+  localStorage.setItem('app_users', JSON.stringify(fixedDefaults));
+  return fixedDefaults;
+}
+
+const loginForm = document.getElementById('loginForm');
+
+function saveSession(role, username){
+  localStorage.setItem('app_session', JSON.stringify({ role, username }));
+}
+
+function readSession(){
+  return JSON.parse(localStorage.getItem('app_session') || 'null');
+}
+
+function clearSession(){
+  localStorage.removeItem('app_session');
+}
+
+function showApp(){
+  document.getElementById('loginScreen')?.classList.add('hidden');
+  document.getElementById('appRoot')?.classList.remove('hidden');
+}
+
+function showLogin(){
+  document.getElementById('loginScreen')?.classList.remove('hidden');
+  document.getElementById('appRoot')?.classList.add('hidden');
+}
+
+function bootFromSession(){
+  const session = readSession();
+  if(!session || !window.startApp) return false;
+
+  showApp();
+  window.startApp(session.role, session.username);
+  return true;
+}
+
+loginForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+
+  const found = getUsers().find(
+    u => u.username.toLowerCase() === username && u.password === password
+  );
+
+  if (!found) {
+    document.getElementById('loginError').textContent = 'Credenciais inválidas.';
+    return;
   }
-  console.error('App error:', e.error || e.message || e);
+
+  saveSession(found.role, found.username);
+  document.getElementById('loginError').textContent = '';
+  showApp();
+
+  if(window.startApp){
+    window.startApp(found.role, found.username);
+  }
 });
+
+document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  clearSession();
+  showLogin();
+  loginForm.reset();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  if(!bootFromSession()){
+    showLogin();
+  }
+});
+
 </script>
   <script type="module">
 const firebaseConfig = {
@@ -1511,6 +1600,96 @@ function genId(prefix='id'){
   if (window.crypto?.randomUUID) return `${prefix}_${window.crypto.randomUUID()}`;
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
 }
+
+
+function formatEntityCode(prefix, number){
+  return `${prefix}-${String(number).padStart(4,'0')}`;
+}
+function normalizeDigits(value){
+  return String(value || '').replace(/\D/g, '');
+}
+function extractEntityNumber(value){
+  const digits = normalizeDigits(value);
+  return digits ? Number(digits) : 0;
+}
+function recomputeLastTrabIdFromData(){
+  const maxCode = trabalhos.reduce((max, item) => Math.max(max, extractEntityNumber(item?.workCode)), 0);
+  lastTrabId = Math.max(Number(lastTrabId || 0), maxCode);
+}
+function nextTrabalhoIdPreview(){
+  recomputeLastTrabIdFromData();
+  let nextNumber = Number(lastTrabId || 0) + 1;
+  let nextCode = formatEntityCode('TRB', nextNumber);
+  const existingCodes = new Set(
+    trabalhos
+      .map(item => String(item?.workCode || '').trim().toUpperCase())
+      .filter(Boolean)
+  );
+  while(existingCodes.has(nextCode)){
+    nextNumber += 1;
+    nextCode = formatEntityCode('TRB', nextNumber);
+  }
+  return nextCode;
+}
+function nextTrabalhoId(){
+  const nextCode = nextTrabalhoIdPreview();
+  lastTrabId = extractEntityNumber(nextCode);
+  return nextCode;
+}
+function ensureUniqueInternalIds(list, prefix){
+  const seen = new Set();
+  return (Array.isArray(list) ? list : []).map(item => {
+    const clone = { ...(item || {}) };
+    let candidate = String(clone.id || '').trim();
+    if(!candidate || seen.has(candidate)){
+      do { candidate = genId(prefix); } while(seen.has(candidate));
+      clone.id = candidate;
+    }
+    seen.add(candidate);
+    return clone;
+  });
+}
+function ensureUniqueWorkCodes(list){
+  const seen = new Set();
+  let seq = 0;
+  return (Array.isArray(list) ? list : []).map(item => {
+    const clone = { ...(item || {}) };
+    let code = String(clone.workCode || '').trim().toUpperCase();
+    const numeric = extractEntityNumber(code);
+    if(numeric > seq) seq = numeric;
+    if(!code || seen.has(code)){
+      do {
+        seq += 1;
+        code = formatEntityCode('TRB', seq);
+      } while(seen.has(code));
+      clone.workCode = code;
+    }
+    seen.add(code);
+    return clone;
+  });
+}
+function normalizeUniqueData(){
+  trabalhos = ensureUniqueInternalIds(trabalhos, 'trab');
+  clientes = ensureUniqueInternalIds(clientes, 'cli');
+  pagamentos = ensureUniqueInternalIds(pagamentos, 'pay');
+  trabalhos = ensureUniqueWorkCodes(trabalhos);
+  recomputeLastTrabIdFromData();
+}
+function uniqueWorkCodeOrFallback(preferred, excludeId=''){
+  let code = String(preferred || '').trim().toUpperCase();
+  const existing = new Set(
+    trabalhos
+      .filter(x => x.id !== excludeId)
+      .map(x => String(x.workCode || '').trim().toUpperCase())
+      .filter(Boolean)
+  );
+  if(!code) code = nextTrabalhoIdPreview();
+  while(existing.has(code)){
+    code = nextTrabalhoId();
+  }
+  return code;
+}
+
 
 function loadLocal(){
   try{trabalhos=JSON.parse(localStorage.getItem(STORAGE_KEYS.trabalhos))||[]}catch{trabalhos=[]}
@@ -1723,9 +1902,9 @@ function attachRealtimeListeners(){
     });
     unsubs.push(unsub);
   };
-  bind('trabalhos', rows => { trabalhos = rows; });
-  bind('clientes', rows => { clientes = rows; });
-  bind('pagamentos', rows => { pagamentos = rows; });
+  bind('trabalhos', rows => { trabalhos = rows; normalizeUniqueData(); saveLocal(); });
+  bind('clientes', rows => { clientes = rows; normalizeUniqueData(); saveLocal(); });
+  bind('pagamentos', rows => { pagamentos = rows; normalizeUniqueData(); saveLocal(); });
 }
 async function upsertRemote(collectionName, item){
   if (!syncReady || !firestoreDb) return false;
@@ -2149,7 +2328,7 @@ window.markAsPaid = function(id, metodo='Manual'){
   }
 
   const pagamento = {
-    id: genId('pay'),
+    id: ensureUniqueInternalIds([{ id: genId('pay') }, ...pagamentos], 'pay')[0].id,
     cliente: t.cliente || '',
     referencia: t.tipoTrabalho || '',
     valor: Number(t.valor || 0),
@@ -2339,7 +2518,8 @@ function renderMobileCards(){
     `).join('') : '<div class="mobile-card"><div class="mobile-card-title">Sem clientes registados</div></div>';
   }
 }
-  </script>
+
+</script>
 
   <div id="clientModal" class="modal hidden">
     <div class="modal-card">
