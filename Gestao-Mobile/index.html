@@ -229,6 +229,8 @@ textarea{resize:vertical}
   flex-wrap:wrap;
   align-items:center;
 }
+.mobile-menu-btn{display:none;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);border-radius:14px;padding:10px 12px;min-height:44px;cursor:pointer;align-self:flex-start}
+.mobile-sidebar-backdrop{display:none}
 
 
 body.ui-auto{
@@ -1842,6 +1844,73 @@ button.stage-step.next{background:rgba(245,158,11,.12);border-color:rgba(245,158
   .stage-step,.payment-badge-inline,.enterprise-actions .small-btn{padding:6px 10px;font-size:11px}
 }
 
+
+/* MOBILE SIDEBAR + SCROLL FIX */
+@media (max-width: 980px){
+  html,body{
+    height:auto !important;
+    min-height:100%;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:auto !important;
+  }
+  body{
+    min-height:100dvh;
+  }
+  .mobile-menu-btn{display:inline-flex;align-items:center;justify-content:center}
+  .mobile-sidebar-backdrop{
+    display:block;
+    position:fixed;
+    inset:0;
+    background:rgba(2,6,15,.55);
+    opacity:0;
+    pointer-events:none;
+    transition:.22s ease;
+    z-index:88;
+  }
+  .sidebar{
+    display:flex !important;
+    position:fixed !important;
+    top:0;
+    left:0;
+    bottom:0;
+    width:min(86vw,320px);
+    height:100dvh !important;
+    transform:translateX(-105%);
+    transition:transform .22s ease;
+    z-index:99;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:calc(20px + env(safe-area-inset-bottom));
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  body.mobile-sidebar-open .sidebar{
+    transform:translateX(0);
+  }
+  body.mobile-sidebar-open .mobile-sidebar-backdrop{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .main{
+    width:100% !important;
+    min-width:0 !important;
+    overflow:visible !important;
+    padding:12px 12px 20px !important;
+  }
+  .topbar{
+    display:grid !important;
+    grid-template-columns:1fr;
+  }
+  .topbar-left{
+    display:grid !important;
+    grid-template-columns:auto 1fr;
+    align-items:start;
+    gap:10px;
+  }
+  .bottom-nav{display:none !important;}
+}
+
 </style>
 </head>
 <body>
@@ -1876,6 +1945,7 @@ button.stage-step.next{background:rgba(245,158,11,.12);border-color:rgba(245,158
   </div>
 
   <div id="appRoot" class="app-shell hidden">
+    <div id="mobileSidebarBackdrop" class="mobile-sidebar-backdrop"></div>
     <aside class="sidebar">
       <div class="brand-card">
         <img class="sidebar-logo" src="logo-icon-dark.png" alt="Logo Jorge Torneiro" />
@@ -1911,6 +1981,7 @@ button.stage-step.next{background:rgba(245,158,11,.12);border-color:rgba(245,158
     <main class="main">
       <header class="topbar">
         <div class="topbar-left">
+          <button id="mobileMenuBtn" class="mobile-menu-btn" type="button" aria-label="Abrir menu">☰</button>
           <div>
             <h2 id="pageTitle">Dashboard</h2>
             <div class="subline">
@@ -2119,18 +2190,7 @@ button.stage-step.next{background:rgba(245,158,11,.12);border-color:rgba(245,158
             </div>
           </div>
       </section>
-
-  <nav class="bottom-nav">
-    <button class="bottom-btn active" data-tab="dashboard">Dashboard</button>
-    <button class="bottom-btn" data-tab="adicionar">Adicionar</button>
-    <button class="bottom-btn" data-tab="trabalhos">Histórico</button>
-    <button class="bottom-btn" data-tab="clientes">Clientes</button>
-    <button class="bottom-btn" data-tab="pagamentos">Pagamentos</button>
-    <button class="bottom-btn" data-tab="relatorios">Relatórios</button>
-    <button class="bottom-btn" data-tab="configuracoes">Configurações</button>
-  </nav>
-
-  <script>
+<script>
 
 const DEFAULT_USERS = [
   { username: 'jorge', password: 'jfernandes', role: 'admin' },
@@ -2266,6 +2326,16 @@ initUiScale();
 const navButtons = document.querySelectorAll('.nav-btn');
 const bottomButtons = document.querySelectorAll('.bottom-btn');
 const pages = document.querySelectorAll('.page');
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const mobileSidebarBackdrop = document.getElementById('mobileSidebarBackdrop');
+
+function openMobileSidebar(){ document.body.classList.add('mobile-sidebar-open'); }
+function closeMobileSidebar(){ document.body.classList.remove('mobile-sidebar-open'); }
+function isMobileViewport(){ return window.innerWidth <= 980; }
+
+if(mobileMenuBtn){ mobileMenuBtn.addEventListener('click', openMobileSidebar); }
+if(mobileSidebarBackdrop){ mobileSidebarBackdrop.addEventListener('click', closeMobileSidebar); }
+window.addEventListener('resize', ()=>{ if(!isMobileViewport()) closeMobileSidebar(); });
 
 
 function applyUiScale(scale){
@@ -2674,8 +2744,10 @@ function switchTab(tab){
     bindUiScaleSelector();
     renderManagedUsers();
   }
-  window.scrollTo({top:0,behavior:'smooth'});
+  if(isMobileViewport()) closeMobileSidebar();
+  window.scrollTo({top:0,behavior:'auto'});
 }
+
 navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
@@ -3014,6 +3086,73 @@ function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!wi
 @media (max-width: 900px){
   .actions-cell{min-width:unset}
   .enterprise-actions{flex-wrap:wrap;overflow:visible;white-space:normal}
+}
+
+
+/* MOBILE SIDEBAR + SCROLL FIX */
+@media (max-width: 980px){
+  html,body{
+    height:auto !important;
+    min-height:100%;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:auto !important;
+  }
+  body{
+    min-height:100dvh;
+  }
+  .mobile-menu-btn{display:inline-flex;align-items:center;justify-content:center}
+  .mobile-sidebar-backdrop{
+    display:block;
+    position:fixed;
+    inset:0;
+    background:rgba(2,6,15,.55);
+    opacity:0;
+    pointer-events:none;
+    transition:.22s ease;
+    z-index:88;
+  }
+  .sidebar{
+    display:flex !important;
+    position:fixed !important;
+    top:0;
+    left:0;
+    bottom:0;
+    width:min(86vw,320px);
+    height:100dvh !important;
+    transform:translateX(-105%);
+    transition:transform .22s ease;
+    z-index:99;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:calc(20px + env(safe-area-inset-bottom));
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  body.mobile-sidebar-open .sidebar{
+    transform:translateX(0);
+  }
+  body.mobile-sidebar-open .mobile-sidebar-backdrop{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .main{
+    width:100% !important;
+    min-width:0 !important;
+    overflow:visible !important;
+    padding:12px 12px 20px !important;
+  }
+  .topbar{
+    display:grid !important;
+    grid-template-columns:1fr;
+  }
+  .topbar-left{
+    display:grid !important;
+    grid-template-columns:auto 1fr;
+    align-items:start;
+    gap:10px;
+  }
+  .bottom-nav{display:none !important;}
 }
 
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
