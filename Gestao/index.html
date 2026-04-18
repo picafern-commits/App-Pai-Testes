@@ -1584,7 +1584,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
               <div class="field"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field"><label>Data de fim</label><input id="dataFim" type="date" /></div>
               <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em andamento</option><option>Concluído</option><option>Pago</option></select></div>
-              <div class="field"><label>Faturação</label><select id="trabalhoInvoiceType"><option>Com Fatura</option><option>Sem Fatura</option></select></div>
+              <div class="field"><label>Faturação</label><select id="trabalhoInvoiceType"><option>Com Fat</option><option>Sem Fat</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
             </form>
@@ -2663,7 +2663,7 @@ function renderAlerts(){
   `;
 }
 function trabalhoActions(t){
-  const showInvoice = (t.invoiceType || 'Com Fatura') === 'Com Fatura';
+  const showInvoice = (t.invoiceType || 'Com Fat') === 'Com Fat';
   const canMarkPaid = (t.estado || '') !== 'Pago';
   const canEdit = isAdminLike();
   const canDelete = isAdminLike();
@@ -2696,8 +2696,8 @@ function renderTrabalhos(){
     return (!term||hay.includes(term))&&(!globalTerm||hay.includes(globalTerm))&&(!estado||t.estado===estado);
   }).sort((a,b)=>getWorkCodeNumber(b.workCode)-getWorkCodeNumber(a.workCode));
   $('trabalhosTableBody').innerHTML = rows.length ? rows.map(t=>{
-    const invoiceType = t.invoiceType || 'Com Fatura';
-    const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
+    const invoiceType = t.invoiceType || 'Com Fat';
+    const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
     return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valor||0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td><div class="row-actions">${trabalhoActions(t)}</div></td></tr>`;
   }).join('') : '<tr><td colspan="9">Sem resultados.</td></tr>';
 }
@@ -2715,8 +2715,8 @@ function renderPagamentos() {
   if (!tbody) return;
   tbody.innerHTML = pagamentos.length
     ? pagamentos.slice().reverse().map((p) => {
-      const invoiceType = p.invoiceType || 'Com Fatura';
-      const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
+      const invoiceType = p.invoiceType || 'Com Fat';
+      const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
       return `
       <tr>
         <td>${escapeHtml(p.cliente || '-')}</td>
@@ -2795,7 +2795,7 @@ $('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClie
 $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   $('trabalhoForm')?.reset();
   if($('trabalhoId')) $('trabalhoId').value='';
-  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fatura';
+  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fat';
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
@@ -2831,7 +2831,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
-    invoiceType:$('trabalhoInvoiceType') ? $('trabalhoInvoiceType').value : 'Com Fatura',
+    invoiceType:$('trabalhoInvoiceType') ? $('trabalhoInvoiceType').value : 'Com Fat',
     descricao:$('descricao').value.trim()
   };
 
@@ -2848,7 +2848,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
 
   $('trabalhoForm').reset();
   $('trabalhoId').value='';
-  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fatura';
+  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fat';
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
@@ -2893,7 +2893,7 @@ window.editTrabalho = function(id){
   $('dataInicio').value=t.dataInicio||'';
   $('dataFim').value=t.dataFim||'';
   $('estado').value=t.estado||'Pendente';
-  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fatura';
+  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fat';
   $('descricao').value=t.descricao||'';
   switchTab('adicionar');
 };
@@ -3048,7 +3048,7 @@ window.markAsPaid = function(id, metodo='Manual'){
     data: new Date().toISOString().split('T')[0],
     workDate: t.dataInicio || t.dataFim || '',
     metodo,
-    invoiceType: t.invoiceType || 'Com Fatura',
+    invoiceType: t.invoiceType || 'Com Fat',
     notas: 'Gerado ao marcar como pago'
   };
 
@@ -3172,8 +3172,8 @@ function renderMobileCards(){
       return (!term||hay.includes(term))&&(!globalTerm||hay.includes(globalTerm))&&(!estado||t.estado===estado);
     }).sort((a,b)=>getWorkCodeNumber(b.workCode)-getWorkCodeNumber(a.workCode));
     trabWrap.innerHTML = rows.length ? rows.map(t=>{
-      const invoiceType = t.invoiceType || 'Com Fatura';
-      const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
+      const invoiceType = t.invoiceType || 'Com Fat';
+      const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
       return `<article class="mobile-card">
         <div>
           <div class="mobile-card-title">${escapeHtml(t.cliente || '-')}</div>
@@ -3193,8 +3193,8 @@ function renderMobileCards(){
   const pagWrap = $('pagamentosCardsWrap');
   if(pagWrap){
     pagWrap.innerHTML = pagamentos.length ? pagamentos.slice().reverse().map(p=>{
-      const invoiceType = p.invoiceType || 'Com Fatura';
-      const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
+      const invoiceType = p.invoiceType || 'Com Fat';
+      const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
       return `<article class="mobile-card">
         <div>
           <div class="mobile-card-title">${escapeHtml(p.cliente || '-')}</div>
