@@ -2238,6 +2238,63 @@ td.acoes-col, .acoes-col{
   border-radius: 12px;
 }
 
+
+/* BACKUPS */
+.backup-tools-card{
+  background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(30,41,59,.88));
+  border:1px solid rgba(148,163,184,.14);
+  border-radius:18px;
+  padding:16px;
+  margin-top:16px;
+  box-shadow:0 12px 24px rgba(0,0,0,.16);
+}
+.backup-tools-card h3{
+  margin:0 0 8px 0;
+}
+.backup-status-line{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:10px 0 14px 0;
+  color:#cbd5e1;
+  font-size:13px;
+}
+.backup-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.backup-actions button,
+.backup-actions label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:38px;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:12px;
+  font-weight:800;
+  border:1px solid rgba(255,255,255,.10);
+  white-space:nowrap;
+  cursor:pointer;
+}
+.backup-btn-export{
+  background:linear-gradient(180deg, rgba(37,99,235,.26), rgba(29,78,216,.18));
+  border-color:rgba(96,165,250,.42);
+  color:#dbeafe;
+}
+.backup-btn-import{
+  background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
+  border-color:rgba(216,180,254,.32);
+  color:#f3e8ff;
+}
+.backup-btn-weekly{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.40);
+  color:#dcfce7;
+}
+.backup-file-input{display:none;}
+
 </style>
 </head>
 <body>
@@ -2700,6 +2757,162 @@ function confirmPaymentMethod(method){
 
   try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
   try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
+}
+
+
+function getBackupTodayIso(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getAppDataSnapshot(){
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : JSON.parse(localStorage.getItem('trabalhos') || '[]'));
+  const clientesLista = window.clientes || (typeof clientes !== 'undefined' ? clientes : JSON.parse(localStorage.getItem('clientes') || '[]'));
+  const pagamentosLista = window.pagamentos || (typeof pagamentos !== 'undefined' ? pagamentos : JSON.parse(localStorage.getItem('pagamentos') || '[]'));
+  return {
+    trabalhos: Array.isArray(trabalhosLista) ? trabalhosLista : [],
+    clientes: Array.isArray(clientesLista) ? clientesLista : [],
+    pagamentos: Array.isArray(pagamentosLista) ? pagamentosLista : [],
+    dataBackup: new Date().toISOString(),
+    versao: 'backup-app-v12'
+  };
+}
+
+function refreshBackupStatusUi(){
+  const lastEl = document.getElementById('backupLastStatus');
+  const countEl = document.getElementById('backupCountStatus');
+  const weeklyBackups = JSON.parse(localStorage.getItem('weeklyAutoBackups') || '[]');
+  const last = localStorage.getItem('weeklyAutoBackupLastDate');
+  if(lastEl){
+    lastEl.textContent = 'Último backup automático: ' + (last ? fmtDate(last) : '--');
+  }
+  if(countEl){
+    countEl.textContent = 'Backups guardados: ' + weeklyBackups.length;
+  }
+}
+
+function exportBackupManual(){
+  const data = getAppDataSnapshot();
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 1500);
+}
+
+function recalcLastTrabIdFromList(trabalhosLista){
+  let maxId = 0;
+  (Array.isArray(trabalhosLista) ? trabalhosLista : []).forEach(t => {
+    const values = [t && t.workCode, t && t.ordemId, t && t.id];
+    values.forEach(v => {
+      const match = String(v || '').match(/TRAB-(\d+)/i);
+      if(match){
+        maxId = Math.max(maxId, Number(match[1] || 0));
+      }
+    });
+  });
+  try{
+    if(typeof window.lastTrabId !== 'undefined') window.lastTrabId = maxId;
+    localStorage.setItem('lastTrabId', String(maxId));
+  }catch(e){}
+}
+
+function importBackupDataObject(data){
+  if(!data || typeof data !== 'object'){
+    alert('Backup inválido.');
+    return;
+  }
+  const novosTrabalhos = Array.isArray(data.trabalhos) ? data.trabalhos : [];
+  const novosClientes = Array.isArray(data.clientes) ? data.clientes : [];
+  const novosPagamentos = Array.isArray(data.pagamentos) ? data.pagamentos : [];
+
+  localStorage.setItem('trabalhos', JSON.stringify(novosTrabalhos));
+  localStorage.setItem('clientes', JSON.stringify(novosClientes));
+  localStorage.setItem('pagamentos', JSON.stringify(novosPagamentos));
+
+  try{
+    if(typeof window.trabalhos !== 'undefined') window.trabalhos = novosTrabalhos;
+    if(typeof window.clientes !== 'undefined') window.clientes = novosClientes;
+    if(typeof window.pagamentos !== 'undefined') window.pagamentos = novosPagamentos;
+  }catch(e){}
+
+  recalcLastTrabIdFromList(novosTrabalhos);
+
+  try { if(typeof renderTrabalhos === 'function') renderTrabalhos(); } catch(e){}
+  try { if(typeof renderClientes === 'function') renderClientes(); } catch(e){}
+  try { if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e){}
+  try { if(typeof renderDashboard === 'function') renderDashboard(); } catch(e){}
+  try { if(typeof renderRelatorios === 'function') renderRelatorios(); } catch(e){}
+  try { if(typeof loadAllData === 'function') loadAllData(); } catch(e){}
+
+  alert('Backup importado com sucesso.');
+}
+
+function importBackupFile(event){
+  const file = event && event.target && event.target.files ? event.target.files[0] : null;
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = JSON.parse(e.target.result);
+      importBackupDataObject(data);
+      if(event.target) event.target.value = '';
+    }catch(err){
+      alert('Não foi possível ler o backup.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function runWeeklyAutomaticBackupSilently(){
+  const now = new Date();
+  const lastDateIso = localStorage.getItem('weeklyAutoBackupLastDate');
+  if(lastDateIso){
+    const diffDays = (now - new Date(lastDateIso)) / (1000 * 60 * 60 * 24);
+    if(diffDays < 7){
+      refreshBackupStatusUi();
+      return;
+    }
+  }
+
+  const snapshot = getAppDataSnapshot();
+  const backups = JSON.parse(localStorage.getItem('weeklyAutoBackups') || '[]');
+  backups.push(snapshot);
+  while(backups.length > 12){
+    backups.shift();
+  }
+  localStorage.setItem('weeklyAutoBackups', JSON.stringify(backups));
+  localStorage.setItem('weeklyAutoBackupLastDate', snapshot.dataBackup);
+  refreshBackupStatusUi();
+}
+
+function downloadLatestWeeklyBackup(){
+  const backups = JSON.parse(localStorage.getItem('weeklyAutoBackups') || '[]');
+  if(!backups.length){
+    alert('Sem backups semanais.');
+    return;
+  }
+  const latest = backups[backups.length - 1];
+  const stamp = String(latest.dataBackup || new Date().toISOString()).replace(/[:.]/g, '-');
+  const blob = new Blob([JSON.stringify(latest, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `backup-semanal-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 1500);
 }
 
 </script>
@@ -3916,6 +4129,63 @@ td.acoes-col, .acoes-col{
 #relatorios-page button{
   border-radius: 12px;
 }
+
+
+/* BACKUPS */
+.backup-tools-card{
+  background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(30,41,59,.88));
+  border:1px solid rgba(148,163,184,.14);
+  border-radius:18px;
+  padding:16px;
+  margin-top:16px;
+  box-shadow:0 12px 24px rgba(0,0,0,.16);
+}
+.backup-tools-card h3{
+  margin:0 0 8px 0;
+}
+.backup-status-line{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:10px 0 14px 0;
+  color:#cbd5e1;
+  font-size:13px;
+}
+.backup-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.backup-actions button,
+.backup-actions label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:38px;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:12px;
+  font-weight:800;
+  border:1px solid rgba(255,255,255,.10);
+  white-space:nowrap;
+  cursor:pointer;
+}
+.backup-btn-export{
+  background:linear-gradient(180deg, rgba(37,99,235,.26), rgba(29,78,216,.18));
+  border-color:rgba(96,165,250,.42);
+  color:#dbeafe;
+}
+.backup-btn-import{
+  background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
+  border-color:rgba(216,180,254,.32);
+  color:#f3e8ff;
+}
+.backup-btn-weekly{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.40);
+  color:#dcfce7;
+}
+.backup-file-input{display:none;}
 
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
