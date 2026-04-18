@@ -1906,7 +1906,7 @@ td.acoes-col, .acoes-col{
 
 
 /* BACKUPS */
-.backup-tools-card{
+.REMOVED_BACKUP{
   background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(30,41,59,.88));
   border:1px solid rgba(148,163,184,.14);
   border-radius:18px;
@@ -1914,7 +1914,7 @@ td.acoes-col, .acoes-col{
   margin-top:16px;
   box-shadow:0 12px 24px rgba(0,0,0,.16);
 }
-.backup-tools-card h3{
+.REMOVED_BACKUP h3{
   margin:0 0 8px 0;
 }
 .backup-status-line{
@@ -1963,11 +1963,11 @@ td.acoes-col, .acoes-col{
 
 
 /* BACKUPS VISUAL PRO */
-.backup-tools-card{
+.REMOVED_BACKUP{
   position: relative;
   overflow: hidden;
 }
-.backup-tools-card::before{
+.REMOVED_BACKUP::before{
   content:'';
   position:absolute;
   inset:0;
@@ -1975,7 +1975,7 @@ td.acoes-col, .acoes-col{
               radial-gradient(circle at bottom left, rgba(168,85,247,.14), transparent 30%);
   pointer-events:none;
 }
-.backup-tools-card > *{
+.REMOVED_BACKUP > *{
   position:relative;
   z-index:1;
 }
@@ -2688,6 +2688,35 @@ function downloadLatestWeeklyBackup(){
     a.remove();
   }, 1500);
 }
+
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  const page = document.getElementById("configuracoes-page");
+  if(!page) return;
+
+  if(document.getElementById("backupToolsCard")) return;
+
+  const div = document.createElement("div");
+  div.id = "backupToolsCard";
+  div.innerHTML = `
+    <div style="margin-top:20px;padding:15px;border-radius:12px;background:#0f172a;border:1px solid rgba(255,255,255,0.1)">
+      <h3 style="margin-bottom:10px">Backups</h3>
+      <div style="margin-bottom:10px">
+        Último: <span id="backupLastStatus">--</span> |
+        Total: <span id="backupCountStatus">0</span>
+      </div>
+      <button onclick="exportBackupManual()">Exportar</button>
+      <button onclick="downloadLatestWeeklyBackup()" style="margin-left:8px">Download</button>
+      <input type="file" onchange="importBackupFile(event)" style="margin-left:8px">
+    </div>
+  `;
+
+  page.appendChild(div);
+
+  try{refreshBackupStatusUi();}catch(e){}
+
+});
 
 </script>
   <script type="module">
@@ -3827,7 +3856,7 @@ td.acoes-col, .acoes-col{
 
 
 /* BACKUPS */
-.backup-tools-card{
+.REMOVED_BACKUP{
   background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(30,41,59,.88));
   border:1px solid rgba(148,163,184,.14);
   border-radius:18px;
@@ -3835,7 +3864,7 @@ td.acoes-col, .acoes-col{
   margin-top:16px;
   box-shadow:0 12px 24px rgba(0,0,0,.16);
 }
-.backup-tools-card h3{
+.REMOVED_BACKUP h3{
   margin:0 0 8px 0;
 }
 .backup-status-line{
@@ -3884,11 +3913,11 @@ td.acoes-col, .acoes-col{
 
 
 /* BACKUPS VISUAL PRO */
-.backup-tools-card{
+.REMOVED_BACKUP{
   position: relative;
   overflow: hidden;
 }
-.backup-tools-card::before{
+.REMOVED_BACKUP::before{
   content:'';
   position:absolute;
   inset:0;
@@ -3896,7 +3925,7 @@ td.acoes-col, .acoes-col{
               radial-gradient(circle at bottom left, rgba(168,85,247,.14), transparent 30%);
   pointer-events:none;
 }
-.backup-tools-card > *{
+.REMOVED_BACKUP > *{
   position:relative;
   z-index:1;
 }
@@ -4840,6 +4869,35 @@ function confirmPaymentMethod(method){
   try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
   try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
 }
+
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  const page = document.getElementById("configuracoes-page");
+  if(!page) return;
+
+  if(document.getElementById("backupToolsCard")) return;
+
+  const div = document.createElement("div");
+  div.id = "backupToolsCard";
+  div.innerHTML = `
+    <div style="margin-top:20px;padding:15px;border-radius:12px;background:#0f172a;border:1px solid rgba(255,255,255,0.1)">
+      <h3 style="margin-bottom:10px">Backups</h3>
+      <div style="margin-bottom:10px">
+        Último: <span id="backupLastStatus">--</span> |
+        Total: <span id="backupCountStatus">0</span>
+      </div>
+      <button onclick="exportBackupManual()">Exportar</button>
+      <button onclick="downloadLatestWeeklyBackup()" style="margin-left:8px">Download</button>
+      <input type="file" onchange="importBackupFile(event)" style="margin-left:8px">
+    </div>
+  `;
+
+  page.appendChild(div);
+
+  try{refreshBackupStatusUi();}catch(e){}
+
+});
 
 </script>
 
