@@ -1173,8 +1173,45 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   text-transform:uppercase;
 }
 
+
+/* ===== AJUSTES PEDIDOS 18-04 ===== */
+.topbar-actions{display:none !important;}
+.topbar{justify-content:flex-start;}
+#adicionar-page .content-grid,
+#trabalhos-page .content-grid,
+#pagamentos-page .content-grid{grid-template-columns:minmax(0,1fr) !important;}
+#adicionar-page .panel,
+#trabalhos-page .panel,
+#pagamentos-page .panel{
+  width:100%;
+  max-width:none;
+}
+#adicionar-page .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+#adicionar-page .field-span-2{grid-column:span 2;}
+#trabalhos-page .table-wrap,
+#pagamentos-page .table-wrap{width:100%;}
+#trabalhos-page table,
+#pagamentos-page table{min-width:1000px;}
+#configuracoes-page .config-actions-tight{margin-top:0;}
+#configuracoes-page .mode-switch-copy p,
+#configuracoes-page .mode-switch-hint{display:none !important;}
+#configuracoes-page .mode-switch-copy{max-width:420px;}
+#configuracoes-page .mode-switch-card{align-items:center;}
+
+@media (min-width: 901px){
+  #adicionar-page .panel,
+  #trabalhos-page .panel,
+  #pagamentos-page .panel{
+    min-height:calc(100vh - 180px);
+  }
+}
+
+@media (max-width: 900px){
+  #adicionar-page .form-grid{grid-template-columns:1fr !important;}
+  #adicionar-page .field-span-2{grid-column:span 1 !important;}
+}
+
 </style>
-  <link rel="stylesheet" href="responsive-layout.css" />
 </head>
 <body><div class="platform-badge">TABLET/PC</div><div class="env-badge prod">PRODUÇÃO</div>
   <div class="bg-orb orb-1"></div>
@@ -1257,10 +1294,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
             </div>
           </div>
         </div>
-        <div class="topbar-actions"><input id="globalSearch" class="global-search" type="text" placeholder="Pesquisar cliente, trabalho ou pagamento" />
-          <button class="btn btn-ghost" data-go="relatorios">Resumo mensal</button>
-          
-        </div>
+        
       </header>
 
       <section class="page active" id="dashboard-page">
@@ -1411,12 +1445,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <section class="page" id="configuracoes-page">
         <section class="panel">
           <div class="panel-head"><h3>Configurações</h3></div>
-          <div class="settings-grid clean-settings-grid">
-            <div class="setting-card"><span class="mini-label">Login</span><strong>Interno</strong><p>Acesso simples e estável.</p></div>
-            <div class="setting-card"><span class="mini-label">Sincronização</span><strong>Firebase</strong><p>Ligação entre dispositivos ativa.</p></div>
-            <div class="setting-card"><span class="mini-label">Backup</span><strong>Manual</strong><p>Exportação JSON disponível aqui.</p></div>
-          </div>
-          <div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-actions">
+<div class="config-actions config-actions-tight">
             <button class="btn btn-secondary" id="exportBackupBtn">Backup JSON</button>
           </div>
 
@@ -1428,7 +1457,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   <div class="mode-switch-card">
     <div class="mode-switch-copy">
       <h4>Estás na versão de TESTE</h4>
-      <p>Troca entre a versão FINAL e a versão TESTE do Tablet/PC sem mexer no Android nem no iPhone. Ao trocar de ambiente, a app termina a sessão atual e pede login novamente.</p><p class="mode-switch-hint">O botão troca imediatamente para a outra pasta do GitHub Pages.</p>
     </div>
     <div class="mode-switch-actions">
       <button type="button" class="btn btn-secondary mode-switch-btn " id="goTabletFinalBtn" onclick="if(window.forceGoTabletFinal) window.forceGoTabletFinal()">Abrir FINAL</button>
@@ -1465,11 +1493,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
                 </div>
               </section>
             </div>
-
-            <div class="panel-head" style="margin-top:18px;"><h3>Informação</h3></div>
-            <div class="panel-head"><h3>Gestão de utilizadores</h3></div>
-            <div class="settings-grid clean-settings-grid">
-              <div class="setting-card"><span class="mini-label">Admin Mestre</span><strong>Ricardo</strong><p>Só o Ricardo consegue ver esta área.</p></div>
               <div class="setting-card"><span class="mini-label">Credenciais</span><strong>Internas</strong><p>Sem dependência de Google.</p></div>
               <div class="setting-card"><span class="mini-label">Estado</span><strong>Ativo</strong><p>Base pronta para uso.</p></div>
             </div>
@@ -1488,9 +1511,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
     <button class="bottom-btn" data-tab="relatorios">Relatórios</button>
     <button class="bottom-btn" data-tab="configuracoes">Configurações</button>
   </nav>
-
-  
-  <script src="responsive-layout.js"></script>
 
   <script>
 
@@ -1892,7 +1912,8 @@ async function removeRemote(collectionName, id){
 
 
 function adminGuard(){ if(!isAdminLike()){ alert('Só o Admin pode fazer alterações.'); return false; } return true; }
-function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!win) return; win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${title}</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#111}h1,h2{margin:0 0 10px}.meta{color:#555;margin-bottom:20px}.card{border:1px solid #ddd;border-radius:12px;padding:18px;margin:12px 0}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border-bottom:1px solid #ddd;padding:10px;text-align:left}</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!win) return; win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${title}</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#111}h1,h2{margin:0 0 10px}.meta{color:#555;margin-bottom:20px}.card{border:1px solid #ddd;border-radius:12px;padding:18px;margin:12px 0}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border-bottom:1px solid #ddd;padding:10px;text-align:left}
+</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
