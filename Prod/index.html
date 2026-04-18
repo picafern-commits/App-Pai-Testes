@@ -378,7 +378,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 
 .single-panel-grid{grid-template-columns:1fr !important;}
 
-
 /* ===== LAYOUT FIX SIDEBAR + MAIN ===== */
 .app,
 .app-shell{
@@ -439,7 +438,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
     width:100%;
   }
 }
-
 
 /* ===== Melhorias premium 1.0.6 ===== */
 .badge[data-state="Pendente"]{
@@ -544,7 +542,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   display:none !important;
 }
 
-
 .modal{
   position:fixed;
   inset:0;
@@ -587,7 +584,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 }
 
 .users-master-panel table{width:100%;}
-
 
 /* ===== MOBILE ANDROID + IPHONE 1.0.6 ===== */
 @media (max-width: 900px){
@@ -862,34 +858,11 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   background:rgba(245,158,11,.16);
   color:#fcd34d;
 }
-
-.env-switch-btn{
-  position:fixed;
-  top:10px;
-  right:120px;
-  z-index:200;
-  padding:8px 12px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:700;
-  text-decoration:none;
-  color:#eef3ff;
-  background:rgba(15,23,42,.88);
-  border:1px solid rgba(255,255,255,.1);
-  backdrop-filter:blur(8px);
-}
 .env-switch-btn:hover{
   background:rgba(30,41,59,.95);
 }
 @media (max-width:900px){
-  .env-switch-btn{
-    top:auto;
-    bottom:84px;
-    right:12px;
-    font-size:11px;
-    padding:8px 10px;
-  }
-  .env-badge{
+.env-badge{
     top:auto;
     bottom:128px;
     right:12px;
@@ -1022,7 +995,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   }
 }
 
-
 /* PLATFORM CUSTOM */
 
 .platform-badge{
@@ -1035,32 +1007,11 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   .bottom-nav{display:none !important}
 }
 
-
 /* MODE BADGE + SWITCH */
-.mode-badge{
-  position:fixed; top:12px; right:12px; z-index:240;
-  padding:8px 12px; border-radius:999px; font-size:12px; font-weight:700;
-  border:1px solid rgba(255,255,255,.08); backdrop-filter:blur(10px)
-}
 .mode-badge.prod{background:rgba(34,197,94,.16); color:#86efac}
 .mode-badge.test{background:rgba(239,68,68,.16); color:#fca5a5}
 
-
 /* MODE BADGE + SWITCH CLEAN */
-.mode-badge{
-  position:fixed;
-  top:14px;
-  right:14px;
-  z-index:220;
-  padding:9px 14px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.02em;
-  border:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(10px);
-  box-shadow:0 10px 28px rgba(0,0,0,.22);
-}
 .mode-badge.prod{background:rgba(34,197,94,.16);color:#86efac}
 .mode-badge.test{background:rgba(239,68,68,.16);color:#fca5a5}
 .mode-switch-grid{
@@ -1080,22 +1031,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   color:#cbd5e1;
 }
 
-
 /* MODE SWITCH PROFESSIONAL */
-.mode-badge{
-  position:fixed;
-  top:14px;
-  right:14px;
-  z-index:240;
-  padding:8px 14px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.02em;
-  border:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(10px);
-  box-shadow:0 10px 28px rgba(0,0,0,.22);
-}
 .mode-badge.prod{background:rgba(34,197,94,.16);color:#86efac}
 .mode-badge.test{background:rgba(239,68,68,.16);color:#fca5a5}
 .mode-switch-card{
@@ -1133,33 +1069,8 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   }
 }
 
-
 /* MODE BADGE CLEAN RECOVERY */
-.mode-badge{
-  position:fixed !important;
-  top:18px !important;
-  right:18px !important;
-  z-index:240 !important;
-  padding:8px 14px !important;
-  min-height:40px !important;
-  display:flex !important;
-  align-items:center !important;
-  border-radius:999px !important;
-  font-size:12px !important;
-  font-weight:800 !important;
-  letter-spacing:.02em !important;
-  border:1px solid rgba(255,255,255,.08) !important;
-  backdrop-filter:blur(10px) !important;
-  box-shadow:0 10px 28px rgba(0,0,0,.22) !important;
-}
 @media (max-width: 1400px){
-  .mode-badge{
-    top:72px !important;
-    right:16px !important;
-  }
-}
-
-
 /* ENV INDICATOR CLEAN */
 .env-indicator{
   position: fixed;
@@ -1435,7 +1346,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 
           
 
-
 <div id="usersSection" class="panel users-master-panel">
             <div class="panel-head"><h3>Gestão de utilizadores</h3></div>
             <div class="content-grid single-panel-grid">
@@ -1588,17 +1498,11 @@ document.addEventListener('DOMContentLoaded', () => {
     showLogin();
   }
 });
-
-
-
-
-window.forceGoTabletFinal = function(){
-  try{ localStorage.removeItem('app_session'); }catch(e){}
+catch(e){}
   try{ localStorage.removeItem('app_session_prod'); }catch(e){}
   window.location.href = '/App-Pai/Gestao-Tablet-PC/';
 }
-window.forceGoTabletTest = function(){
-  try{ localStorage.removeItem('app_session'); }catch(e){}
+catch(e){}
   try{ localStorage.removeItem('app_session_prod'); }catch(e){}
   window.location.href = '/App-Pai/Gestao-Tablet-PC-Teste/';
 }
@@ -1612,7 +1516,6 @@ const firebaseConfig = {
   messagingSenderId: "594270955224",
   appId: "1:594270955224:web:85d1d530889704d0f359ad"
 };
-
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -1677,7 +1580,6 @@ function fillClientContactFromSelection(){
   const c = clientes.find(x => (x.nome || '') === selectedName);
   contacto.value = c ? (c.telefone || '') : '';
 }
-
 
 function normalizeManagedUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
@@ -1875,7 +1777,6 @@ async function removeRemote(collectionName, id){
   await deleteDoc(doc(firestoreDb, collectionName, id));
   return true;
 }
-
 
 function adminGuard(){ if(!isAdminLike()){ alert('Só o Admin pode fazer alterações.'); return false; } return true; }
 function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!win) return; win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${title}</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#111}h1,h2{margin:0 0 10px}.meta{color:#555;margin-bottom:20px}.card{border:1px solid #ddd;border-radius:12px;padding:18px;margin:12px 0}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border-bottom:1px solid #ddd;padding:10px;text-align:left}</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
@@ -2088,7 +1989,6 @@ $('clearClienteBtn')?.addEventListener('click', ()=>{
   if($('clienteId')) $('clienteId').value='';
 });
 
-
 $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   if(!adminGuard()) return;
@@ -2138,7 +2038,6 @@ $('clienteForm')?.addEventListener('submit', async (e)=>{
   renderAll();
   switchTab('clientes');
 });
-
 
 window.editTrabalho = function(id){
   if(!adminGuard()) return;
@@ -2266,7 +2165,6 @@ loadLocal();
 autoBackupInvisible();
 initFirebaseSync();
 
-
 window.startApp = function(role, username){
   currentRole = role;
   currentUsername = username;
@@ -2275,7 +2173,6 @@ window.startApp = function(role, username){
   renderAll();
   initFirebaseSync().catch(err => console.error(err));
 };
-
 
 window.markAsPaid = function(id, metodo='Manual'){
   const t = trabalhos.find(x => x.id === id);
@@ -2306,7 +2203,6 @@ window.markAsPaid = function(id, metodo='Manual'){
   upsertRemote('pagamentos', pagamento).catch(err => console.error(err));
 }
 
-
 window.deletePagamento = function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este registo de pagamento?')) return;
@@ -2315,7 +2211,6 @@ window.deletePagamento = function(id){
   renderAll();
   removeRemote('pagamentos', id).catch(err => console.error(err));
 };
-
 
 window.showDesc = function(id){
   const t = trabalhos.find(x => x.id === id);
@@ -2361,7 +2256,6 @@ document.querySelectorAll('.pay-method-btn').forEach(btn=>{
 
 $('cliente')?.addEventListener('change', fillClientContactFromSelection);
 
-
 $('userManagerForm')?.addEventListener('submit', (e) => {
   e.preventDefault();
   if(!isMasterAdmin()) return;
@@ -2403,7 +2297,6 @@ $('clearManagedUserBtn')?.addEventListener('click', ()=>{
   $('managedUserIndex').value = '';
   $('managedRole').value = 'user';
 });
-
 
 function renderMobileCards(){
   const trabWrap = $('trabalhosCardsWrap');
@@ -2489,7 +2382,6 @@ function renderMobileCards(){
       <div id="clientModalContent" class="client-modal-content"></div>
     </div>
   </div>
-
 
   <div id="descModal" class="modal hidden">
     <div class="modal-card modal-small">
