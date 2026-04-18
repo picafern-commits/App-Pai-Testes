@@ -1491,9 +1491,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .stage-chip.locked{opacity:.42;cursor:not-allowed}
 .stage-chip:hover:not(.locked){transform:translateY(-1px)}
 .payment-badge-inline{background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.32);color:#86efac;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:6px}
-.stage-step.stage-paid{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.32);color:#86efac}
-button.stage-step.stage-paid{cursor:pointer}
-button.stage-step.stage-paid:hover{filter:brightness(1.08)}
 .row-actions .action-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .row-actions .action-bottom{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .payment-date-box input{min-height:40px}
@@ -1589,6 +1586,130 @@ button.stage-step.next::before{content:'→';font-size:11px;font-weight:900;marg
   .stage-step,.payment-badge-inline,.enterprise-actions .small-btn{padding:6px 10px;font-size:11px}
 }
 
+
+.desc-status-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.01em;
+  line-height:1;
+  border:1px solid rgba(255,255,255,.10);
+  white-space:nowrap;
+}
+button.desc-status-btn{
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+button.desc-status-btn:hover{transform:translateY(-1px)}
+.desc-status-btn.has-desc{
+  background:linear-gradient(180deg, rgba(37,99,235,.26), rgba(29,78,216,.18));
+  border-color:rgba(96,165,250,.42);
+  color:#dbeafe;
+  box-shadow:0 0 0 1px rgba(59,130,246,.12) inset, 0 6px 14px rgba(37,99,235,.14);
+}
+.desc-status-btn.no-desc{
+  background:linear-gradient(180deg, rgba(148,163,184,.12), rgba(100,116,139,.08));
+  border-color:rgba(148,163,184,.20);
+  color:#94a3b8;
+}
+.stage-control-btn{
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.stage-control-btn:hover{transform:translateY(-1px)}
+.stage-control-btn.next{
+  background:linear-gradient(180deg, rgba(245,158,11,.22), rgba(217,119,6,.16));
+  border-color:rgba(252,211,77,.38);
+  color:#fef3c7;
+  box-shadow:0 0 0 1px rgba(245,158,11,.08) inset;
+}
+.stage-control-btn.next::before{
+  content:'→';
+  font-size:11px;
+  font-weight:900;
+  margin-right:6px;
+  color:#fde68a;
+}
+.stage-control-btn.pay{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.40);
+  color:#dcfce7;
+  box-shadow:0 0 0 1px rgba(34,197,94,.10) inset;
+}
+.stage-control-btn.pay::before{
+  content:'€';
+  font-size:11px;
+  font-weight:900;
+  margin-right:6px;
+  color:#bbf7d0;
+}
+.stage-step.final-paid{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.40);
+  color:#dcfce7;
+}
+.stage-step.final-paid::before{
+  content:'✓';
+  font-size:11px;
+  font-weight:900;
+  margin-right:6px;
+  color:#bbf7d0;
+}
+
+
+.pipeline-like-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.01em;
+  line-height:1;
+  border:1px solid rgba(255,255,255,.10);
+  white-space:nowrap;
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease, opacity .15s ease;
+}
+.pipeline-like-btn:hover{transform:translateY(-1px)}
+.pipeline-like-btn.desc-btn{
+  background:linear-gradient(180deg, rgba(37,99,235,.26), rgba(29,78,216,.18));
+  border-color:rgba(96,165,250,.42);
+  color:#dbeafe;
+  box-shadow:0 0 0 1px rgba(59,130,246,.12) inset, 0 6px 14px rgba(37,99,235,.14);
+}
+.pipeline-like-btn.edit-btn{
+  background:linear-gradient(180deg, rgba(245,158,11,.22), rgba(217,119,6,.16));
+  border-color:rgba(252,211,77,.38);
+  color:#fef3c7;
+  box-shadow:0 0 0 1px rgba(245,158,11,.08) inset;
+}
+.pipeline-like-btn.delete-btn{
+  background:linear-gradient(180deg, rgba(239,68,68,.22), rgba(185,28,28,.16));
+  border-color:rgba(252,165,165,.34);
+  color:#fee2e2;
+  box-shadow:0 0 0 1px rgba(239,68,68,.08) inset;
+}
+.pipeline-like-btn.fatura-btn{
+  background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
+  border-color:rgba(216,180,254,.32);
+  color:#f3e8ff;
+  box-shadow:0 0 0 1px rgba(168,85,247,.08) inset;
+}
+
+
+.stage-arrow{
+  opacity:.55;
+  margin:0 4px;
+  font-weight:800;
+}
 </style>
 </head>
 <body>
@@ -2165,27 +2286,26 @@ function setWorkEstadoById(id, novoEstado){
 function buildFlowButtons(t){
   if(!isAdminLike()) return '';
   const atual = getFlowEstado(t.estado || 'Pendente');
-  const currentIndex = ESTADOS_FLUXO.indexOf(atual);
-  return `<div class="stage-pipeline">` + ESTADOS_FLUXO.map((estado, index) => {
-    const stateClass = index < currentIndex ? 'done' : index === currentIndex ? 'current' : index === currentIndex + 1 ? 'next' : 'locked';
-    const part = index === currentIndex + 1
-      ? `<button class="stage-step ${stateClass}" onclick="window.setWorkEstadoById('${t.id}','${estado}')">${estado}</button>`
-      : `<span class="stage-step ${stateClass}">${estado}</span>`;
-    const arrow = index < ESTADOS_FLUXO.length - 1 ? `<span class="stage-arrow">›</span>` : '';
-    return part + arrow;
-  }).join('') + `</div>`;
+  const isPaid = t && t.paymentStatus === 'Pago';
+  const nextEstado = getNextFlowEstado(t.estado || 'Pendente');
+
+  const currentBadge = `<span class="stage-step current">${escapeHtml(atual)}</span>`;
+
+  if(isPaid || atual === 'Pago'){
+    return currentBadge + `<span class="stage-arrow">›</span><span class="stage-step done final-paid">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>`;
+  }
+
+  if(atual === 'Entregue' || !nextEstado){
+    return currentBadge + `<span class="stage-arrow">›</span><button class="stage-step stage-control-btn pay" onclick="window.openPaymentMethodModal('${t.id}')">Pago</button>`;
+  }
+
+  return currentBadge + `<span class="stage-arrow">›</span><button class="stage-step stage-control-btn next" onclick="window.setWorkEstadoById('${t.id}','${nextEstado}')">${escapeHtml(nextEstado)}</button>`;
 }
 
 
 function getPaymentBadgeHtml(t){
-  if(!t) return '';
-  if(t.paymentStatus === 'Pago'){
-    return `<span class="stage-step stage-paid">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>`;
-  }
-  if(normalizeEstado(t.estado || '') === 'Cancelado' || !isAdminLike()) return '';
-  return `<button class="stage-step stage-paid" onclick="window.openPaymentMethodModal('${t.id}')">Pago</button>`;
+  return t && t.paymentStatus === 'Pago' ? `<span class="payment-badge-inline">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>` : '';
 }
-
 window.setWorkEstadoById = setWorkEstadoById;
 
 function genId(prefix='id'){
@@ -2768,6 +2888,130 @@ function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!wi
   .enterprise-actions{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;white-space:nowrap}
 }
 
+
+.desc-status-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.01em;
+  line-height:1;
+  border:1px solid rgba(255,255,255,.10);
+  white-space:nowrap;
+}
+button.desc-status-btn{
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+button.desc-status-btn:hover{transform:translateY(-1px)}
+.desc-status-btn.has-desc{
+  background:linear-gradient(180deg, rgba(37,99,235,.26), rgba(29,78,216,.18));
+  border-color:rgba(96,165,250,.42);
+  color:#dbeafe;
+  box-shadow:0 0 0 1px rgba(59,130,246,.12) inset, 0 6px 14px rgba(37,99,235,.14);
+}
+.desc-status-btn.no-desc{
+  background:linear-gradient(180deg, rgba(148,163,184,.12), rgba(100,116,139,.08));
+  border-color:rgba(148,163,184,.20);
+  color:#94a3b8;
+}
+.stage-control-btn{
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.stage-control-btn:hover{transform:translateY(-1px)}
+.stage-control-btn.next{
+  background:linear-gradient(180deg, rgba(245,158,11,.22), rgba(217,119,6,.16));
+  border-color:rgba(252,211,77,.38);
+  color:#fef3c7;
+  box-shadow:0 0 0 1px rgba(245,158,11,.08) inset;
+}
+.stage-control-btn.next::before{
+  content:'→';
+  font-size:11px;
+  font-weight:900;
+  margin-right:6px;
+  color:#fde68a;
+}
+.stage-control-btn.pay{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.40);
+  color:#dcfce7;
+  box-shadow:0 0 0 1px rgba(34,197,94,.10) inset;
+}
+.stage-control-btn.pay::before{
+  content:'€';
+  font-size:11px;
+  font-weight:900;
+  margin-right:6px;
+  color:#bbf7d0;
+}
+.stage-step.final-paid{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.40);
+  color:#dcfce7;
+}
+.stage-step.final-paid::before{
+  content:'✓';
+  font-size:11px;
+  font-weight:900;
+  margin-right:6px;
+  color:#bbf7d0;
+}
+
+
+.pipeline-like-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.01em;
+  line-height:1;
+  border:1px solid rgba(255,255,255,.10);
+  white-space:nowrap;
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease, opacity .15s ease;
+}
+.pipeline-like-btn:hover{transform:translateY(-1px)}
+.pipeline-like-btn.desc-btn{
+  background:linear-gradient(180deg, rgba(37,99,235,.26), rgba(29,78,216,.18));
+  border-color:rgba(96,165,250,.42);
+  color:#dbeafe;
+  box-shadow:0 0 0 1px rgba(59,130,246,.12) inset, 0 6px 14px rgba(37,99,235,.14);
+}
+.pipeline-like-btn.edit-btn{
+  background:linear-gradient(180deg, rgba(245,158,11,.22), rgba(217,119,6,.16));
+  border-color:rgba(252,211,77,.38);
+  color:#fef3c7;
+  box-shadow:0 0 0 1px rgba(245,158,11,.08) inset;
+}
+.pipeline-like-btn.delete-btn{
+  background:linear-gradient(180deg, rgba(239,68,68,.22), rgba(185,28,28,.16));
+  border-color:rgba(252,165,165,.34);
+  color:#fee2e2;
+  box-shadow:0 0 0 1px rgba(239,68,68,.08) inset;
+}
+.pipeline-like-btn.fatura-btn{
+  background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
+  border-color:rgba(216,180,254,.32);
+  color:#f3e8ff;
+  box-shadow:0 0 0 1px rgba(168,85,247,.08) inset;
+}
+
+
+.stage-arrow{
+  opacity:.55;
+  margin:0 4px;
+  font-weight:800;
+}
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
@@ -3005,18 +3249,20 @@ function trabalhoActions(t){
   const canDelete = isAdminLike();
   const hasDesc = ((t.descricao || t.descrição || t.description || t.desc || '')).trim().length > 0;
   const flowButtons = buildFlowButtons(t);
-  const paymentBadge = getPaymentBadgeHtml(t);
+  const descButton = hasDesc
+    ? `<button class="pipeline-like-btn desc-btn" onclick="window.showDesc('${t.id}')">Com Descrição</button>`
+    : `<span class="desc-status-btn no-desc">Sem Descrição</span>`;
+
   return `
     <div class="enterprise-actions">
-      ${hasDesc ? `<button class="small-btn info" onclick="window.showDesc('${t.id}')">Descrição</button>` : ''}
-      ${showInvoice ? `<button class="small-btn primary" onclick="generateInvoice('${t.id}')">Fatura</button>` : ''}
-      ${canEdit ? `<button class="small-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : ''}
-      ${canDelete ? `<button class="small-btn danger" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : ''}
-      <div class="stage-pipeline">${flowButtons.replace(/^<div class=\"stage-pipeline\">|<\/div>$/g,'')} ${paymentBadge}</div>
+      ${descButton}
+      ${showInvoice ? `<button class="pipeline-like-btn fatura-btn" onclick="generateInvoice('${t.id}')">Fatura</button>` : ''}
+      ${canEdit ? `<button class="pipeline-like-btn edit-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : ''}
+      ${canDelete ? `<button class="pipeline-like-btn delete-btn" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : ''}
+      ${flowButtons}
     </div>
   `;
 }
-
 
 function clienteActions(c){
   const history=`<button class="small-btn" onclick="openClientHistory('${c.id}')">Histórico</button>`;
