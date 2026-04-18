@@ -28,6 +28,17 @@
   --warn:#f59e0b;
   --danger:#ef4444;
   --shadow:0 18px 60px rgba(0,0,0,.35);
+  --ui-font:15px;
+  --ui-font-small:12px;
+  --ui-font-title:34px;
+  --ui-space:14px;
+  --ui-space-sm:8px;
+  --ui-space-lg:20px;
+  --ui-btn-height:42px;
+  --ui-input-height:48px;
+  --ui-radius:18px;
+  --ui-card-padding:14px;
+  --ui-table-font:14px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -217,6 +228,124 @@ textarea{resize:vertical}
   gap:10px;
   flex-wrap:wrap;
   align-items:center;
+}
+
+
+body.ui-auto{
+  --ui-font:15px;
+  --ui-font-small:12px;
+  --ui-font-title:34px;
+  --ui-space:14px;
+  --ui-space-sm:8px;
+  --ui-space-lg:20px;
+  --ui-btn-height:42px;
+  --ui-input-height:48px;
+  --ui-radius:18px;
+  --ui-card-padding:14px;
+  --ui-table-font:14px;
+}
+body.ui-compact{
+  --ui-font:13px;
+  --ui-font-small:11px;
+  --ui-font-title:28px;
+  --ui-space:10px;
+  --ui-space-sm:6px;
+  --ui-space-lg:14px;
+  --ui-btn-height:36px;
+  --ui-input-height:40px;
+  --ui-radius:14px;
+  --ui-card-padding:10px;
+  --ui-table-font:12px;
+}
+body.ui-normal{
+  --ui-font:15px;
+  --ui-font-small:12px;
+  --ui-font-title:34px;
+  --ui-space:14px;
+  --ui-space-sm:8px;
+  --ui-space-lg:20px;
+  --ui-btn-height:42px;
+  --ui-input-height:48px;
+  --ui-radius:18px;
+  --ui-card-padding:14px;
+  --ui-table-font:14px;
+}
+body.ui-large{
+  --ui-font:18px;
+  --ui-font-small:14px;
+  --ui-font-title:38px;
+  --ui-space:18px;
+  --ui-space-sm:10px;
+  --ui-space-lg:24px;
+  --ui-btn-height:50px;
+  --ui-input-height:56px;
+  --ui-radius:20px;
+  --ui-card-padding:18px;
+  --ui-table-font:16px;
+}
+body{
+  font-size:var(--ui-font,15px);
+}
+.topbar h2{font-size:var(--ui-font-title,34px)}
+.subline,.brand-card p,.field label,.login-error,.mini-label,.mini-value,.meta,.mobile-card-sub,small{font-size:var(--ui-font-small,12px)}
+.panel,.mini-card,.brand-card,.login-brand,.login-panel,.modal-card,.mobile-card,.stats-card,.setting-card,.settings-card{padding:var(--ui-card-padding,14px);border-radius:var(--ui-radius,18px)}
+.field{gap:var(--ui-space-sm,8px)}
+.content-grid,.dashboard-grid,.stats-grid,.report-grid,.nav,.sidebar,.sidebar-footer,.toolbar,.inline-actions,.topbar-actions,.mobile-card-grid{gap:var(--ui-space,14px)}
+button,.btn,.small-btn,.nav-btn,.bottom-btn{min-height:var(--ui-btn-height,42px);font-size:var(--ui-font,15px);border-radius:var(--ui-radius,18px)}
+input,select,textarea{min-height:var(--ui-input-height,48px);font-size:var(--ui-font,15px);border-radius:var(--ui-radius,18px)}
+textarea{min-height:120px}
+.table-wrap table,table{font-size:var(--ui-table-font,14px)}
+.table-wrap th,.table-wrap td,table th,table td{padding:8px 10px}
+.main{padding:calc(var(--ui-space-lg,20px) + 2px);min-width:0;overflow-x:hidden}
+.sidebar{padding:var(--ui-space,14px)}
+.nav-btn{padding:12px 14px}
+.bottom-nav{gap:var(--ui-space-sm,8px)}
+.settings-card{background:rgba(255,255,255,.04);border:1px solid var(--line2);margin-bottom:var(--ui-space,14px)}
+.settings-help{color:var(--muted);margin-top:6px}
+@media (max-width: 1366px){
+  body.ui-auto{
+    --ui-font:13px;
+    --ui-font-small:11px;
+    --ui-font-title:28px;
+    --ui-space:10px;
+    --ui-space-sm:6px;
+    --ui-space-lg:14px;
+    --ui-btn-height:36px;
+    --ui-input-height:40px;
+    --ui-radius:14px;
+    --ui-card-padding:10px;
+    --ui-table-font:12px;
+  }
+}
+@media (min-width: 1367px) and (max-width: 1700px){
+  body.ui-auto{
+    --ui-font:15px;
+    --ui-font-small:12px;
+    --ui-font-title:34px;
+    --ui-space:14px;
+    --ui-space-sm:8px;
+    --ui-space-lg:20px;
+    --ui-btn-height:42px;
+    --ui-input-height:48px;
+    --ui-radius:18px;
+    --ui-card-padding:14px;
+    --ui-table-font:14px;
+  }
+}
+@media (min-width: 1701px){
+  body.ui-auto{
+    --ui-font:16px;
+    --ui-font-small:13px;
+    --ui-font-title:36px;
+    --ui-space:16px;
+    --ui-space-sm:9px;
+    --ui-space-lg:22px;
+    --ui-btn-height:46px;
+    --ui-input-height:52px;
+    --ui-radius:18px;
+    --ui-card-padding:16px;
+    --ui-table-font:15px;
+  }
 }
 .global-search{
   min-width:320px;
@@ -1523,6 +1652,20 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <section class="page" id="configuracoes-page">
           <div id="usersSection" class="panel users-master-panel">
             <div class="panel-head"><h3>Gestão de utilizadores</h3></div>
+            <div class="settings-card">
+              <h3>Interface</h3>
+              <div class="form-group">
+                <label for="uiScaleSelect">Tamanho da interface</label>
+                <select id="uiScaleSelect">
+                  <option value="auto">Auto</option>
+                  <option value="compact">Compacto</option>
+                  <option value="normal">Normal</option>
+                  <option value="large">Grande</option>
+                </select>
+              </div>
+              <div class="settings-help"><small>Compacto é melhor para portátil. Grande é melhor para tablet ou ecrãs touch.</small></div>
+            </div>
+
             <div class="content-grid single-panel-grid">
               <section class="panel admin-only form-panel">
                 <div class="panel-head"><h3>Novo utilizador</h3></div>
@@ -1552,8 +1695,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
                 </div>
               </section>
             </div>
-          </div>
-      </section>
   <nav class="bottom-nav">
     <button class="bottom-btn active" data-tab="dashboard">Dashboard</button>
     <button class="bottom-btn" data-tab="adicionar">Adicionar</button>
@@ -1696,9 +1837,40 @@ let syncMessage = 'Local';
 let unsubs = [];
 
 const $ = (id) => document.getElementById(id);
+initUiScale();
 const navButtons = document.querySelectorAll('.nav-btn');
 const bottomButtons = document.querySelectorAll('.bottom-btn');
 const pages = document.querySelectorAll('.page');
+
+
+function applyUiScale(scale){
+  document.body.classList.remove('ui-auto','ui-compact','ui-normal','ui-large');
+  const validScales = ['auto','compact','normal','large'];
+  const finalScale = validScales.includes(scale) ? scale : 'compact';
+  document.body.classList.add(`ui-${finalScale}`);
+  localStorage.setItem('uiScale', finalScale);
+  const select = document.getElementById('uiScaleSelect');
+  if(select) select.value = finalScale;
+}
+
+function bindUiScaleSelector(){
+  const select = document.getElementById('uiScaleSelect');
+  if(!select) return;
+  const savedScale = localStorage.getItem('uiScale') || 'compact';
+  select.value = savedScale;
+  if(select.dataset.bound === '1') return;
+  select.dataset.bound = '1';
+  select.addEventListener('change', function(){
+    applyUiScale(this.value);
+  });
+}
+
+function initUiScale(){
+  const savedScale = localStorage.getItem('uiScale') || 'compact';
+  applyUiScale(savedScale);
+  bindUiScaleSelector();
+}
+
 
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
@@ -1929,6 +2101,7 @@ function switchTab(tab){
   pages.forEach(p => p.classList.toggle('active', p.id===`${tab}-page`));
   const btn=document.querySelector(`.nav-btn[data-tab="${tab}"]`);
   $('pageTitle').textContent = btn ? btn.textContent.trim() : 'Dashboard';
+  if(tab === 'configuracoes') bindUiScaleSelector();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
@@ -2669,22 +2842,21 @@ window.startApp = function(role, username){
 };
 
 
-window.markAsPaid = function(id, metodo='Manual', paymentDate=''){
+window.markAsPaid = function(id, metodo='Manual'){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
 
-  const finalPaymentDate = paymentDate || new Date().toISOString().split('T')[0];
-
   t.estado = 'Pago';
-  t.dataPagamento = finalPaymentDate;
-  t.dataFim = finalPaymentDate;
+  if(!t.dataFim){
+    t.dataFim = new Date().toISOString().split('T')[0];
+  }
 
   const pagamento = {
     id: genId('pay'),
     cliente: t.cliente || '',
     referencia: t.tipoTrabalho || '',
     valor: Number(t.valor || 0),
-    data: finalPaymentDate,
+    data: new Date().toISOString().split('T')[0],
     workDate: t.dataInicio || t.dataFim || '',
     metodo,
     invoiceType: t.invoiceType || 'Com Fatura',
@@ -2729,10 +2901,6 @@ window.openPaymentMethodModal = function(id){
   pendingPaymentWorkId = id;
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
   $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
-  const paymentDateInput = $('paymentDateInput');
-  if(paymentDateInput){
-    paymentDateInput.value = t.dataPagamento || new Date().toISOString().split('T')[0];
-  }
   $('paymentMethodModal').classList.remove('hidden');
 };
 
@@ -2750,8 +2918,7 @@ document.querySelectorAll('.pay-method-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     if(!pendingPaymentWorkId) return;
     const method = btn.dataset.method || 'Manual';
-    const paymentDate = $('paymentDateInput')?.value || new Date().toISOString().split('T')[0];
-    window.markAsPaid(pendingPaymentWorkId, method, paymentDate);
+    window.markAsPaid(pendingPaymentWorkId, method);
     pendingPaymentWorkId = null;
     $('paymentMethodModal').classList.add('hidden');
   });
@@ -2915,11 +3082,6 @@ function renderMobileCards(){
           <span class="mini-label">Trabalho</span>
           <strong id="paymentJobName">-</strong>
           <p id="paymentJobClient" style="margin-top:6px;"></p>
-        </div>
-        <div class="setting-card">
-          <span class="mini-label">Data de pagamento</span>
-          <input type="date" id="paymentDateInput">
-          <p style="margin-top:8px;font-size:12px;opacity:.75;">É preenchida automaticamente com a data de hoje, mas podes alterar antes de confirmar.</p>
         </div>
         <div class="payment-method-grid">
           <button class="pay-method-btn" data-method="Dinheiro">Dinheiro</button>
