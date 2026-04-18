@@ -1377,8 +1377,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <section class="page active" id="dashboard-page">
         <div class="hero panel">
           <div class="hero-copy">
-            <h3>Controlo total dos trabalhos, clientes e pagamentos.</h3>
-            <p>Painel rápido para uso diário com visual premium e mais organização.</p>
+            <h3>Controlo Total Rapido</h3>
             <div class="hero-actions">
               <button class="btn btn-primary admin-only" data-go="trabalhos">Adicionar trabalho</button>
               <button class="btn btn-ghost" data-go="clientes">Ver clientes</button>
@@ -2292,7 +2291,7 @@ function renderDashboard(){
 
   const chip = document.querySelector('.hero-chip strong');
   if(chip){
-    chip.textContent = totalTrabalhos ? 'Empresa Ativa' : 'Pronto a usar';
+    chip.textContent = totalTrabalhos ? 'Empresa Ativa' : 'Online';
     chip.className = totalTrabalhos ? 'status-ok' : 'status-warn';
   }
 }
