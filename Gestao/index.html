@@ -1807,6 +1807,103 @@ td.acoes-col, .acoes-col{
   color: #dcfce7;
 }
 
+
+/* RELATÓRIOS PROFISSIONAL */
+#relatorios-page .report-hero,
+#relatorios-page .relatorios-hero{
+  background: linear-gradient(135deg, rgba(88,28,135,.28), rgba(30,41,59,.92));
+  border: 1px solid rgba(168,85,247,.24);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.20);
+}
+#relatorios-page .report-hero h2,
+#relatorios-page .relatorios-hero h2{
+  margin: 0 0 8px 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #f5f3ff;
+  letter-spacing: .02em;
+}
+#relatorios-page .report-hero p,
+#relatorios-page .relatorios-hero p{
+  margin: 0;
+  color: #d8b4fe;
+  opacity: .95;
+}
+#relatorios-page .stats-grid,
+#relatorios-page .reports-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+#relatorios-page .stat-card,
+#relatorios-page .report-card,
+#relatorios-page .relatorio-card{
+  background: linear-gradient(180deg, rgba(15,23,42,.94), rgba(30,41,59,.90));
+  border: 1px solid rgba(148,163,184,.14);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 14px 28px rgba(0,0,0,.18);
+}
+#relatorios-page .stat-card .label,
+#relatorios-page .report-card .label,
+#relatorios-page .relatorio-card .label{
+  display:block;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#c4b5fd;
+  margin-bottom:8px;
+}
+#relatorios-page .stat-card .value,
+#relatorios-page .report-card .value,
+#relatorios-page .relatorio-card .value{
+  font-size:28px;
+  font-weight:800;
+  color:#fff;
+  line-height:1.1;
+}
+#relatorios-page .report-panel,
+#relatorios-page .relatorios-panel,
+#relatorios-page .table-card{
+  background: rgba(15,23,42,.78);
+  border: 1px solid rgba(148,163,184,.14);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 24px rgba(0,0,0,.14);
+}
+#relatorios-page table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border-radius:14px;
+}
+#relatorios-page thead th{
+  background: rgba(88,28,135,.28);
+  color:#f5f3ff;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  padding:12px 10px;
+  border-bottom:1px solid rgba(168,85,247,.22);
+}
+#relatorios-page tbody td{
+  background: rgba(15,23,42,.72);
+  padding:12px 10px;
+  border-bottom:1px solid rgba(148,163,184,.08);
+}
+#relatorios-page tbody tr:hover td{
+  background: rgba(30,41,59,.92);
+}
+#relatorios-page .small-btn,
+#relatorios-page button{
+  border-radius: 12px;
+}
+
 </style>
 </head>
 <body>
@@ -1919,8 +2016,7 @@ td.acoes-col, .acoes-col{
         </section>
 
         <section class="panel">
-          <div class="panel-head"><h3>Agenda inteligente</h3></div>
-          <div id="dashboardAgendaStats" class="agenda-smart-stats"></div>
+          <div class="panel-head">
           <div id="dashboardAgendaWrap" class="agenda-smart-grid"></div>
         </section>
 
@@ -1973,7 +2069,7 @@ td.acoes-col, .acoes-col{
             <div class="toolbar">
               <input id="searchTrabalhos" type="text" placeholder="Pesquisar por cliente, ID ou tipo de trabalho" />
               <select id="filterEstado">
-                <option value="">Todos os estados</option>                <option>Pendente</option><option>Agendado</option><option>Em curso</option><option>Aguardar peça</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option></select>
+                <option value="">Todos os estados</option>                <option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option></select>
             </div>
             <div id="trabalhosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
@@ -2360,7 +2456,7 @@ const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<
 const isMasterAdmin = () => currentRole === 'master_admin';
 const isAdminLike = () => currentRole === 'admin' || currentRole === 'master_admin';
 
-const ESTADOS_TRABALHO = ['Pendente','Agendado','Em curso','Aguardar peça','Concluído','Pago','Entregue','Cancelado'];
+const ESTADOS_TRABALHO = ['Pendente','Em curso','Concluído','Pago','Entregue','Cancelado'];
 
 function normalizeEstado(value=''){
   const raw = String(value || '').trim();
@@ -2746,7 +2842,7 @@ function switchTab(tab){
   if(tab === 'dashboard'){
     renderDashboard();
     renderAlerts();
-    renderDashboardAgenda();
+
   }
   if(tab === 'trabalhos') renderTrabalhos();
   if(tab === 'clientes') renderClientes();
@@ -3319,6 +3415,103 @@ td.acoes-col, .acoes-col{
   color: #dcfce7;
 }
 
+
+/* RELATÓRIOS PROFISSIONAL */
+#relatorios-page .report-hero,
+#relatorios-page .relatorios-hero{
+  background: linear-gradient(135deg, rgba(88,28,135,.28), rgba(30,41,59,.92));
+  border: 1px solid rgba(168,85,247,.24);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.20);
+}
+#relatorios-page .report-hero h2,
+#relatorios-page .relatorios-hero h2{
+  margin: 0 0 8px 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #f5f3ff;
+  letter-spacing: .02em;
+}
+#relatorios-page .report-hero p,
+#relatorios-page .relatorios-hero p{
+  margin: 0;
+  color: #d8b4fe;
+  opacity: .95;
+}
+#relatorios-page .stats-grid,
+#relatorios-page .reports-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+#relatorios-page .stat-card,
+#relatorios-page .report-card,
+#relatorios-page .relatorio-card{
+  background: linear-gradient(180deg, rgba(15,23,42,.94), rgba(30,41,59,.90));
+  border: 1px solid rgba(148,163,184,.14);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 14px 28px rgba(0,0,0,.18);
+}
+#relatorios-page .stat-card .label,
+#relatorios-page .report-card .label,
+#relatorios-page .relatorio-card .label{
+  display:block;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#c4b5fd;
+  margin-bottom:8px;
+}
+#relatorios-page .stat-card .value,
+#relatorios-page .report-card .value,
+#relatorios-page .relatorio-card .value{
+  font-size:28px;
+  font-weight:800;
+  color:#fff;
+  line-height:1.1;
+}
+#relatorios-page .report-panel,
+#relatorios-page .relatorios-panel,
+#relatorios-page .table-card{
+  background: rgba(15,23,42,.78);
+  border: 1px solid rgba(148,163,184,.14);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 24px rgba(0,0,0,.14);
+}
+#relatorios-page table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border-radius:14px;
+}
+#relatorios-page thead th{
+  background: rgba(88,28,135,.28);
+  color:#f5f3ff;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  padding:12px 10px;
+  border-bottom:1px solid rgba(168,85,247,.22);
+}
+#relatorios-page tbody td{
+  background: rgba(15,23,42,.72);
+  padding:12px 10px;
+  border-bottom:1px solid rgba(148,163,184,.08);
+}
+#relatorios-page tbody tr:hover td{
+  background: rgba(30,41,59,.92);
+}
+#relatorios-page .small-btn,
+#relatorios-page button{
+  border-radius: 12px;
+}
+
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
@@ -3337,7 +3530,7 @@ function formatAgendaHeader(value){
   return d.toLocaleDateString('pt-PT', { weekday:'long', day:'2-digit', month:'2-digit', year:'numeric' });
 }
 function isOpenEstado(estado){
-  return ['Pendente','Agendado','Em curso','Aguardar peça'].includes(normalizeEstado(estado));
+  return ['Pendente','Em curso','Aguardar peça'].includes(normalizeEstado(estado));
 }
 function getCalendarRows(){
   const search = ($('calendarSearch')?.value || '').trim().toLowerCase();
@@ -3443,7 +3636,7 @@ function renderCalendario(){
 
 function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
-  const emAndamento = trabalhos.filter(t=>['Pendente','Agendado','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
+  const emAndamento = trabalhos.filter(t=>['Pendente','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
   const concluidos = trabalhos.filter(t=>['Concluído','Pago','Entregue'].includes(normalizeEstado(t.estado))).length;
   const totalFaturado = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
   const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
@@ -3485,52 +3678,7 @@ function renderDashboard(){
     chip.className = totalTrabalhos ? 'status-ok' : 'status-warn';
   }
 }
-function renderDashboardAgenda(){
-  const wrap = $('dashboardAgendaWrap');
-  const stats = $('dashboardAgendaStats');
-  if(!wrap || !stats) return;
-  const openStates = ['Pendente','Agendado','Em curso','Aguardar peça'];
-  const today = todayLocalDate();
-  const plus7 = new Date(); plus7.setDate(plus7.getDate()+7);
-  const plus7Str = new Date(plus7.getTime() - plus7.getTimezoneOffset()*60000).toISOString().split('T')[0];
-  const rows = [...trabalhos].filter(t => getAgendaSmartDate(t)).sort((a,b)=> String(getAgendaSmartDate(a)).localeCompare(String(getAgendaSmartDate(b))));
-  const hoje = rows.filter(t => getAgendaSmartDate(t) === today);
-  const atrasados = rows.filter(t => getAgendaSmartDate(t) < today && openStates.includes(normalizeEstado(t.estado||'')));
-  const proximos = rows.filter(t => { const d = getAgendaSmartDate(t); return d >= today && d <= plus7Str && openStates.includes(normalizeEstado(t.estado||'')); });
-  const semData = trabalhos.filter(t => !getAgendaSmartDate(t));
 
-  stats.innerHTML = `
-    <div class="agenda-smart-stat"><span>Hoje</span><strong>${hoje.length}</strong></div>
-    <div class="agenda-smart-stat"><span>Em atraso</span><strong>${atrasados.length}</strong></div>
-    <div class="agenda-smart-stat"><span>Próximos 7 dias</span><strong>${proximos.length}</strong></div>
-    <div class="agenda-smart-stat"><span>Sem data</span><strong>${semData.length}</strong></div>`;
-
-  function buildCard(title, items, kind='default'){
-    return `
-      <div class="agenda-smart-card">
-        <h4>${title}</h4>
-        <div class="agenda-smart-list">
-          ${items.length ? items.slice(0,6).map(t => `
-            <div class="agenda-smart-item">
-              <div class="agenda-smart-item-top">
-                <strong>${escapeHtml(t.workCode || t.cliente || 'Trabalho')}</strong>
-                <span class="badge" data-state="${escapeHtml(normalizeEstado(t.estado||'Pendente'))}">${escapeHtml(normalizeEstado(t.estado||'Pendente'))}</span>
-              </div>
-              <div>${escapeHtml(t.cliente || '-')} • ${escapeHtml(t.tipoTrabalho || '-')}</div>
-              <div class="agenda-smart-meta">${fmtDate(getAgendaSmartDate(t))} • ${escapeHtml(t.contacto || 'Sem contacto')} • ${euro(t.valor || 0)}</div>
-              ${(t.descricao||'').trim() ? `<div class="agenda-smart-meta">${escapeHtml(t.descricao)}</div>` : ''}
-            </div>`).join('') : '<div class="agenda-smart-empty">Sem itens nesta secção.</div>'}
-        </div>
-      </div>`;
-  }
-
-  wrap.innerHTML = [
-    buildCard('Hoje', hoje),
-    buildCard('Em atraso', atrasados),
-    buildCard('Próximos 7 dias', proximos),
-    buildCard('Sem data', semData)
-  ].join('');
-}
 
 function renderAlerts(){
   const pend = trabalhos.filter(t=>['Pendente','Agendado'].includes(normalizeEstado(t.estado))).length;
