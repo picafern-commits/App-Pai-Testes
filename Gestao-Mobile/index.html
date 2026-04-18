@@ -475,7 +475,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .role-view-user .admin-only{display:none!important}
 .role-view-user .master-only{display:none!important}
 .role-view-admin .master-only{display:none!important}
-.bottom-nav{display:none}
+.bottom-nav{display:none!important}
 .modal{
   position:fixed; inset:0; background:rgba(0,0,0,.55); display:grid; place-items:center; z-index:100; padding:20px;
 }
@@ -505,6 +505,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   cursor:pointer;
   font-size:20px;
   margin-right:10px;
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
 }
 .mobile-sidebar-overlay{
   position:fixed;
@@ -528,18 +529,27 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
     top:0;
     left:0;
     bottom:0;
-    width:min(86vw,320px);
+    width:min(84vw,320px);
     max-width:320px;
     height:100vh;
     overflow:auto;
     z-index:40;
     transform:translateX(-105%);
-    transition:transform .25s ease;
-    border-right:1px solid var(--line);
-    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    transition:transform .28s ease, box-shadow .28s ease;
+    border-right:1px solid rgba(255,255,255,.08);
+    box-shadow:0 24px 60px rgba(0,0,0,.45);
+    background:linear-gradient(180deg,rgba(8,12,22,.98),rgba(12,18,30,.96));
+    padding:14px;
   }
-  .sidebar.open{transform:translateX(0)}
-  .main{padding:16px 16px 86px;width:100%}
+  .sidebar.open{transform:translateX(0); box-shadow:0 28px 70px rgba(0,0,0,.52)}
+  .brand-card{border-radius:24px;padding:16px}
+  .sidebar-logo{width:52px;height:52px;border-radius:14px}
+  .nav{gap:8px}
+  .nav-btn{padding:13px 14px;border-radius:16px}
+  .nav-btn span:last-child{font-size:14px;font-weight:600}
+  .nav-icon{width:30px;height:30px;border-radius:12px}
+  .sidebar-footer{padding-bottom:12px}
+  .main{padding:16px;width:100%}
   .topbar{align-items:flex-start}
   .topbar-left{display:flex;align-items:flex-start;width:100%}
   .global-search{min-width:100%;max-width:none}
@@ -1781,7 +1791,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
         <img class="sidebar-logo" src="logo-icon-dark.png" alt="Logo Jorge Torneiro" />
         <div>
           <h1>Jorge Torneiro</h1>
-          <p>App mobile produção produção</p>
+          <p>App mobile</p>
         </div>
       </div>
 
@@ -2021,16 +2031,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 
           </div>
       </section>
-
-  <nav class="bottom-nav">
-    <button class="bottom-btn active" data-tab="dashboard">Dashboard</button>
-    <button class="bottom-btn" data-tab="adicionar">Adicionar</button>
-    <button class="bottom-btn" data-tab="trabalhos">Histórico</button>
-    <button class="bottom-btn" data-tab="clientes">Clientes</button>
-    <button class="bottom-btn" data-tab="pagamentos">Pagamentos</button>
-    <button class="bottom-btn" data-tab="relatorios">Relatórios</button>
-    <button class="bottom-btn" data-tab="configuracoes">Configurações</button>
-  </nav>
 
   <script>
 
