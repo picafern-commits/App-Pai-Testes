@@ -103,10 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
 window.forceGoTabletFinal = function(){
   try{ localStorage.removeItem('app_session'); }catch(e){}
   try{ localStorage.removeItem('app_session_tablet_teste'); }catch(e){}
-  window.location.href = '/App-Pai/Gestao-Tablet-PC/';
+  window.location.href = '/App-Pai-Testes/Gestao-Tablet-PC/';
 }
 window.forceGoTabletTest = function(){
   try{ localStorage.removeItem('app_session'); }catch(e){}
   try{ localStorage.removeItem('app_session_tablet_teste'); }catch(e){}
-  window.location.href = '/App-Pai/Gestao-Tablet-PC-Teste/';
+  window.location.href = '/App-Pai-Testes/Gestao-Tablet-PC-Teste/';
 }
