@@ -1710,6 +1710,103 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   margin:0 4px;
   font-weight:800;
 }
+
+/* AÇÕES ALINHADAS FIXAS */
+td.acoes-col, .acoes-col{
+  min-width: 760px;
+  width: 760px;
+}
+.enterprise-actions{
+  display:grid;
+  grid-template-columns: 124px 92px 86px 86px minmax(240px, 1fr);
+  align-items:center;
+  gap:8px;
+  width:100%;
+}
+.enterprise-actions > *{
+  min-width:0;
+}
+.enterprise-actions .stage-arrow{
+  margin:0 6px;
+}
+.enterprise-actions .desc-status-btn,
+.enterprise-actions .pipeline-like-btn,
+.enterprise-actions .stage-step,
+.enterprise-actions .stage-control-btn{
+  justify-self:start;
+}
+.enterprise-actions .stage-step,
+.enterprise-actions .stage-control-btn{
+  white-space:nowrap;
+}
+.enterprise-actions .stage-flow{
+  display:flex;
+  align-items:center;
+  min-width:0;
+}
+.enterprise-actions .stage-flow .stage-step.current{
+  min-width:92px;
+  justify-content:center;
+}
+.enterprise-actions .stage-flow .stage-control-btn{
+  min-width:118px;
+  justify-content:center;
+}
+.enterprise-actions .stage-flow .stage-step.done.final-paid{
+  min-width:152px;
+  justify-content:center;
+}
+@media (max-width: 1100px){
+  td.acoes-col, .acoes-col{
+    min-width: auto;
+    width:auto;
+  }
+  .enterprise-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+}
+
+
+.pipeline-like-btn.fatura-disabled{
+  background:linear-gradient(180deg, rgba(148,163,184,.12), rgba(100,116,139,.08));
+  border-color:rgba(148,163,184,.20);
+  color:#94a3b8;
+  box-shadow:none;
+  cursor:default;
+  pointer-events:none;
+}
+
+
+.stage-flow{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  min-width:0;
+}
+.stage-flow .stage-arrow{display:none !important;}
+.stage-flow:empty{display:none;}
+
+.payment-value-group{margin-top:10px}
+.payment-value-group input{width:100%}
+#paymentMethodModal.show{display:flex}
+
+/* Pago NÃO feito (aviso) */
+.stage-control-btn.pay-warning{
+  background: linear-gradient(180deg, rgba(245,158,11,.25), rgba(217,119,6,.18));
+  border-color: rgba(252,211,77,.45);
+  color: #fde68a;
+  box-shadow: 0 0 0 1px rgba(245,158,11,.12) inset;
+}
+
+/* Pago FEITO */
+.stage-step.final-paid{
+  background: linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color: rgba(74,222,128,.40);
+  color: #dcfce7;
+}
+
 </style>
 </head>
 <body>
@@ -1857,7 +1954,7 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" required /></div>
+              <div class="field"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
               <div class="field"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field"><label>Data de fim</label><input id="dataFim" type="date" /></div>
               <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
@@ -2098,6 +2195,91 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+
+
+
+
+function openPaymentMethodModal(id){
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+  const t = trabalhosLista.find(x => String(x.id) === String(id));
+  if(!t) return;
+
+  const modal = document.getElementById('paymentMethodModal');
+  if(!modal) return;
+
+  const dateInput = document.getElementById('paymentDateInput');
+  const valueInput = document.getElementById('paymentValueInput');
+  const hiddenId = document.getElementById('paymentWorkId');
+  const methodInput = document.getElementById('paymentMethodInput');
+
+  if(hiddenId) hiddenId.value = id;
+  if(methodInput) methodInput.value = '';
+  if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
+  if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
+
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+}
+
+function closePaymentMethodModal(){
+  const modal = document.getElementById('paymentMethodModal');
+  if(!modal) return;
+  modal.style.display = 'none';
+  modal.classList.remove('show');
+}
+
+function confirmPaymentMethod(method){
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+  const hiddenId = document.getElementById('paymentWorkId');
+  const dateInput = document.getElementById('paymentDateInput');
+  const valueInput = document.getElementById('paymentValueInput');
+  const methodInput = document.getElementById('paymentMethodInput');
+
+  const id = hiddenId ? hiddenId.value : '';
+  const t = trabalhosLista.find(x => String(x.id) === String(id));
+  if(!t) return;
+
+  const dataPagamento = dateInput && dateInput.value ? dateInput.value : getTodayLocalDateStr();
+  const valorRaw = valueInput ? String(valueInput.value || '').trim().replace(',', '.') : '';
+  if(!valorRaw){
+    alert('Introduz o valor do pagamento.');
+    return;
+  }
+  const valorNum = Number(valorRaw);
+  if(Number.isNaN(valorNum)){
+    alert('Valor inválido.');
+    return;
+  }
+
+  t.paymentStatus = 'Pago';
+  t.paymentMethod = method || (methodInput ? methodInput.value : '') || 'Outro';
+  t.dataPagamento = dataPagamento;
+  t.valorPago = valorNum;
+  t.estado = 'Pago';
+  t.dataEstado = new Date().toISOString();
+  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
+  t.historicoEstados.push({
+    estado: 'Pago',
+    data: new Date().toISOString()
+  });
+
+  if(typeof window.saveData === 'function') window.saveData();
+  else if(typeof saveData === 'function') saveData();
+  else if(typeof window.saveTrabalhos === 'function') window.saveTrabalhos();
+  else if(typeof saveTrabalhos === 'function') saveTrabalhos();
+  else {
+    try { localStorage.setItem('trabalhos', JSON.stringify(trabalhosLista)); } catch(e) {}
+  }
+
+  closePaymentMethodModal();
+
+  if(typeof window.renderTrabalhos === 'function') window.renderTrabalhos();
+  else if(typeof renderTrabalhos === 'function') renderTrabalhos();
+
+  try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
+  try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
+}
+
 </script>
   <script type="module">
 const firebaseConfig = {
@@ -2264,22 +2446,52 @@ function getNextFlowEstado(value=''){
   return idx >= 0 && idx < ESTADOS_FLUXO.length - 1 ? ESTADOS_FLUXO[idx + 1] : null;
 }
 
+function getTodayLocalDateStr(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function setWorkEstadoById(id, novoEstado){
-  const t = trabalhos.find(x => x.id === id);
-  if(!t || !novoEstado) return;
-  const finalEstado = normalizeEstado(novoEstado);
-  t.estado = finalEstado;
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+  const t = trabalhosLista.find(x => String(x.id) === String(id));
+  if(!t) return;
+
+  const estadoAnterior = typeof getFlowEstado === 'function' ? getFlowEstado(t.estado || 'Pendente') : (t.estado || 'Pendente');
+  const estadoFinal = typeof getFlowEstado === 'function' ? getFlowEstado(novoEstado || estadoAnterior) : (novoEstado || estadoAnterior);
+  const hoje = getTodayLocalDateStr();
+
+  if(estadoAnterior === 'Pendente' && estadoFinal === 'Em curso' && !String(t.dataInicio || '').trim()){
+    t.dataInicio = hoje;
+  }
+
+  if(estadoFinal === 'Concluído'){
+    t.dataFim = hoje;
+  }
+
+  t.estado = estadoFinal;
   t.dataEstado = new Date().toISOString();
   t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
-  const last = t.historicoEstados[t.historicoEstados.length - 1];
-  if(!last || normalizeEstado(last.estado) !== finalEstado){
-    t.historicoEstados.push({ estado: finalEstado, data: t.dataEstado });
-  } else {
-    last.data = t.dataEstado;
+  t.historicoEstados.push({
+    estado: estadoFinal,
+    data: new Date().toISOString()
+  });
+
+  if(typeof window.saveData === 'function') window.saveData();
+  else if(typeof saveData === 'function') saveData();
+  else if(typeof window.saveTrabalhos === 'function') window.saveTrabalhos();
+  else if(typeof saveTrabalhos === 'function') saveTrabalhos();
+  else {
+    try { localStorage.setItem('trabalhos', JSON.stringify(trabalhosLista)); } catch(e) {}
   }
-  saveLocal();
-  renderAll();
-  upsertRemote('trabalhos', t).catch(err => console.error(err));
+
+  if(typeof window.renderTrabalhos === 'function') window.renderTrabalhos();
+  else if(typeof renderTrabalhos === 'function') renderTrabalhos();
+
+  try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
+  try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
 }
 
 
@@ -2289,17 +2501,15 @@ function buildFlowButtons(t){
   const isPaid = t && t.paymentStatus === 'Pago';
   const nextEstado = getNextFlowEstado(t.estado || 'Pendente');
 
-  const currentBadge = `<span class="stage-step current">${escapeHtml(atual)}</span>`;
-
   if(isPaid || atual === 'Pago'){
-    return currentBadge + `<span class="stage-arrow">›</span><span class="stage-step done final-paid">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>`;
+    return `<span class="stage-step done final-paid">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>`;
   }
 
   if(atual === 'Entregue' || !nextEstado){
-    return currentBadge + `<span class="stage-arrow">›</span><button class="stage-step stage-control-btn pay" onclick="window.openPaymentMethodModal('${t.id}')">Pago</button>`;
+    return `<button class="stage-step stage-control-btn pay-warning" onclick="window.marcarComoPagoComValor('${t.id}')">Por pagar</button>`;
   }
 
-  return currentBadge + `<span class="stage-arrow">›</span><button class="stage-step stage-control-btn next" onclick="window.setWorkEstadoById('${t.id}','${nextEstado}')">${escapeHtml(nextEstado)}</button>`;
+  return `<button class="stage-step stage-control-btn next" onclick="setWorkEstadoById('${t.id}','${nextEstado}')">${escapeHtml(nextEstado)}</button>`;
 }
 
 
@@ -3012,6 +3222,103 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   margin:0 4px;
   font-weight:800;
 }
+
+/* AÇÕES ALINHADAS FIXAS */
+td.acoes-col, .acoes-col{
+  min-width: 760px;
+  width: 760px;
+}
+.enterprise-actions{
+  display:grid;
+  grid-template-columns: 124px 92px 86px 86px minmax(240px, 1fr);
+  align-items:center;
+  gap:8px;
+  width:100%;
+}
+.enterprise-actions > *{
+  min-width:0;
+}
+.enterprise-actions .stage-arrow{
+  margin:0 6px;
+}
+.enterprise-actions .desc-status-btn,
+.enterprise-actions .pipeline-like-btn,
+.enterprise-actions .stage-step,
+.enterprise-actions .stage-control-btn{
+  justify-self:start;
+}
+.enterprise-actions .stage-step,
+.enterprise-actions .stage-control-btn{
+  white-space:nowrap;
+}
+.enterprise-actions .stage-flow{
+  display:flex;
+  align-items:center;
+  min-width:0;
+}
+.enterprise-actions .stage-flow .stage-step.current{
+  min-width:92px;
+  justify-content:center;
+}
+.enterprise-actions .stage-flow .stage-control-btn{
+  min-width:118px;
+  justify-content:center;
+}
+.enterprise-actions .stage-flow .stage-step.done.final-paid{
+  min-width:152px;
+  justify-content:center;
+}
+@media (max-width: 1100px){
+  td.acoes-col, .acoes-col{
+    min-width: auto;
+    width:auto;
+  }
+  .enterprise-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+}
+
+
+.pipeline-like-btn.fatura-disabled{
+  background:linear-gradient(180deg, rgba(148,163,184,.12), rgba(100,116,139,.08));
+  border-color:rgba(148,163,184,.20);
+  color:#94a3b8;
+  box-shadow:none;
+  cursor:default;
+  pointer-events:none;
+}
+
+
+.stage-flow{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  min-width:0;
+}
+.stage-flow .stage-arrow{display:none !important;}
+.stage-flow:empty{display:none;}
+
+.payment-value-group{margin-top:10px}
+.payment-value-group input{width:100%}
+#paymentMethodModal.show{display:flex}
+
+/* Pago NÃO feito (aviso) */
+.stage-control-btn.pay-warning{
+  background: linear-gradient(180deg, rgba(245,158,11,.25), rgba(217,119,6,.18));
+  border-color: rgba(252,211,77,.45);
+  color: #fde68a;
+  box-shadow: 0 0 0 1px rgba(245,158,11,.12) inset;
+}
+
+/* Pago FEITO */
+.stage-step.final-paid{
+  background: linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color: rgba(74,222,128,.40);
+  color: #dcfce7;
+}
+
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
@@ -3256,10 +3563,10 @@ function trabalhoActions(t){
   return `
     <div class="enterprise-actions">
       ${descButton}
-      ${showInvoice ? `<button class="pipeline-like-btn fatura-btn" onclick="generateInvoice('${t.id}')">Fatura</button>` : ''}
-      ${canEdit ? `<button class="pipeline-like-btn edit-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : ''}
-      ${canDelete ? `<button class="pipeline-like-btn delete-btn" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : ''}
-      ${flowButtons}
+      ${showInvoice ? `<button class="pipeline-like-btn fatura-btn" onclick="generateInvoice('${t.id}')">Fatura</button>` : `<span class="pipeline-like-btn fatura-disabled">Fatura</span>`}
+      ${canEdit ? `<button class="pipeline-like-btn edit-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : '<span></span>'}
+      ${canDelete ? `<button class="pipeline-like-btn delete-btn" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : '<span></span>'}
+      <div class="stage-flow">${flowButtons}</div>
     </div>
   `;
 }
@@ -3679,7 +3986,7 @@ $('descModal')?.addEventListener('click', (e)=>{ if(e.target.id === 'descModal')
 
 let pendingPaymentWorkId = null;
 
-window.openPaymentMethodModal = function(id){
+window.marcarComoPagoComValor = function(id){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
   pendingPaymentWorkId = id;
@@ -3831,6 +4138,91 @@ function renderMobileCards(){
   }
 }
 
+
+
+
+
+function openPaymentMethodModal(id){
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+  const t = trabalhosLista.find(x => String(x.id) === String(id));
+  if(!t) return;
+
+  const modal = document.getElementById('paymentMethodModal');
+  if(!modal) return;
+
+  const dateInput = document.getElementById('paymentDateInput');
+  const valueInput = document.getElementById('paymentValueInput');
+  const hiddenId = document.getElementById('paymentWorkId');
+  const methodInput = document.getElementById('paymentMethodInput');
+
+  if(hiddenId) hiddenId.value = id;
+  if(methodInput) methodInput.value = '';
+  if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
+  if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
+
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+}
+
+function closePaymentMethodModal(){
+  const modal = document.getElementById('paymentMethodModal');
+  if(!modal) return;
+  modal.style.display = 'none';
+  modal.classList.remove('show');
+}
+
+function confirmPaymentMethod(method){
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+  const hiddenId = document.getElementById('paymentWorkId');
+  const dateInput = document.getElementById('paymentDateInput');
+  const valueInput = document.getElementById('paymentValueInput');
+  const methodInput = document.getElementById('paymentMethodInput');
+
+  const id = hiddenId ? hiddenId.value : '';
+  const t = trabalhosLista.find(x => String(x.id) === String(id));
+  if(!t) return;
+
+  const dataPagamento = dateInput && dateInput.value ? dateInput.value : getTodayLocalDateStr();
+  const valorRaw = valueInput ? String(valueInput.value || '').trim().replace(',', '.') : '';
+  if(!valorRaw){
+    alert('Introduz o valor do pagamento.');
+    return;
+  }
+  const valorNum = Number(valorRaw);
+  if(Number.isNaN(valorNum)){
+    alert('Valor inválido.');
+    return;
+  }
+
+  t.paymentStatus = 'Pago';
+  t.paymentMethod = method || (methodInput ? methodInput.value : '') || 'Outro';
+  t.dataPagamento = dataPagamento;
+  t.valorPago = valorNum;
+  t.estado = 'Pago';
+  t.dataEstado = new Date().toISOString();
+  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
+  t.historicoEstados.push({
+    estado: 'Pago',
+    data: new Date().toISOString()
+  });
+
+  if(typeof window.saveData === 'function') window.saveData();
+  else if(typeof saveData === 'function') saveData();
+  else if(typeof window.saveTrabalhos === 'function') window.saveTrabalhos();
+  else if(typeof saveTrabalhos === 'function') saveTrabalhos();
+  else {
+    try { localStorage.setItem('trabalhos', JSON.stringify(trabalhosLista)); } catch(e) {}
+  }
+
+  closePaymentMethodModal();
+
+  if(typeof window.renderTrabalhos === 'function') window.renderTrabalhos();
+  else if(typeof renderTrabalhos === 'function') renderTrabalhos();
+
+  try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
+  try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
+}
+
 </script>
 
   <div id="clientModal" class="modal hidden">
@@ -3869,7 +4261,10 @@ function renderMobileCards(){
           <strong id="paymentJobName">-</strong>
           <p id="paymentJobClient" style="margin-top:6px;"></p>
         </div>
-        <div class="payment-date-box"><label for="paymentDateInput">Data de pagamento</label><input id="paymentDateInput" type="date" /></div>
+        <div class="payment-date-box"><label for="paymentDateInput">Data de pagamento</label><input type="hidden" id="paymentWorkId">
+<input type="hidden" id="paymentMethodInput">
+<input id="paymentDateInput" type="date" />
+<div class="field-group payment-value-group"><label for="paymentValueInput">Valor</label><input type="number" step="0.01" id="paymentValueInput" placeholder="0,00"></div></div>
         <div class="payment-method-grid">
           <button class="pay-method-btn" data-method="Dinheiro">Dinheiro</button>
           <button class="pay-method-btn" data-method="MB Way">MB Way</button>
