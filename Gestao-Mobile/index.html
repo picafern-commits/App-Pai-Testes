@@ -1760,6 +1760,24 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .row-actions .action-bottom{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .payment-date-box input{min-height:40px}
 
+
+/* enterprise actions strip */
+.actions-cell{min-width:520px}
+.enterprise-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;padding-bottom:2px;max-width:100%}
+.enterprise-actions::-webkit-scrollbar{height:6px}
+.enterprise-actions::-webkit-scrollbar-thumb{background:rgba(148,163,184,.35);border-radius:999px}
+.enterprise-actions .small-btn,
+.enterprise-actions .stage-chip,
+.enterprise-actions .payment-badge-inline,
+.enterprise-actions .invoice-badge{flex:0 0 auto;white-space:nowrap}
+.enterprise-actions .small-btn{padding:7px 10px;font-size:12px;border-radius:12px}
+.enterprise-actions .stage-chip{padding:6px 10px;font-size:11px}
+.enterprise-actions .payment-badge-inline{padding:6px 10px}
+@media (max-width: 900px){
+  .actions-cell{min-width:unset}
+  .enterprise-actions{flex-wrap:wrap;overflow:visible;white-space:normal}
+}
+
 </style>
 </head>
 <body>
@@ -1910,7 +1928,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
               <div class="field"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" required /></div>
               <div class="field"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field"><label>Data de fim</label><input id="dataFim" type="date" /></div>
-              <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Agendado</option><option>Em curso</option><option>Aguardar peça</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option></select></div>
+              <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
               <div class="field"><label>Faturação</label><select id="trabalhoInvoiceType"><option>Com Fatura</option><option>Sem Fatura</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
@@ -2916,6 +2934,24 @@ function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!wi
 
 
 
+
+/* enterprise actions strip */
+.actions-cell{min-width:520px}
+.enterprise-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;padding-bottom:2px;max-width:100%}
+.enterprise-actions::-webkit-scrollbar{height:6px}
+.enterprise-actions::-webkit-scrollbar-thumb{background:rgba(148,163,184,.35);border-radius:999px}
+.enterprise-actions .small-btn,
+.enterprise-actions .stage-chip,
+.enterprise-actions .payment-badge-inline,
+.enterprise-actions .invoice-badge{flex:0 0 auto;white-space:nowrap}
+.enterprise-actions .small-btn{padding:7px 10px;font-size:12px;border-radius:12px}
+.enterprise-actions .stage-chip{padding:6px 10px;font-size:11px}
+.enterprise-actions .payment-badge-inline{padding:6px 10px}
+@media (max-width: 900px){
+  .actions-cell{min-width:unset}
+  .enterprise-actions{flex-wrap:wrap;overflow:visible;white-space:normal}
+}
+
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
@@ -3155,16 +3191,14 @@ function trabalhoActions(t){
   const flowButtons = buildFlowButtons(t);
   const paymentBadge = getPaymentBadgeHtml(t);
   return `
-    <div class="row-actions">
-      <div class="action-top">
-        ${hasDesc ? `<button class="small-btn info" onclick="window.showDesc('${t.id}')">Descrição</button>` : ''}
-        ${showInvoice ? `<button class="small-btn primary" onclick="generateInvoice('${t.id}')">Fatura</button>` : ''}
-        ${canEdit ? `<button class="small-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : ''}
-        ${canMarkPaid && canEdit ? `<button class="small-btn success" onclick="window.openPaymentMethodModal('${t.id}')">Pago</button>` : ''}
-        ${paymentBadge}
-        ${canDelete ? `<button class="small-btn danger" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : ''}
-      </div>
-      <div class="action-bottom">${flowButtons}</div>
+    <div class="enterprise-actions">
+      ${hasDesc ? `<button class="small-btn info" onclick="window.showDesc('${t.id}')">Descrição</button>` : ''}
+      ${showInvoice ? `<button class="small-btn primary" onclick="generateInvoice('${t.id}')">Fatura</button>` : ''}
+      ${canEdit ? `<button class="small-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : ''}
+      ${canMarkPaid && canEdit ? `<button class="small-btn success" onclick="window.openPaymentMethodModal('${t.id}')">Pago</button>` : ''}
+      ${canDelete ? `<button class="small-btn danger" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : ''}
+      ${paymentBadge}
+      ${flowButtons}
     </div>
   `;
 }
@@ -3188,7 +3222,7 @@ function renderTrabalhos(){
   $('trabalhosTableBody').innerHTML = rows.length ? rows.map(t=>{
     const invoiceType = t.invoiceType || 'Com Fatura';
     const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
-    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valor||0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span>${getPaymentBadgeHtml(t)}</div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td><div class="row-actions">${trabalhoActions(t)}</div></td></tr>`;
+    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valor||0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span>${getPaymentBadgeHtml(t)}</div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
   }).join('') : '<tr><td colspan="9">Sem resultados.</td></tr>';
 }
 function renderClientes(){
@@ -3687,7 +3721,7 @@ function renderMobileCards(){
           <div class="mobile-card-item"><span>Estado</span><strong><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span>${getPaymentBadgeHtml(t)}</div></strong></div>
           <div class="mobile-card-item"><span>Faturação</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
-        <div class="row-actions">${trabalhoActions(t)}</div>
+        ${trabalhoActions(t)}
       </article>`;
     }).join('') : '<div class="mobile-card"><div class="mobile-card-title">Sem resultados</div></div>';
   }
