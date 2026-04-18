@@ -1,7 +1,0 @@
-{
-  "version": "1.0.6",
-  "platform": "tablet_pc",
-  "mode": "test",
-  "env": "dev",
-  "firebase_project": "app-gestao-c932d"
-}
