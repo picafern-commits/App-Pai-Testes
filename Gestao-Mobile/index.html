@@ -1795,7 +1795,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
         <button class="nav-btn" data-tab="adicionar"><span class="nav-icon">＋</span><span>Adicionar Trabalho</span></button>
         <button class="nav-btn" data-tab="trabalhos"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
         <button class="nav-btn" data-tab="clientes"><span class="nav-icon">◉</span><span>Clientes</span></button>
-        <button class="nav-btn" data-tab="calendario"><span class="nav-icon">🗓</span><span>Calendário</span></button>
         <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">€</span><span>Pagamentos</span></button>
         <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">▣</span><span>Relatórios</span></button>
         <button class="nav-btn" data-tab="configuracoes"><span class="nav-icon">⚙</span><span>Configurações</span></button>
@@ -1857,6 +1856,12 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
         <section class="panel">
           <div class="panel-head"><h3>Alertas e prioridades</h3></div>
           <div id="alertCards" class="alert-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><h3>Agenda inteligente</h3></div>
+          <div id="dashboardAgendaStats" class="agenda-smart-stats"></div>
+          <div id="dashboardAgendaWrap" class="agenda-smart-grid"></div>
         </section>
 
         <div class="dashboard-grid">
@@ -1949,32 +1954,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
         </div>
       </section>
 
-      
-
-<section class="page" id="calendario-page">
-        <div class="content-grid single-panel-grid">
-          <section class="panel wide-panel">
-            <div class="panel-head"><h3>Calendário / Agenda</h3></div>
-            <div class="toolbar calendar-toolbar">
-              <select id="calendarRangeFilter">
-                <option value="all">Todos</option>
-                <option value="today">Hoje</option>
-                <option value="week">Próximos 7 dias</option>
-                <option value="late">Em atraso</option>
-                <option value="open">Abertos</option>
-              </select>
-              <select id="calendarStateFilter">
-                <option value="">Todos os estados</option>
-                <option>Pendente</option><option>Agendado</option><option>Em curso</option><option>Aguardar peça</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option>
-              </select>
-              <input id="calendarSearch" type="text" placeholder="Pesquisar cliente, tipo, contacto ou ID" />
-            </div>
-            <div class="calendar-stats" id="calendarStats"></div>
-            <div id="calendarAgenda" class="calendar-agenda"></div>
-          </section>
-        </div>
-      </section>
-
       <section class="page" id="pagamentos-page">
         <div class="content-grid single-panel-grid">
           <section class="panel wide-panel">
@@ -2051,7 +2030,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
     <button class="bottom-btn" data-tab="adicionar">Adicionar</button>
     <button class="bottom-btn" data-tab="trabalhos">Histórico</button>
     <button class="bottom-btn" data-tab="clientes">Clientes</button>
-    <button class="bottom-btn" data-tab="calendario">Calendário</button>
     <button class="bottom-btn" data-tab="pagamentos">Pagamentos</button>
     <button class="bottom-btn" data-tab="relatorios">Relatórios</button>
     <button class="bottom-btn" data-tab="configuracoes">Configurações</button>
@@ -2532,7 +2510,19 @@ function switchTab(tab){
   pages.forEach(p => p.classList.toggle('active', p.id===`${tab}-page`));
   const btn=document.querySelector(`.nav-btn[data-tab="${tab}"]`);
   $('pageTitle').textContent = btn ? btn.textContent.trim() : 'Dashboard';
-  if(tab === 'configuracoes') bindUiScaleSelector();
+  if(tab === 'dashboard'){
+    renderDashboard();
+    renderAlerts();
+    renderDashboardAgenda();
+  }
+  if(tab === 'trabalhos') renderTrabalhos();
+  if(tab === 'clientes') renderClientes();
+  if(tab === 'pagamentos') renderPagamentos();
+  if(tab === 'relatorios') renderRelatorios();
+  if(tab === 'configuracoes'){
+    bindUiScaleSelector();
+    renderManagedUsers();
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
@@ -2857,25 +2847,6 @@ function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!wi
 
 
 
-.calendar-toolbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-.calendar-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:14px 0 18px}
-.calendar-stat{padding:14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
-.calendar-stat span{display:block;font-size:.82em;opacity:.78;margin-bottom:4px}
-.calendar-stat strong{font-size:1.3em}
-.calendar-agenda{display:grid;gap:14px}
-.calendar-day{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.03);overflow:hidden}
-.calendar-day-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(255,255,255,.04);gap:12px;flex-wrap:wrap}
-.calendar-day-head h4{margin:0;font-size:1rem}
-.calendar-day-head .mini-label{margin:0}
-.calendar-day-items{display:grid;gap:10px;padding:12px}
-.calendar-item{display:grid;grid-template-columns:minmax(110px,140px) 1fr auto;gap:12px;align-items:start;padding:12px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
-.calendar-when strong{display:block}
-.calendar-when small{opacity:.75}
-.calendar-main{display:grid;gap:6px}
-.calendar-title-line{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.calendar-meta{opacity:.82;font-size:.92em}
-.calendar-empty{padding:18px;border:1px dashed rgba(255,255,255,.16);border-radius:14px;text-align:center;opacity:.8}
-@media (max-width: 900px){.calendar-item{grid-template-columns:1fr}.calendar-item .row-actions{justify-content:flex-start}}
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
@@ -3042,6 +3013,53 @@ function renderDashboard(){
     chip.className = totalTrabalhos ? 'status-ok' : 'status-warn';
   }
 }
+function renderDashboardAgenda(){
+  const wrap = $('dashboardAgendaWrap');
+  const stats = $('dashboardAgendaStats');
+  if(!wrap || !stats) return;
+  const openStates = ['Pendente','Agendado','Em curso','Aguardar peça'];
+  const today = todayLocalDate();
+  const plus7 = new Date(); plus7.setDate(plus7.getDate()+7);
+  const plus7Str = new Date(plus7.getTime() - plus7.getTimezoneOffset()*60000).toISOString().split('T')[0];
+  const rows = [...trabalhos].filter(t => getAgendaSmartDate(t)).sort((a,b)=> String(getAgendaSmartDate(a)).localeCompare(String(getAgendaSmartDate(b))));
+  const hoje = rows.filter(t => getAgendaSmartDate(t) === today);
+  const atrasados = rows.filter(t => getAgendaSmartDate(t) < today && openStates.includes(normalizeEstado(t.estado||'')));
+  const proximos = rows.filter(t => { const d = getAgendaSmartDate(t); return d >= today && d <= plus7Str && openStates.includes(normalizeEstado(t.estado||'')); });
+  const semData = trabalhos.filter(t => !getAgendaSmartDate(t));
+
+  stats.innerHTML = `
+    <div class="agenda-smart-stat"><span>Hoje</span><strong>${hoje.length}</strong></div>
+    <div class="agenda-smart-stat"><span>Em atraso</span><strong>${atrasados.length}</strong></div>
+    <div class="agenda-smart-stat"><span>Próximos 7 dias</span><strong>${proximos.length}</strong></div>
+    <div class="agenda-smart-stat"><span>Sem data</span><strong>${semData.length}</strong></div>`;
+
+  function buildCard(title, items, kind='default'){
+    return `
+      <div class="agenda-smart-card">
+        <h4>${title}</h4>
+        <div class="agenda-smart-list">
+          ${items.length ? items.slice(0,6).map(t => `
+            <div class="agenda-smart-item">
+              <div class="agenda-smart-item-top">
+                <strong>${escapeHtml(t.workCode || t.cliente || 'Trabalho')}</strong>
+                <span class="badge" data-state="${escapeHtml(normalizeEstado(t.estado||'Pendente'))}">${escapeHtml(normalizeEstado(t.estado||'Pendente'))}</span>
+              </div>
+              <div>${escapeHtml(t.cliente || '-')} • ${escapeHtml(t.tipoTrabalho || '-')}</div>
+              <div class="agenda-smart-meta">${fmtDate(getAgendaSmartDate(t))} • ${escapeHtml(t.contacto || 'Sem contacto')} • ${euro(t.valor || 0)}</div>
+              ${(t.descricao||'').trim() ? `<div class="agenda-smart-meta">${escapeHtml(t.descricao)}</div>` : ''}
+            </div>`).join('') : '<div class="agenda-smart-empty">Sem itens nesta secção.</div>'}
+        </div>
+      </div>`;
+  }
+
+  wrap.innerHTML = [
+    buildCard('Hoje', hoje),
+    buildCard('Em atraso', atrasados),
+    buildCard('Próximos 7 dias', proximos),
+    buildCard('Sem data', semData)
+  ].join('');
+}
+
 function renderAlerts(){
   const pend = trabalhos.filter(t=>['Pendente','Agendado'].includes(normalizeEstado(t.estado))).length;
   const andam = trabalhos.filter(t=>['Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
@@ -3177,7 +3195,7 @@ function renderRelatorios() {
         .join('')
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
-function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderTrabalhos(); renderClientes(); renderCalendario(); renderPagamentos(); renderRelatorios();
+function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   renderManagedUsers();
   updateWorkCodePreview();
   updateWorkCodePreview();
@@ -3186,10 +3204,7 @@ function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOption
 $('searchTrabalhos')?.addEventListener('input', ()=>{ renderTrabalhos(); renderMobileCards(); });
 $('filterEstado')?.addEventListener('change', ()=>{ renderTrabalhos(); renderMobileCards(); });
 $('searchClientes')?.addEventListener('input', ()=>{ renderClientes(); renderMobileCards(); });
-$('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClientes(); renderPagamentos(); renderCalendario(); renderMobileCards(); });
-$('calendarRangeFilter')?.addEventListener('change', ()=> renderCalendario());
-$('calendarStateFilter')?.addEventListener('change', ()=> renderCalendario());
-$('calendarSearch')?.addEventListener('input', ()=> renderCalendario());
+$('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios(); renderMobileCards(); });
 
 $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   $('trabalhoForm')?.reset();
@@ -3418,25 +3433,38 @@ window.startApp = function(role, username){
 };
 
 
-window.markAsPaid = function(id, metodo='Manual'){
+function todayLocalDate(){
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - offset).toISOString().split('T')[0];
+}
+function getAgendaSmartDate(t){
+  return t.dataInicio || t.dataFim || t.dataPagamento || '';
+}
+window.markAsPaid = function(id, metodo='Manual', dataPagamento=''){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
 
+  const finalPaymentDate = dataPagamento || todayLocalDate();
   t.estado = 'Pago';
-  if(!t.dataFim){
-    t.dataFim = new Date().toISOString().split('T')[0];
-  }
+  t.dataPagamento = finalPaymentDate;
+  t.dataEstado = new Date().toISOString();
+  t.dataFim = finalPaymentDate;
+  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
+  t.historicoEstados.push({ estado:'Pago', data:t.dataEstado });
 
   const pagamento = {
     id: genId('pay'),
     cliente: t.cliente || '',
-    referencia: t.tipoTrabalho || '',
+    referencia: t.workCode || t.tipoTrabalho || '',
     valor: Number(t.valor || 0),
-    data: new Date().toISOString().split('T')[0],
+    data: finalPaymentDate,
     workDate: t.dataInicio || t.dataFim || '',
     metodo,
     invoiceType: t.invoiceType || 'Com Fatura',
-    notas: 'Gerado ao marcar como pago'
+    notas: 'Gerado ao marcar como pago',
+    sourceWorkId: t.id,
+    workCode: t.workCode || ''
   };
 
   pagamentos.push(pagamento);
@@ -3478,6 +3506,7 @@ window.openPaymentMethodModal = function(id){
   pendingPaymentWorkId = id;
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
   $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
+  if($('paymentDateInput')) $('paymentDateInput').value = todayLocalDate();
   $('paymentMethodModal').classList.remove('hidden');
 };
 
@@ -3495,7 +3524,8 @@ document.querySelectorAll('.pay-method-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     if(!pendingPaymentWorkId) return;
     const method = btn.dataset.method || 'Manual';
-    window.markAsPaid(pendingPaymentWorkId, method);
+    const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
+    window.markAsPaid(pendingPaymentWorkId, method, selectedPaymentDate);
     pendingPaymentWorkId = null;
     $('paymentMethodModal').classList.add('hidden');
   });
@@ -3660,6 +3690,7 @@ function renderMobileCards(){
           <strong id="paymentJobName">-</strong>
           <p id="paymentJobClient" style="margin-top:6px;"></p>
         </div>
+        <div class="payment-date-box"><label for="paymentDateInput">Data de pagamento</label><input id="paymentDateInput" type="date" /></div>
         <div class="payment-method-grid">
           <button class="pay-method-btn" data-method="Dinheiro">Dinheiro</button>
           <button class="pay-method-btn" data-method="MB Way">MB Way</button>
