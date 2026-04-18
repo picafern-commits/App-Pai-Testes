@@ -1530,6 +1530,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
         <button class="nav-btn" data-tab="adicionar"><span class="nav-icon">＋</span><span>Adicionar Trabalho</span></button>
         <button class="nav-btn" data-tab="trabalhos"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
         <button class="nav-btn" data-tab="clientes"><span class="nav-icon">◉</span><span>Clientes</span></button>
+        <button class="nav-btn" data-tab="calendario"><span class="nav-icon">🗓</span><span>Calendário</span></button>
         <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">€</span><span>Pagamentos</span></button>
         <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">▣</span><span>Relatórios</span></button>
         <button class="nav-btn" data-tab="configuracoes"><span class="nav-icon">⚙</span><span>Configurações</span></button>
@@ -1684,7 +1685,32 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       </section>
 
       
-<section class="page" id="pagamentos-page">
+
+<section class="page" id="calendario-page">
+        <div class="content-grid single-panel-grid">
+          <section class="panel wide-panel">
+            <div class="panel-head"><h3>Calendário / Agenda</h3></div>
+            <div class="toolbar calendar-toolbar">
+              <select id="calendarRangeFilter">
+                <option value="all">Todos</option>
+                <option value="today">Hoje</option>
+                <option value="week">Próximos 7 dias</option>
+                <option value="late">Em atraso</option>
+                <option value="open">Abertos</option>
+              </select>
+              <select id="calendarStateFilter">
+                <option value="">Todos os estados</option>
+                <option>Pendente</option><option>Agendado</option><option>Em curso</option><option>Aguardar peça</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option>
+              </select>
+              <input id="calendarSearch" type="text" placeholder="Pesquisar cliente, tipo, contacto ou ID" />
+            </div>
+            <div class="calendar-stats" id="calendarStats"></div>
+            <div id="calendarAgenda" class="calendar-agenda"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page" id="pagamentos-page">
         <div class="content-grid single-panel-grid">
           <section class="panel wide-panel">
             <div class="panel-head"><h3>Registo de pagamentos</h3></div>
@@ -1752,11 +1778,14 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
                 </div>
               </section>
             </div>
+          </div>
+      </section>
   <nav class="bottom-nav">
     <button class="bottom-btn active" data-tab="dashboard">Dashboard</button>
     <button class="bottom-btn" data-tab="adicionar">Adicionar</button>
     <button class="bottom-btn" data-tab="trabalhos">Histórico</button>
     <button class="bottom-btn" data-tab="clientes">Clientes</button>
+    <button class="bottom-btn" data-tab="calendario">Calendário</button>
     <button class="bottom-btn" data-tab="pagamentos">Pagamentos</button>
     <button class="bottom-btn" data-tab="relatorios">Relatórios</button>
     <button class="bottom-btn" data-tab="configuracoes">Configurações</button>
@@ -2017,13 +2046,23 @@ function genId(prefix='id'){
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
 }
 
+function refreshLastTrabIdFromWorks(){
+  const maxExistingId = trabalhos.reduce((max, t) => {
+    const n = getWorkCodeNumber(t?.workCode || t?.ordemId || t?.id || '');
+    return Math.max(max, n);
+  }, 0);
+  lastTrabId = Math.max(Number(lastTrabId || 0) || 0, maxExistingId);
+  try{ localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId)); }catch{}
+  return lastTrabId;
+}
+
 function nextTrabalhoIdPreview(){
-  const nextId = Number(lastTrabId || 0) + 1;
+  const nextId = refreshLastTrabIdFromWorks() + 1;
   return `TRAB-${String(nextId).padStart(4,'0')}`;
 }
 
 function nextTrabalhoId(){
-  lastTrabId = Number(lastTrabId || 0) + 1;
+  lastTrabId = refreshLastTrabIdFromWorks() + 1;
   localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
   return `TRAB-${String(lastTrabId).padStart(4,'0')}`;
 }
@@ -2049,6 +2088,7 @@ function normalizeTrabalhosIds(){
     maxExisting += 1;
     return normalizeTrabalhoStateShape({ ...t, workCode: `TRAB-${String(maxExisting).padStart(4,'0')}` });
   });
+  refreshLastTrabIdFromWorks();
   if(changed) saveLocal();
 }
 
@@ -2058,16 +2098,8 @@ function loadLocal(){
   try{clientes=JSON.parse(localStorage.getItem(STORAGE_KEYS.clientes))||[]}catch{clientes=[]}
   try{pagamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.pagamentos))||[]}catch{pagamentos=[]}
   try{ lastTrabId = Number(localStorage.getItem(STORAGE_KEYS.lastTrabId) || 0) || 0 }catch{ lastTrabId = 0 }
-
-  const maxExistingId = trabalhos.reduce((max, t) => {
-    const n = getWorkCodeNumber(t.workCode || t.ordemId || t.id || '');
-    return Math.max(max, n);
-  }, 0);
-
-  if(maxExistingId > lastTrabId){
-    lastTrabId = maxExistingId;
-    localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
-  }
+  normalizeTrabalhosIds();
+  refreshLastTrabIdFromWorks();
 }
 function saveLocal(){
   localStorage.setItem(STORAGE_KEYS.trabalhos, JSON.stringify(trabalhos));
@@ -2297,7 +2329,7 @@ function attachRealtimeListeners(){
     });
     unsubs.push(unsub);
   };
-  bind('trabalhos', rows => { trabalhos = rows.map(r => normalizeTrabalhoStateShape({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); });
+  bind('trabalhos', rows => { trabalhos = rows.map(r => normalizeTrabalhoStateShape({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); refreshLastTrabIdFromWorks(); });
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
 }
@@ -2557,7 +2589,148 @@ function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!wi
   }
 }
 
+
+
+.calendar-toolbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.calendar-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:14px 0 18px}
+.calendar-stat{padding:14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.calendar-stat span{display:block;font-size:.82em;opacity:.78;margin-bottom:4px}
+.calendar-stat strong{font-size:1.3em}
+.calendar-agenda{display:grid;gap:14px}
+.calendar-day{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.03);overflow:hidden}
+.calendar-day-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(255,255,255,.04);gap:12px;flex-wrap:wrap}
+.calendar-day-head h4{margin:0;font-size:1rem}
+.calendar-day-head .mini-label{margin:0}
+.calendar-day-items{display:grid;gap:10px;padding:12px}
+.calendar-item{display:grid;grid-template-columns:minmax(110px,140px) 1fr auto;gap:12px;align-items:start;padding:12px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
+.calendar-when strong{display:block}
+.calendar-when small{opacity:.75}
+.calendar-main{display:grid;gap:6px}
+.calendar-title-line{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.calendar-meta{opacity:.82;font-size:.92em}
+.calendar-empty{padding:18px;border:1px dashed rgba(255,255,255,.16);border-radius:14px;text-align:center;opacity:.8}
+@media (max-width: 900px){.calendar-item{grid-template-columns:1fr}.calendar-item .row-actions{justify-content:flex-start}}
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+
+
+function getAgendaDate(t){
+  return t?.dataInicio || t?.dataFim || '';
+}
+function startOfDay(value){
+  const d = new Date(value);
+  if(isNaN(d)) return null;
+  d.setHours(0,0,0,0);
+  return d;
+}
+function formatAgendaHeader(value){
+  const d = startOfDay(value);
+  if(!d) return 'Sem data';
+  return d.toLocaleDateString('pt-PT', { weekday:'long', day:'2-digit', month:'2-digit', year:'numeric' });
+}
+function isOpenEstado(estado){
+  return ['Pendente','Agendado','Em curso','Aguardar peça'].includes(normalizeEstado(estado));
+}
+function getCalendarRows(){
+  const search = ($('calendarSearch')?.value || '').trim().toLowerCase();
+  const range = $('calendarRangeFilter')?.value || 'all';
+  const state = $('calendarStateFilter')?.value || '';
+  const today = startOfDay(new Date());
+  const weekEnd = new Date(today);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+
+  return trabalhos
+    .map(t => ({ ...normalizeTrabalhoStateShape(t), agendaDate: getAgendaDate(t) }))
+    .filter(t => t.agendaDate)
+    .filter(t => {
+      const hay = [t.workCode, t.cliente, t.tipoTrabalho, t.contacto, t.descricao, t.estado].join(' ').toLowerCase();
+      if(search && !hay.includes(search)) return false;
+      if(state && normalizeEstado(t.estado) !== state) return false;
+      const d = startOfDay(t.agendaDate);
+      if(!d) return false;
+      if(range === 'today') return d.getTime() === today.getTime();
+      if(range === 'week') return d >= today && d <= weekEnd;
+      if(range === 'late') return d < today && isOpenEstado(t.estado);
+      if(range === 'open') return isOpenEstado(t.estado);
+      return true;
+    })
+    .sort((a,b) => {
+      const ad = startOfDay(a.agendaDate)?.getTime() || 0;
+      const bd = startOfDay(b.agendaDate)?.getTime() || 0;
+      if(ad !== bd) return ad - bd;
+      return getWorkCodeNumber(a.workCode) - getWorkCodeNumber(b.workCode);
+    });
+}
+function renderCalendario(){
+  const wrap = $('calendarAgenda');
+  const stats = $('calendarStats');
+  if(!wrap || !stats) return;
+
+  const rows = getCalendarRows();
+  const today = startOfDay(new Date());
+  const lateCount = trabalhos.filter(t => {
+    const d = startOfDay(getAgendaDate(t));
+    return d && d < today && isOpenEstado(t.estado);
+  }).length;
+  const todayCount = trabalhos.filter(t => {
+    const d = startOfDay(getAgendaDate(t));
+    return d && d.getTime() === today.getTime();
+  }).length;
+  const openCount = trabalhos.filter(t => isOpenEstado(t.estado)).length;
+
+  stats.innerHTML = `
+    <div class="calendar-stat"><span>Serviços hoje</span><strong>${todayCount}</strong></div>
+    <div class="calendar-stat"><span>Em atraso</span><strong>${lateCount}</strong></div>
+    <div class="calendar-stat"><span>Trabalhos abertos</span><strong>${openCount}</strong></div>
+    <div class="calendar-stat"><span>Resultados atuais</span><strong>${rows.length}</strong></div>
+  `;
+
+  if(!rows.length){
+    wrap.innerHTML = '<div class="calendar-empty">Sem trabalhos para mostrar no calendário.</div>';
+    return;
+  }
+
+  const groups = rows.reduce((acc, t) => {
+    const key = t.agendaDate;
+    if(!acc[key]) acc[key] = [];
+    acc[key].push(t);
+    return acc;
+  }, {});
+
+  wrap.innerHTML = Object.keys(groups).sort((a,b)=> (startOfDay(a)?.getTime()||0) - (startOfDay(b)?.getTime()||0)).map(key => {
+    const items = groups[key];
+    return `
+      <div class="calendar-day">
+        <div class="calendar-day-head">
+          <h4>${escapeHtml(formatAgendaHeader(key))}</h4>
+          <span class="mini-label">${items.length} trabalho(s)</span>
+        </div>
+        <div class="calendar-day-items">
+          ${items.map(t => `
+            <div class="calendar-item">
+              <div class="calendar-when">
+                <strong>${escapeHtml(t.workCode || '-')}</strong>
+                <small>${fmtDate(t.agendaDate)}</small>
+              </div>
+              <div class="calendar-main">
+                <div class="calendar-title-line">
+                  <strong>${escapeHtml(t.cliente || '-')}</strong>
+                  <span class="badge" data-state="${escapeHtml(t.estado || '-')}">${escapeHtml(t.estado || '-')}</span>
+                </div>
+                <div>${escapeHtml(t.tipoTrabalho || '-')}</div>
+                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: ${euro(t.valor || 0)}</div>
+                ${(t.descricao || '').trim() ? `<div class="calendar-meta">${escapeHtml(t.descricao)}</div>` : ''}
+              </div>
+              <div class="row-actions">
+                <button class="small-btn" onclick="editTrabalho('${t.id}')">Editar</button>
+                <button class="small-btn info" onclick="window.showDesc('${t.id}')">Descrição</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 
 function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
@@ -2738,7 +2911,7 @@ function renderRelatorios() {
         .join('')
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
-function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderTrabalhos(); renderClientes(); renderCalendario(); renderPagamentos(); renderRelatorios();
   renderManagedUsers();
   updateWorkCodePreview();
   updateWorkCodePreview();
@@ -2747,7 +2920,10 @@ function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOption
 $('searchTrabalhos')?.addEventListener('input', ()=>{ renderTrabalhos(); renderMobileCards(); });
 $('filterEstado')?.addEventListener('change', ()=>{ renderTrabalhos(); renderMobileCards(); });
 $('searchClientes')?.addEventListener('input', ()=>{ renderClientes(); renderMobileCards(); });
-$('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClientes(); renderPagamentos(); renderMobileCards(); });
+$('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClientes(); renderPagamentos(); renderCalendario(); renderMobileCards(); });
+$('calendarRangeFilter')?.addEventListener('change', ()=> renderCalendario());
+$('calendarStateFilter')?.addEventListener('change', ()=> renderCalendario());
+$('calendarSearch')?.addEventListener('input', ()=> renderCalendario());
 
 $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   $('trabalhoForm')?.reset();
@@ -2799,6 +2975,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
 
   const i=trabalhos.findIndex(x=>x.id===item.id);
   if(i>=0) trabalhos[i]=item; else trabalhos.push(item);
+  refreshLastTrabIdFromWorks();
 
   saveLocal();
   try{ await upsertRemote('trabalhos', item); }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
@@ -3018,8 +3195,9 @@ window.deletePagamento = function(id){
 window.showDesc = function(id){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
+  const descValue = t.descricao || t.descrição || t.description || t.desc || '';
   $('descModalTitle').textContent = `${t.cliente || '-'} • ${t.tipoTrabalho || '-'}`;
-  $('descModalText').textContent = t.descricao || 'Sem descrição.';
+  $('descModalText').textContent = descValue || 'Sem descrição.';
   $('descModal').classList.remove('hidden');
 };
 
