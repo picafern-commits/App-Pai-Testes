@@ -178,6 +178,24 @@ function setSyncMessage(msg, level='warn'){
     note.classList.add(level === 'ok' ? 'sync-ok' : (level === 'bad' ? 'sync-bad' : 'sync-warn'));
   }
 }
+
+function setDetailedSyncError(err, context='Firebase'){
+  const code = err?.code ? String(err.code) : 'sem_codigo';
+  const message = err?.message ? String(err.message) : 'sem_mensagem';
+  const full = `${context}: ${code} | ${message}`;
+  console.error(full, err);
+  setSyncMessage(full, 'bad');
+}
+window.addEventListener('error', (event) => {
+  if(event?.error){
+    setDetailedSyncError(event.error, 'JS');
+  }
+});
+window.addEventListener('unhandledrejection', (event) => {
+  if(event?.reason){
+    setDetailedSyncError(event.reason, 'Promise');
+  }
+});
 function setRoleUI(){
   if(!currentRole) return;
   const roleLabel = currentRole === 'master_admin' ? 'Admin Mestre' : (currentRole === 'admin' ? 'Admin' : 'User');
@@ -238,12 +256,8 @@ async function initFirebaseSync(){
       if (currentRole) renderAll();
     });
   }catch(err){
-    console.error('Firebase sync error:', err);
     syncReady = false;
-    const msg = err?.code === 'auth/operation-not-allowed'
-      ? 'Ativa Anonymous Auth no Firebase'
-      : 'Local (Firebase indisponível)';
-    setSyncMessage(msg, 'bad');
+    setDetailedSyncError(err, 'Firebase init');
   }
 }
 
@@ -260,8 +274,7 @@ function attachRealtimeListeners(){
       saveLocal();
       if (currentRole) renderAll();
     }, err => {
-      console.error(`Snapshot ${name} failed:`, err);
-      setSyncMessage('Erro de sync, uso local', 'bad');
+      setDetailedSyncError(err, `Snapshot ${name}`);
     });
     unsubs.push(unsub);
   };
