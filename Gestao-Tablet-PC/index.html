@@ -196,7 +196,9 @@ textarea{resize:vertical}
   min-width:0;
   overflow-x:hidden;
 }
-.topbar{
+.topbar-actions{display:none!important}
+.topbar{justify-content:flex-start;
+
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
@@ -356,7 +358,9 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   .app-shell{grid-template-columns:1fr}
   .sidebar{position:static;height:auto}
   .main{padding:16px 16px 86px}
-  .topbar{flex-direction:column;align-items:flex-start}
+  .topbar-actions{display:none!important}
+.topbar{justify-content:flex-start;
+flex-direction:column;align-items:flex-start}
   .global-search{min-width:100%;max-width:none}
   .hero-copy h3{font-size:30px}
   .stats-grid,.form-grid{grid-template-columns:1fr}
@@ -368,6 +372,13 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   .bottom-btn{border:none;color:#fff;background:transparent;border-radius:16px;padding:12px 8px;cursor:pointer}
   .bottom-btn.active{background:linear-gradient(135deg,rgba(111,92,255,.18),rgba(36,200,255,.12))}
 }
+
+
+.compact-config-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-bottom:0}
+#configuracoes-page{display:none;width:100%}
+#configuracoes-page.active{display:block}
+#configuracoes-page .panel{margin-top:0}
+#configuracoes-page .users-master-panel{margin-top:16px}
 
 .config-tools{
   display:grid;
@@ -651,7 +662,9 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
     padding:14px 14px 92px !important;
   }
 
-  .topbar{
+  .topbar-actions{display:none!important}
+.topbar{justify-content:flex-start;
+
     display:grid !important;
     grid-template-columns:1fr;
     gap:10px;
@@ -952,7 +965,9 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   .table-wrap{
     display:none;
   }
-  .topbar{
+  .topbar-actions{display:none!important}
+.topbar{justify-content:flex-start;
+
     position:sticky;
     top:0;
     z-index:35;
@@ -1133,12 +1148,9 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   }
 }
 
-
-.single-panel-grid > .panel{width:100%;max-width:none;}
-.topbar{justify-content:flex-start;}
 </style>
 </head>
-<body>
+<body><div class="mode-badge prod">MODO FINAL</div><div class="platform-badge">TABLET/PC</div><div class="env-badge prod">PRODUÇÃO</div>
   <div class="bg-orb orb-1"></div>
   <div class="bg-orb orb-2"></div>
 
@@ -1219,7 +1231,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
             </div>
           </div>
         </div>
-      </header>
+        </header>
 
       <section class="page active" id="dashboard-page">
         <div class="hero panel">
@@ -1369,24 +1381,11 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <section class="page" id="configuracoes-page">
         <section class="panel">
           <div class="panel-head"><h3>Configurações</h3></div>
-</div><div class="config-actions">
-            <button class="btn btn-secondary" id="exportBackupBtn">Backup JSON</button>
+          <div class="settings-grid clean-settings-grid compact-config-grid">
+            <div class="setting-card"><span class="mini-label">Login</span><strong>Interno</strong><p>Acesso simples e estável.</p></div>
+            <div class="setting-card"><span class="mini-label">Sincronização</span><strong>Firebase</strong><p>Ligação entre dispositivos ativa.</p></div>
+            <div class="setting-card"><span class="mini-label">Sessão</span><strong>Administração</strong><p>Gestão técnica da aplicação.</p></div>
           </div>
-
-          
-
-
-<div id="tabletModeSwitchPanel" class="panel">
-  <div class="panel-head"><h3>Ambiente Tablet/PC</h3></div>
-  <div class="mode-switch-card">
-    <div class="mode-switch-copy">
-      <h4>Estás na versão FINAL</h4></div>
-    <div class="mode-switch-actions">
-      <button type="button" class="btn btn-secondary mode-switch-btn active" id="goTabletFinalBtn" onclick="if(window.forceGoTabletFinal) window.forceGoTabletFinal()">Abrir FINAL</button>
-      <button type="button" class="btn btn-primary mode-switch-btn " id="goTabletTestBtn" onclick="if(window.forceGoTabletTest) window.forceGoTabletTest()">Abrir TESTE</button>
-    </div>
-  </div>
-</div>
 
 <div id="usersSection" class="panel users-master-panel">
             <div class="panel-head"><h3>Gestão de utilizadores</h3></div>
@@ -1416,14 +1415,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
                 </div>
               </section>
             </div>
-
-            <div class="panel-head" style="margin-top:18px;"><h3>Informação</h3></div>
-            <div class="panel-head"><h3>Gestão de utilizadores</h3></div>
-            <div class="settings-grid clean-settings-grid">
-              <div class="setting-card"><span class="mini-label">Admin Mestre</span><strong>Ricardo</strong><p>Só o Ricardo consegue ver esta área.</p></div>
-              <div class="setting-card"><span class="mini-label">Credenciais</span><strong>Internas</strong><p>Sem dependência de Google.</p></div>
-              <div class="setting-card"><span class="mini-label">Estado</span><strong>Ativo</strong><p>Base pronta para uso.</p></div>
-            </div>
+          </div>
           </div>
         </section>
       </section>
