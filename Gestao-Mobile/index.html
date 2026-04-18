@@ -2295,6 +2295,106 @@ td.acoes-col, .acoes-col{
 }
 .backup-file-input{display:none;}
 
+
+/* BACKUPS VISUAL PRO */
+.backup-tools-card{
+  position: relative;
+  overflow: hidden;
+}
+.backup-tools-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background: radial-gradient(circle at top right, rgba(59,130,246,.16), transparent 35%),
+              radial-gradient(circle at bottom left, rgba(168,85,247,.14), transparent 30%);
+  pointer-events:none;
+}
+.backup-tools-card > *{
+  position:relative;
+  z-index:1;
+}
+.backup-tools-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+}
+.backup-tools-title{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.backup-tools-title h3{
+  margin:0;
+  font-size:20px;
+  color:#fff;
+  letter-spacing:.02em;
+}
+.backup-tools-title p{
+  margin:0;
+  font-size:13px;
+  color:#cbd5e1;
+}
+.backup-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:32px;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.02em;
+  color:#dbeafe;
+  border:1px solid rgba(96,165,250,.28);
+  background:linear-gradient(180deg, rgba(37,99,235,.18), rgba(29,78,216,.12));
+}
+.backup-status-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:12px;
+  margin:14px 0 16px 0;
+}
+.backup-status-card{
+  background:rgba(15,23,42,.62);
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 10px 20px rgba(0,0,0,.10);
+}
+.backup-status-card .label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#a78bfa;
+  margin-bottom:8px;
+}
+.backup-status-card .value{
+  display:block;
+  font-size:18px;
+  font-weight:800;
+  color:#fff;
+  line-height:1.15;
+}
+.backup-actions{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:10px;
+}
+.backup-actions button,
+.backup-actions label{
+  width:100%;
+  justify-content:center;
+}
+@media (max-width: 768px){
+  .backup-tools-header{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2787,10 +2887,10 @@ function refreshBackupStatusUi(){
   const weeklyBackups = JSON.parse(localStorage.getItem('weeklyAutoBackups') || '[]');
   const last = localStorage.getItem('weeklyAutoBackupLastDate');
   if(lastEl){
-    lastEl.textContent = 'Último backup automático: ' + (last ? fmtDate(last) : '--');
+    lastEl.textContent = (last ? fmtDate(last) : '--');
   }
   if(countEl){
-    countEl.textContent = 'Backups guardados: ' + weeklyBackups.length;
+    countEl.textContent = String(weeklyBackups.length);
   }
 }
 
@@ -4186,6 +4286,106 @@ td.acoes-col, .acoes-col{
   color:#dcfce7;
 }
 .backup-file-input{display:none;}
+
+
+/* BACKUPS VISUAL PRO */
+.backup-tools-card{
+  position: relative;
+  overflow: hidden;
+}
+.backup-tools-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background: radial-gradient(circle at top right, rgba(59,130,246,.16), transparent 35%),
+              radial-gradient(circle at bottom left, rgba(168,85,247,.14), transparent 30%);
+  pointer-events:none;
+}
+.backup-tools-card > *{
+  position:relative;
+  z-index:1;
+}
+.backup-tools-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+}
+.backup-tools-title{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.backup-tools-title h3{
+  margin:0;
+  font-size:20px;
+  color:#fff;
+  letter-spacing:.02em;
+}
+.backup-tools-title p{
+  margin:0;
+  font-size:13px;
+  color:#cbd5e1;
+}
+.backup-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:32px;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.02em;
+  color:#dbeafe;
+  border:1px solid rgba(96,165,250,.28);
+  background:linear-gradient(180deg, rgba(37,99,235,.18), rgba(29,78,216,.12));
+}
+.backup-status-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:12px;
+  margin:14px 0 16px 0;
+}
+.backup-status-card{
+  background:rgba(15,23,42,.62);
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 10px 20px rgba(0,0,0,.10);
+}
+.backup-status-card .label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#a78bfa;
+  margin-bottom:8px;
+}
+.backup-status-card .value{
+  display:block;
+  font-size:18px;
+  font-weight:800;
+  color:#fff;
+  line-height:1.15;
+}
+.backup-actions{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:10px;
+}
+.backup-actions button,
+.backup-actions label{
+  width:100%;
+  justify-content:center;
+}
+@media (max-width: 768px){
+  .backup-tools-header{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
 
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
