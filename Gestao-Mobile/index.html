@@ -491,6 +491,27 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .autobackup-badge{
   display:inline-flex; padding:8px 12px; border-radius:999px; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.22); color:#86efac; font-size:12px;
 }
+
+.mobile-sidebar-toggle{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  cursor:pointer;
+  font-size:20px;
+  margin-right:10px;
+}
+.mobile-sidebar-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:39;
+}
 @media (max-width:1450px){
   .content-grid,.dashboard-grid,.settings-grid,.alert-grid,.client-summary-grid{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -501,9 +522,26 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   .clean-brand-copy h1{font-size:40px}
   .login-only-title h1{font-size:44px}
   .app-shell{grid-template-columns:1fr}
-  .sidebar{position:static;height:auto}
-  .main{padding:16px 16px 86px}
-  .topbar{flex-direction:column;align-items:flex-start}
+  .mobile-sidebar-toggle{display:inline-flex}
+  .sidebar{
+    position:fixed;
+    top:0;
+    left:0;
+    bottom:0;
+    width:min(86vw,320px);
+    max-width:320px;
+    height:100vh;
+    overflow:auto;
+    z-index:40;
+    transform:translateX(-105%);
+    transition:transform .25s ease;
+    border-right:1px solid var(--line);
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  .sidebar.open{transform:translateX(0)}
+  .main{padding:16px 16px 86px;width:100%}
+  .topbar{align-items:flex-start}
+  .topbar-left{display:flex;align-items:flex-start;width:100%}
   .global-search{min-width:100%;max-width:none}
   .hero-copy h3{font-size:30px}
   .stats-grid,.form-grid{grid-template-columns:1fr}
@@ -578,7 +616,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   }
 
   .sidebar{
-    width:100%;
+    width:min(86vw,320px);
     flex:unset;
   }
 
@@ -1773,6 +1811,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
     <main class="main">
       <header class="topbar">
         <div class="topbar-left">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-label="Abrir menu">☰</button>
           <div>
             <h2 id="pageTitle">Dashboard</h2>
             <div class="subline">
@@ -1974,22 +2013,14 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
                     <tbody id="managedUsersTableBody"></tbody>
                   </table>
                 </div>
-                <div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-tools">
-                  <div class="setting-card">
-                    <span class="mini-label">Backups</span>
-                    <strong id="backupStatusTitle">Sem backup semanal</strong>
-                    <p id="backupStatusText">Ainda não existe backup semanal automático neste dispositivo.</p>
-                    <small id="backupStatusMeta">Os backups automáticos ficam guardados localmente no navegador.</small>
-                  </div>
-                </div>
-                <div class="config-actions">
+                <div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-actions">
                   <button class="btn btn-secondary" id="exportBackupBtn">Backup JSON</button>
-                  <button class="btn btn-secondary" id="importBackupBtn">Importar backup</button>
-                  <button class="btn btn-secondary" id="downloadLatestWeeklyBackupBtn">Transferir backup semanal</button>
-                  <input type="file" id="importBackupInput" accept=".json,application/json" hidden />
                 </div>
               </section>
             </div>
+
+          </div>
+      </section>
 
   <nav class="bottom-nav">
     <button class="bottom-btn active" data-tab="dashboard">Dashboard</button>
@@ -2118,9 +2149,8 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const APP_VERSION = '1.0.7';
+const APP_VERSION = '1.0.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
-const BACKUP_KEYS = { weeklyBackups:'ge_weekly_backups', lastWeeklyBackupAt:'ge_last_weekly_backup_at' };
 
 let currentRole = null, currentUsername = null;
 let trabalhos = [], clientes = [], pagamentos = [];
@@ -2135,6 +2165,31 @@ let unsubs = [];
 
 const $ = (id) => document.getElementById(id);
 initUiScale();
+
+const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+const sidebarEl = document.querySelector('.sidebar');
+function closeMobileSidebar(){
+  if(window.innerWidth > 900 || !sidebarEl) return;
+  sidebarEl.classList.remove('open');
+  mobileSidebarOverlay?.classList.add('hidden');
+}
+function openMobileSidebar(){
+  if(window.innerWidth > 900 || !sidebarEl) return;
+  sidebarEl.classList.add('open');
+  mobileSidebarOverlay?.classList.remove('hidden');
+}
+mobileSidebarToggle?.addEventListener('click', ()=>{
+  if(sidebarEl?.classList.contains('open')) closeMobileSidebar();
+  else openMobileSidebar();
+});
+mobileSidebarOverlay?.addEventListener('click', closeMobileSidebar);
+window.addEventListener('resize', ()=>{
+  if(window.innerWidth > 900){
+    sidebarEl?.classList.remove('open');
+    mobileSidebarOverlay?.classList.add('hidden');
+  }
+});
 const navButtons = document.querySelectorAll('.nav-btn');
 const bottomButtons = document.querySelectorAll('.bottom-btn');
 const pages = document.querySelectorAll('.page');
@@ -2224,21 +2279,17 @@ function normalizeTrabalhosIds(){
 }
 
 
-function getMaxWorkCodeNumberFromTrabalhos(list = trabalhos){
-  return (Array.isArray(list) ? list : []).reduce((max, t) => {
-    return Math.max(max, getWorkCodeNumber(t?.workCode || t?.ordemId || t?.id || ''));
-  }, 0);
-}
-
 function loadLocal(){
   try{trabalhos=JSON.parse(localStorage.getItem(STORAGE_KEYS.trabalhos))||[]}catch{trabalhos=[]}
   try{clientes=JSON.parse(localStorage.getItem(STORAGE_KEYS.clientes))||[]}catch{clientes=[]}
   try{pagamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.pagamentos))||[]}catch{pagamentos=[]}
   try{ lastTrabId = Number(localStorage.getItem(STORAGE_KEYS.lastTrabId) || 0) || 0 }catch{ lastTrabId = 0 }
 
-  normalizeTrabalhosIds();
-
-  const maxExistingId = getMaxWorkCodeNumberFromTrabalhos(trabalhos);
+  const maxExistingId = trabalhos.reduce((max, t) => {
+    const match = String(t.id || '').match(/^TRAB-(\d+)$/);
+    const n = match ? Number(match[1]) : 0;
+    return Math.max(max, n);
+  }, 0);
 
   if(maxExistingId > lastTrabId){
     lastTrabId = maxExistingId;
@@ -2251,8 +2302,6 @@ function saveLocal(){
   localStorage.setItem(STORAGE_KEYS.pagamentos, JSON.stringify(pagamentos));
   localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
   autoBackupInvisible();
-  runWeeklyBackupIfNeeded();
-  updateBackupStatusUI();
 }
 
 function populateClientOptions(selected=''){
@@ -2371,136 +2420,6 @@ function autoBackupInvisible(){
   };
   localStorage.setItem('ge_invisible_backup', JSON.stringify(payload));
 }
-
-function buildBackupPayload(){
-  return {
-    exportadoEm: new Date().toISOString(),
-    appVersion: APP_VERSION,
-    currentUsername,
-    currentRole,
-    trabalhos,
-    clientes,
-    pagamentos
-  };
-}
-
-function downloadJsonFile(payload, filename){
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-
-function getWeeklyBackups(){
-  try{
-    const raw = JSON.parse(localStorage.getItem(BACKUP_KEYS.weeklyBackups) || '[]');
-    return Array.isArray(raw) ? raw : [];
-  }catch{
-    return [];
-  }
-}
-
-function saveWeeklyBackups(list){
-  localStorage.setItem(BACKUP_KEYS.weeklyBackups, JSON.stringify(Array.isArray(list) ? list : []));
-}
-
-function runWeeklyBackupIfNeeded(force = false){
-  const now = Date.now();
-  const oneWeek = 7 * 24 * 60 * 60 * 1000;
-  const lastAt = Number(localStorage.getItem(BACKUP_KEYS.lastWeeklyBackupAt) || 0);
-  if(!force && lastAt && (now - lastAt) < oneWeek) return false;
-
-  const payload = buildBackupPayload();
-  const entry = {
-    id: `weekly_${now}`,
-    createdAt: new Date(now).toISOString(),
-    filename: `gestao-empresa-backup-semanal-${new Date(now).toISOString().slice(0,10)}.json`,
-    payload
-  };
-
-  const backups = getWeeklyBackups();
-  backups.unshift(entry);
-  saveWeeklyBackups(backups.slice(0, 12));
-  localStorage.setItem(BACKUP_KEYS.lastWeeklyBackupAt, String(now));
-  return true;
-}
-
-function updateBackupStatusUI(){
-  const titleEl = $('backupStatusTitle');
-  const textEl = $('backupStatusText');
-  const metaEl = $('backupStatusMeta');
-  if(!titleEl && !textEl && !metaEl) return;
-
-  const backups = getWeeklyBackups();
-  const latest = backups[0];
-  if(!latest){
-    if(titleEl) titleEl.textContent = 'Sem backup semanal';
-    if(textEl) textEl.textContent = 'Ainda não existe backup semanal automático neste dispositivo.';
-    if(metaEl) metaEl.textContent = 'Os backups automáticos ficam guardados localmente no navegador.';
-    return;
-  }
-
-  const dateText = fmtDate(latest.createdAt);
-  if(titleEl) titleEl.textContent = `Último backup semanal: ${dateText}`;
-  if(textEl) textEl.textContent = `Guardados ${backups.length} backups locais automáticos neste dispositivo.`;
-  if(metaEl) metaEl.textContent = `Último ficheiro: ${latest.filename}`;
-}
-
-function downloadLatestWeeklyBackup(){
-  const latest = getWeeklyBackups()[0];
-  if(!latest?.payload){
-    alert('Ainda não existe backup semanal automático para transferir.');
-    return;
-  }
-  downloadJsonFile(latest.payload, latest.filename || 'gestao-empresa-backup-semanal.json');
-}
-
-async function syncImportedDataToFirebase(){
-  if(!syncReady || !firestoreDb) return;
-  try{
-    await Promise.all([
-      ...trabalhos.map(item => upsertRemote('trabalhos', item)),
-      ...clientes.map(item => upsertRemote('clientes', item)),
-      ...pagamentos.map(item => upsertRemote('pagamentos', item))
-    ]);
-  }catch(err){
-    console.error('Erro ao sincronizar backup importado:', err);
-  }
-}
-
-async function importBackupFile(file){
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const payload = JSON.parse(text);
-
-    const nextTrabalhos = Array.isArray(payload?.trabalhos) ? payload.trabalhos : [];
-    const nextClientes = Array.isArray(payload?.clientes) ? payload.clientes : [];
-    const nextPagamentos = Array.isArray(payload?.pagamentos) ? payload.pagamentos : [];
-
-    trabalhos = nextTrabalhos.map(t => ({ ...t, workCode: t.workCode || t.ordemId || '' }));
-    clientes = nextClientes.map(c => ({ ...c }));
-    pagamentos = nextPagamentos.map(p => ({ ...p }));
-
-    normalizeTrabalhosIds();
-    lastTrabId = getMaxWorkCodeNumberFromTrabalhos(trabalhos);
-    localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
-
-    saveLocal();
-    runWeeklyBackupIfNeeded(true);
-    updateBackupStatusUI();
-    if(currentRole) renderAll();
-    await syncImportedDataToFirebase();
-
-    alert(`Backup importado com sucesso. Trabalhos: ${trabalhos.length}, Clientes: ${clientes.length}, Pagamentos: ${pagamentos.length}.`);
-  }catch(err){
-    console.error('Erro ao importar backup:', err);
-    alert('Não foi possível importar o backup. Confirma se o ficheiro JSON é válido.');
-  }
-}
-
 function setSyncMessage(msg, level='warn'){
   syncMessage = msg;
   const mode = $('modeLine');
@@ -2545,7 +2464,7 @@ function switchTab(tab){
   if(tab === 'configuracoes') bindUiScaleSelector();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
+navButtons.forEach(b => b.addEventListener('click', ()=>{ switchTab(b.dataset.tab); closeMobileSidebar(); }));
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
 
@@ -3050,7 +2969,6 @@ function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOption
   renderManagedUsers();
   updateWorkCodePreview();
   updateWorkCodePreview();
-  updateBackupStatusUI();
   renderMobileCards(); }
 
 $('searchTrabalhos')?.addEventListener('input', ()=>{ renderTrabalhos(); renderMobileCards(); });
@@ -3265,25 +3183,12 @@ window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) 
 window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valor||0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
 window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
-function exportBackup(){
-  const payload = buildBackupPayload();
-  const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
-  downloadJsonFile(payload, `gestao-empresa-backup-${stamp}.json`);
-}
-$('exportBackupBtn')?.addEventListener('click', exportBackup);
-$('importBackupBtn')?.addEventListener('click', ()=> $('importBackupInput')?.click());
-$('importBackupInput')?.addEventListener('change', async (e) => {
-  const file = e.target.files?.[0];
-  await importBackupFile(file);
-  e.target.value = '';
-});
-$('downloadLatestWeeklyBackupBtn')?.addEventListener('click', downloadLatestWeeklyBackup);
+function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
+$('exportBackupBtn').addEventListener('click', exportBackup);
 $('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMensal').innerHTML; printHtml('Relatório mensal', `<h1>Relatório Mensal</h1><div style="display:grid;gap:14px">${html}</div>`); });
 
 loadLocal();
 autoBackupInvisible();
-runWeeklyBackupIfNeeded();
-updateBackupStatusUI();
 initFirebaseSync();
 
 
@@ -3501,6 +3406,10 @@ function renderMobileCards(){
 }
 
 </script>
+
+    </main>
+    <div id="mobileSidebarOverlay" class="mobile-sidebar-overlay hidden"></div>
+  </div>
 
   <div id="clientModal" class="modal hidden">
     <div class="modal-card">
