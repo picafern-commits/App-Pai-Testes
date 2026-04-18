@@ -1747,6 +1747,19 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   }
 }
 
+
+.stage-flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 0}
+.stage-chip{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#cbd5e1;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:700;line-height:1;cursor:pointer;transition:.18s ease}
+.stage-chip.completed{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.34);color:#86efac}
+.stage-chip.current{background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.34);color:#93c5fd}
+.stage-chip.next{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.28);color:#fcd34d}
+.stage-chip.locked{opacity:.42;cursor:not-allowed}
+.stage-chip:hover:not(.locked){transform:translateY(-1px)}
+.payment-badge-inline{background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.32);color:#86efac;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:6px}
+.row-actions .action-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row-actions .action-bottom{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.payment-date-box input{min-height:40px}
+
 </style>
 </head>
 <body>
@@ -2284,6 +2297,62 @@ function buildStateHistoryHtml(t){
     </div>
   `).join('');
 }
+
+
+const ESTADOS_FLUXO = ['Pendente','Em curso','Concluído','Entregue'];
+
+function getFlowEstado(value=''){
+  const estado = normalizeEstado(value);
+  if(estado === 'Agendado') return 'Pendente';
+  if(estado === 'Aguardar peça') return 'Em curso';
+  if(estado === 'Pago') return 'Entregue';
+  return ESTADOS_FLUXO.includes(estado) ? estado : 'Pendente';
+}
+
+function getNextFlowEstado(value=''){
+  const atual = getFlowEstado(value);
+  const idx = ESTADOS_FLUXO.indexOf(atual);
+  return idx >= 0 && idx < ESTADOS_FLUXO.length - 1 ? ESTADOS_FLUXO[idx + 1] : null;
+}
+
+function setWorkEstadoById(id, novoEstado){
+  const t = trabalhos.find(x => x.id === id);
+  if(!t || !novoEstado) return;
+  const finalEstado = normalizeEstado(novoEstado);
+  t.estado = finalEstado;
+  t.dataEstado = new Date().toISOString();
+  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
+  const last = t.historicoEstados[t.historicoEstados.length - 1];
+  if(!last || normalizeEstado(last.estado) !== finalEstado){
+    t.historicoEstados.push({ estado: finalEstado, data: t.dataEstado });
+  } else {
+    last.data = t.dataEstado;
+  }
+  saveLocal();
+  renderAll();
+  upsertRemote('trabalhos', t).catch(err => console.error(err));
+}
+
+function buildFlowButtons(t){
+  if(!isAdminLike()) return '';
+  const atual = getFlowEstado(t.estado || 'Pendente');
+  const currentIndex = ESTADOS_FLUXO.indexOf(atual);
+  return `<div class="stage-flow">${ESTADOS_FLUXO.map((estado, index) => {
+    const isCompleted = index < currentIndex;
+    const isCurrent = index === currentIndex;
+    const isNext = index === currentIndex + 1;
+    const cls = ['stage-chip', isCompleted ? 'completed' : '', isCurrent ? 'current' : '', isNext ? 'next' : '', (!isCompleted && !isCurrent && !isNext) ? 'locked' : ''].filter(Boolean).join(' ');
+    if(isNext){
+      return `<button class="${cls}" onclick="window.setWorkEstadoById('${t.id}','${estado}')">${estado}</button>`;
+    }
+    return `<span class="${cls}">${estado}</span>`;
+  }).join('')}</div>`;
+}
+
+function getPaymentBadgeHtml(t){
+  return t && t.paymentStatus === 'Pago' ? `<span class="payment-badge-inline">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>` : '';
+}
+window.setWorkEstadoById = setWorkEstadoById;
 
 function genId(prefix='id'){
   if (window.crypto?.randomUUID) return `${prefix}_${window.crypto.randomUUID()}`;
@@ -3063,7 +3132,7 @@ function renderDashboardAgenda(){
 function renderAlerts(){
   const pend = trabalhos.filter(t=>['Pendente','Agendado'].includes(normalizeEstado(t.estado))).length;
   const andam = trabalhos.filter(t=>['Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
-  const pagos = trabalhos.filter(t=>t.estado==='Pago').length;
+  const pagos = trabalhos.filter(t=>t.paymentStatus==='Pago' || t.estado==='Pago').length;
   const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
   const clientesAtivos = new Set(trabalhos.map(t=>(t.cliente||'').trim()).filter(Boolean)).size;
 
@@ -3079,17 +3148,23 @@ function renderAlerts(){
 }
 function trabalhoActions(t){
   const showInvoice = (t.invoiceType || 'Com Fatura') === 'Com Fatura';
-  const canMarkPaid = !['Pago','Entregue','Cancelado'].includes(normalizeEstado(t.estado || ''));
+  const canMarkPaid = t.paymentStatus !== 'Pago' && normalizeEstado(t.estado || '') !== 'Cancelado';
   const canEdit = isAdminLike();
   const canDelete = isAdminLike();
-  const hasDesc = (t.descricao || '').trim().length > 0;
+  const hasDesc = ((t.descricao || t.descrição || t.description || t.desc || '')).trim().length > 0;
+  const flowButtons = buildFlowButtons(t);
+  const paymentBadge = getPaymentBadgeHtml(t);
   return `
     <div class="row-actions">
-      ${hasDesc ? `<button class="small-btn info" onclick="window.showDesc('${t.id}')">Descrição</button>` : ''}
-      ${showInvoice ? `<button class="small-btn primary" onclick="generateInvoice('${t.id}')">Fatura</button>` : ''}
-      ${canEdit ? `<button class="small-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : ''}
-      ${canMarkPaid && canEdit ? `<button class="small-btn success" onclick="window.openPaymentMethodModal('${t.id}')">Pago</button>` : ''}
-      ${canDelete ? `<button class="small-btn danger" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : ''}
+      <div class="action-top">
+        ${hasDesc ? `<button class="small-btn info" onclick="window.showDesc('${t.id}')">Descrição</button>` : ''}
+        ${showInvoice ? `<button class="small-btn primary" onclick="generateInvoice('${t.id}')">Fatura</button>` : ''}
+        ${canEdit ? `<button class="small-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : ''}
+        ${canMarkPaid && canEdit ? `<button class="small-btn success" onclick="window.openPaymentMethodModal('${t.id}')">Pago</button>` : ''}
+        ${paymentBadge}
+        ${canDelete ? `<button class="small-btn danger" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : ''}
+      </div>
+      <div class="action-bottom">${flowButtons}</div>
     </div>
   `;
 }
@@ -3113,7 +3188,7 @@ function renderTrabalhos(){
   $('trabalhosTableBody').innerHTML = rows.length ? rows.map(t=>{
     const invoiceType = t.invoiceType || 'Com Fatura';
     const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
-    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valor||0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td><div class="row-actions">${trabalhoActions(t)}</div></td></tr>`;
+    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valor||0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span>${getPaymentBadgeHtml(t)}</div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td><div class="row-actions">${trabalhoActions(t)}</div></td></tr>`;
   }).join('') : '<tr><td colspan="9">Sem resultados.</td></tr>';
 }
 function renderClientes(){
@@ -3373,7 +3448,7 @@ window.openClientHistory = function(id){
         <table>
           <thead><tr><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th></tr></thead>
           <tbody>
-            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valor||0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></td></tr>`).join('') : '<tr><td colspan="5">Sem trabalhos registados.</td></tr>'}
+            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valor||0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span>${getPaymentBadgeHtml(t)}</div></td></tr>`).join('') : '<tr><td colspan="5">Sem trabalhos registados.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -3404,13 +3479,13 @@ window.generateInvoice = function(id){
     <div class="card"><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div>
     <div class="card"><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div>
     <div class="card"><strong>Data de início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Data de fim:</strong> ${fmtDate(t.dataFim)}</div>
-    <div class="card"><strong>Estado:</strong> ${escapeHtml(t.estado||'-')}</div>
+    <div class="card"><strong>Estado:</strong> ${escapeHtml(t.estado||'-')}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}</div>
     <div class="card"><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div>
     <div class="card"><strong>Total:</strong> ${euro(t.valor||0)}</div>
   `);
 };
 
-window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
+window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
 window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valor||0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
 window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
@@ -3444,33 +3519,42 @@ function getAgendaSmartDate(t){
 window.markAsPaid = function(id, metodo='Manual', dataPagamento=''){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
-
   const finalPaymentDate = dataPagamento || todayLocalDate();
-  t.estado = 'Pago';
+  if(normalizeEstado(t.estado || '') !== 'Entregue' && normalizeEstado(t.estado || '') !== 'Cancelado'){
+    t.estado = 'Entregue';
+    t.dataEstado = new Date().toISOString();
+    t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
+    const last = t.historicoEstados[t.historicoEstados.length - 1];
+    if(!last || normalizeEstado(last.estado) !== 'Entregue'){
+      t.historicoEstados.push({ estado:'Entregue', data:t.dataEstado });
+    }
+  }
+  t.paymentStatus = 'Pago';
   t.dataPagamento = finalPaymentDate;
-  t.dataEstado = new Date().toISOString();
+  t.metodoPagamento = metodo;
   t.dataFim = finalPaymentDate;
-  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
-  t.historicoEstados.push({ estado:'Pago', data:t.dataEstado });
 
+  const existingPagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
   const pagamento = {
-    id: genId('pay'),
+    id: existingPagamento?.id || genId('pay'),
     cliente: t.cliente || '',
     referencia: t.workCode || t.tipoTrabalho || '',
-    valor: Number(t.valor || 0),
+    workDate: t.dataInicio || '',
     data: finalPaymentDate,
-    workDate: t.dataInicio || t.dataFim || '',
+    valor: Number(t.valor || 0),
     metodo,
     invoiceType: t.invoiceType || 'Com Fatura',
-    notas: 'Gerado ao marcar como pago',
     sourceWorkId: t.id,
     workCode: t.workCode || ''
   };
+  if(existingPagamento){
+    Object.assign(existingPagamento, pagamento);
+  } else {
+    pagamentos.push(pagamento);
+  }
 
-  pagamentos.push(pagamento);
   saveLocal();
   renderAll();
-
   upsertRemote('trabalhos', t).catch(err => console.error(err));
   upsertRemote('pagamentos', pagamento).catch(err => console.error(err));
 }
@@ -3506,7 +3590,7 @@ window.openPaymentMethodModal = function(id){
   pendingPaymentWorkId = id;
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
   $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
-  if($('paymentDateInput')) $('paymentDateInput').value = todayLocalDate();
+  if($('paymentDateInput')) { $('paymentDateInput').value = todayLocalDate(); $('paymentDateInput').removeAttribute('readonly'); $('paymentDateInput').disabled = false; setTimeout(() => { const el = $('paymentDateInput'); if(el && !el.value) el.value = todayLocalDate(); }, 0); }
   $('paymentMethodModal').classList.remove('hidden');
 };
 
@@ -3600,7 +3684,7 @@ function renderMobileCards(){
         <div class="mobile-card-grid">
           <div class="mobile-card-item"><span>ID</span><strong>${escapeHtml(t.workCode || '-')}</strong></div>
           <div class="mobile-card-item"><span>Valor</span><strong>${euro(t.valor||0)}</strong></div>
-          <div class="mobile-card-item"><span>Estado</span><strong><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></strong></div>
+          <div class="mobile-card-item"><span>Estado</span><strong><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span>${getPaymentBadgeHtml(t)}</div></strong></div>
           <div class="mobile-card-item"><span>Faturação</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
         <div class="row-actions">${trabalhoActions(t)}</div>
