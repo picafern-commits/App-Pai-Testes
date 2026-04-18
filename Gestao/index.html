@@ -1552,6 +1552,8 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
                 </div>
               </section>
             </div>
+          </div>
+      </section>
   <nav class="bottom-nav">
     <button class="bottom-btn active" data-tab="dashboard">Dashboard</button>
     <button class="bottom-btn" data-tab="adicionar">Adicionar</button>
@@ -1745,26 +1747,22 @@ function normalizeTrabalhosIds(){
 }
 
 
-function syncLastTrabIdFromTrabalhos(){
-  const maxExistingId = trabalhos.reduce((max, t) => {
-    const code = String(t.workCode || t.ordemId || t.id || '');
-    const match = code.match(/^TRAB-(\d+)$/i);
-    const n = match ? Number(match[1]) : 0;
-    return Math.max(max, n);
-  }, 0);
-
-  if(maxExistingId !== lastTrabId){
-    lastTrabId = maxExistingId;
-    localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
-  }
-}
-
 function loadLocal(){
   try{trabalhos=JSON.parse(localStorage.getItem(STORAGE_KEYS.trabalhos))||[]}catch{trabalhos=[]}
   try{clientes=JSON.parse(localStorage.getItem(STORAGE_KEYS.clientes))||[]}catch{clientes=[]}
   try{pagamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.pagamentos))||[]}catch{pagamentos=[]}
   try{ lastTrabId = Number(localStorage.getItem(STORAGE_KEYS.lastTrabId) || 0) || 0 }catch{ lastTrabId = 0 }
-  syncLastTrabIdFromTrabalhos();
+
+  const maxExistingId = trabalhos.reduce((max, t) => {
+    const match = String(t.id || '').match(/^TRAB-(\d+)$/);
+    const n = match ? Number(match[1]) : 0;
+    return Math.max(max, n);
+  }, 0);
+
+  if(maxExistingId > lastTrabId){
+    lastTrabId = maxExistingId;
+    localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
+  }
 }
 function saveLocal(){
   localStorage.setItem(STORAGE_KEYS.trabalhos, JSON.stringify(trabalhos));
@@ -1993,7 +1991,7 @@ function attachRealtimeListeners(){
     });
     unsubs.push(unsub);
   };
-  bind('trabalhos', rows => { trabalhos = rows.map(r => ({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); syncLastTrabIdFromTrabalhos(); });
+  bind('trabalhos', rows => { trabalhos = rows.map(r => ({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); });
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
 }
@@ -2495,7 +2493,6 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
 
   const i=trabalhos.findIndex(x=>x.id===item.id);
   if(i>=0) trabalhos[i]=item; else trabalhos.push(item);
-  syncLastTrabIdFromTrabalhos();
 
   saveLocal();
   try{ await upsertRemote('trabalhos', item); }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
@@ -2672,21 +2669,22 @@ window.startApp = function(role, username){
 };
 
 
-window.markAsPaid = function(id, metodo='Manual'){
+window.markAsPaid = function(id, metodo='Manual', paymentDate=''){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
 
+  const finalPaymentDate = paymentDate || new Date().toISOString().split('T')[0];
+
   t.estado = 'Pago';
-  if(!t.dataFim){
-    t.dataFim = new Date().toISOString().split('T')[0];
-  }
+  t.dataPagamento = finalPaymentDate;
+  t.dataFim = finalPaymentDate;
 
   const pagamento = {
     id: genId('pay'),
     cliente: t.cliente || '',
     referencia: t.tipoTrabalho || '',
     valor: Number(t.valor || 0),
-    data: new Date().toISOString().split('T')[0],
+    data: finalPaymentDate,
     workDate: t.dataInicio || t.dataFim || '',
     metodo,
     invoiceType: t.invoiceType || 'Com Fatura',
@@ -2731,6 +2729,10 @@ window.openPaymentMethodModal = function(id){
   pendingPaymentWorkId = id;
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
   $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
+  const paymentDateInput = $('paymentDateInput');
+  if(paymentDateInput){
+    paymentDateInput.value = t.dataPagamento || new Date().toISOString().split('T')[0];
+  }
   $('paymentMethodModal').classList.remove('hidden');
 };
 
@@ -2748,7 +2750,8 @@ document.querySelectorAll('.pay-method-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     if(!pendingPaymentWorkId) return;
     const method = btn.dataset.method || 'Manual';
-    window.markAsPaid(pendingPaymentWorkId, method);
+    const paymentDate = $('paymentDateInput')?.value || new Date().toISOString().split('T')[0];
+    window.markAsPaid(pendingPaymentWorkId, method, paymentDate);
     pendingPaymentWorkId = null;
     $('paymentMethodModal').classList.add('hidden');
   });
@@ -2912,6 +2915,11 @@ function renderMobileCards(){
           <span class="mini-label">Trabalho</span>
           <strong id="paymentJobName">-</strong>
           <p id="paymentJobClient" style="margin-top:6px;"></p>
+        </div>
+        <div class="setting-card">
+          <span class="mini-label">Data de pagamento</span>
+          <input type="date" id="paymentDateInput">
+          <p style="margin-top:8px;font-size:12px;opacity:.75;">É preenchida automaticamente com a data de hoje, mas podes alterar antes de confirmar.</p>
         </div>
         <div class="payment-method-grid">
           <button class="pay-method-btn" data-method="Dinheiro">Dinheiro</button>
