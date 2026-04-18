@@ -1076,9 +1076,12 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   }
 }
 
+
+.single-panel-grid > .panel{width:100%;max-width:none;}
+.topbar{justify-content:flex-start;}
 </style>
 </head>
-<body><div class="platform-badge">IPHONE</div><a class="env-switch-btn" href="../Gestao-Teste/">Ir para TESTE</a><div class="env-badge prod">PRODUÇÃO</div>
+<body><a class="env-switch-btn" href="../Gestao-Teste/">Ir para TESTE</a><div class="env-badge prod">PRODUÇÃO</div>
   <div class="bg-orb orb-1"></div>
   <div class="bg-orb orb-2"></div>
 
@@ -1158,10 +1161,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
               <span id="currentUserName">Utilizador</span>
             </div>
           </div>
-        </div>
-        <div class="topbar-actions"><input id="globalSearch" class="global-search" type="text" placeholder="Pesquisar cliente, trabalho ou pagamento" />
-          <button class="btn btn-ghost" data-go="relatorios">Resumo mensal</button>
-          
         </div>
       </header>
 
@@ -1313,12 +1312,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
       <section class="page" id="configuracoes-page">
         <section class="panel">
           <div class="panel-head"><h3>Configurações</h3></div>
-          <div class="settings-grid clean-settings-grid">
-            <div class="setting-card"><span class="mini-label">Login</span><strong>Interno</strong><p>Acesso simples e estável.</p></div>
-            <div class="setting-card"><span class="mini-label">Sincronização</span><strong>Firebase</strong><p>Ligação entre dispositivos ativa.</p></div>
-            <div class="setting-card"><span class="mini-label">Backup</span><strong>Manual</strong><p>Exportação JSON disponível aqui.</p></div>
-          </div>
-          <div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-actions">
+</div><div class="config-actions">
             <button class="btn btn-secondary" id="exportBackupBtn">Backup JSON</button>
           </div>
 
