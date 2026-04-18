@@ -1,7 +1,0 @@
-{
-  "version": "1.0.6",
-  "platform": "tablet_pc",
-  "mode": "final",
-  "env": "prod",
-  "firebase_project": "app-pai-feb73"
-}
