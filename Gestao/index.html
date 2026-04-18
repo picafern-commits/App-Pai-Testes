@@ -1520,7 +1520,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
           <div id="resumoMensal" class="report-grid"></div>
         </section>
       </section>
-
+      <section class="page" id="configuracoes-page">
           <div id="usersSection" class="panel users-master-panel">
             <div class="panel-head"><h3>Gestão de utilizadores</h3></div>
             <div class="content-grid single-panel-grid">
@@ -1745,22 +1745,26 @@ function normalizeTrabalhosIds(){
 }
 
 
+function syncLastTrabIdFromTrabalhos(){
+  const maxExistingId = trabalhos.reduce((max, t) => {
+    const code = String(t.workCode || t.ordemId || t.id || '');
+    const match = code.match(/^TRAB-(\d+)$/i);
+    const n = match ? Number(match[1]) : 0;
+    return Math.max(max, n);
+  }, 0);
+
+  if(maxExistingId !== lastTrabId){
+    lastTrabId = maxExistingId;
+    localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
+  }
+}
+
 function loadLocal(){
   try{trabalhos=JSON.parse(localStorage.getItem(STORAGE_KEYS.trabalhos))||[]}catch{trabalhos=[]}
   try{clientes=JSON.parse(localStorage.getItem(STORAGE_KEYS.clientes))||[]}catch{clientes=[]}
   try{pagamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.pagamentos))||[]}catch{pagamentos=[]}
   try{ lastTrabId = Number(localStorage.getItem(STORAGE_KEYS.lastTrabId) || 0) || 0 }catch{ lastTrabId = 0 }
-
-  const maxExistingId = trabalhos.reduce((max, t) => {
-    const match = String(t.id || '').match(/^TRAB-(\d+)$/);
-    const n = match ? Number(match[1]) : 0;
-    return Math.max(max, n);
-  }, 0);
-
-  if(maxExistingId > lastTrabId){
-    lastTrabId = maxExistingId;
-    localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
-  }
+  syncLastTrabIdFromTrabalhos();
 }
 function saveLocal(){
   localStorage.setItem(STORAGE_KEYS.trabalhos, JSON.stringify(trabalhos));
@@ -1989,7 +1993,7 @@ function attachRealtimeListeners(){
     });
     unsubs.push(unsub);
   };
-  bind('trabalhos', rows => { trabalhos = rows.map(r => ({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); });
+  bind('trabalhos', rows => { trabalhos = rows.map(r => ({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); syncLastTrabIdFromTrabalhos(); });
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
 }
@@ -2491,6 +2495,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
 
   const i=trabalhos.findIndex(x=>x.id===item.id);
   if(i>=0) trabalhos[i]=item; else trabalhos.push(item);
+  syncLastTrabIdFromTrabalhos();
 
   saveLocal();
   try{ await upsertRemote('trabalhos', item); }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
