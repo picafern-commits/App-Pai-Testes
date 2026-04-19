@@ -3990,6 +3990,64 @@ function setWorkEstadoById(id, novoEstado){
 }
 
 
+
+async function setWorkEstadoById(id, novoEstado){
+  const listaLocal = JSON.parse(localStorage.getItem('trabalhos') || '[]');
+  let trabalhosLista = Array.isArray(listaLocal) && listaLocal.length
+    ? listaLocal
+    : (window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []));
+
+  const t = trabalhosLista.find(x => String(x.id) === String(id));
+  if(!t) return;
+
+  const hoje = (typeof getTodayLocalDateStr === 'function')
+    ? getTodayLocalDateStr()
+    : new Date().toISOString().split('T')[0];
+
+  const estadoFinal = String(novoEstado || t.estado || 'Pendente');
+
+  if((t.estado === 'Pendente' || !t.estado) && estadoFinal === 'Em curso' && !String(t.dataInicio || '').trim()){
+    t.dataInicio = hoje;
+  }
+  if(estadoFinal === 'Concluído' || estadoFinal === 'Entregue'){
+    t.dataFim = hoje;
+  }
+
+  t.estado = estadoFinal;
+  t.dataEstado = new Date().toISOString();
+  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
+  t.historicoEstados.push({
+    estado: estadoFinal,
+    data: new Date().toISOString()
+  });
+
+  try{
+    localStorage.setItem('trabalhos', JSON.stringify(trabalhosLista));
+    window.trabalhos = trabalhosLista;
+    if(typeof trabalhos !== 'undefined'){ trabalhos = trabalhosLista; }
+  }catch(e){
+    console.error('Erro a guardar estado local:', e);
+  }
+
+  try{
+    if(typeof upsertRemote === 'function'){
+      await upsertRemote('trabalhos', t);
+    }else if(typeof saveData === 'function'){
+      saveData();
+    }else if(typeof saveTrabalhos === 'function'){
+      saveTrabalhos();
+    }
+  }catch(e){
+    console.error('Erro a sincronizar estado:', e);
+  }
+
+  try{ if(typeof renderTrabalhos === 'function') renderTrabalhos(); }catch(e){}
+  try{ if(typeof renderDashboard === 'function') renderDashboard(); }catch(e){}
+  try{ if(typeof renderPagamentos === 'function') renderPagamentos(); }catch(e){}
+  try{ if(typeof renderRelatorios === 'function') renderRelatorios(); }catch(e){}
+}
+
+
 function buildFlowButtons(t){
   if(!isAdminLike()) return '';
   const atual = getFlowEstado(t.estado || 'Pendente');
