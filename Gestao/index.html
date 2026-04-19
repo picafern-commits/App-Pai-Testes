@@ -5680,48 +5680,58 @@ window.generateInvoice = function(id){
 
 window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
 window.pdfCliente = async function(id){
-  const c = (window.clientes || clientes || []).find(x => x.id === id);
+  const listaClientes = window.clientes || (typeof clientes !== 'undefined' ? clientes : []);
+  const listaTrabalhos = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+  const c = (Array.isArray(listaClientes) ? listaClientes : []).find(x => String(x.id) === String(id));
   if(!c) return;
 
   try{
-    if(!window.jspdf){
+    if(!window.jspdf || !window.jspdf.jsPDF){
       await new Promise((resolve, reject) => {
         const existing = document.querySelector('script[data-jspdf-clientes="1"]');
         if(existing){
-          existing.addEventListener('load', resolve, { once:true });
-          existing.addEventListener('error', reject, { once:true });
+          if(existing.dataset.loaded === '1'){
+            resolve();
+            return;
+          }
+          existing.addEventListener('load', () => resolve(), { once:true });
+          existing.addEventListener('error', () => reject(new Error('Erro ao carregar jsPDF')), { once:true });
           return;
         }
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-        script.dataset.jspdfClientes = '1';
-        script.onload = resolve;
-        script.onerror = reject;
-        document.body.appendChild(script);
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.dataset.jspdfClientes = '1';
+        s.onload = function(){ s.dataset.loaded = '1'; resolve(); };
+        s.onerror = function(){ reject(new Error('Erro ao carregar jsPDF')); };
+        document.body.appendChild(s);
       });
     }
 
-    const jsPDFLib = window.jspdf && window.jspdf.jsPDF;
-    if(!jsPDFLib){
-      alert('Não foi possível carregar o PDF.');
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      alert('Não foi possível carregar o gerador de PDF.');
       return;
     }
 
-    const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+    const { jsPDF } = window.jspdf;
     const nomeCliente = String(c.nome || '').trim().toLowerCase();
-    const trabalhosCliente = (Array.isArray(trabalhosLista) ? trabalhosLista : []).filter(t =>
-      String(t.cliente || '').trim().toLowerCase() === nomeCliente
-    );
 
-    const totalFaturado = trabalhosCliente.reduce((s,t)=>
-      s + Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.')), 0
-    );
+    const trabalhosCliente = (Array.isArray(listaTrabalhos) ? listaTrabalhos : []).filter(t => {
+      const nomeTrabalho = String(t.cliente || t.clienteNome || '').trim().toLowerCase();
+      return nomeTrabalho === nomeCliente;
+    });
 
-    const doc = new jsPDFLib({ orientation:'p', unit:'mm', format:'a4' });
+    const totalFaturado = trabalhosCliente.reduce((sum, t) => {
+      const raw = String(t.valorPago ?? t.valor ?? 0).replace(',', '.');
+      const num = Number(raw);
+      return sum + (Number.isFinite(num) ? num : 0);
+    }, 0);
+
+    const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 14;
     let y = 18;
 
+    // Header
     doc.setFillColor(18, 28, 52);
     doc.roundedRect(margin, y, pageWidth - (margin * 2), 24, 4, 4, 'F');
     doc.setTextColor(255,255,255);
@@ -5730,7 +5740,7 @@ window.pdfCliente = async function(id){
     doc.text('Ficha de Cliente', margin + 8, y + 9);
     doc.setFont('helvetica','normal');
     doc.setFontSize(9);
-    doc.text('Relatório profissional', margin + 8, y + 16);
+    doc.text('Relatório profissional do cliente', margin + 8, y + 16);
     y += 32;
 
     const drawBox = (title, value, x, yy, w) => {
@@ -5740,11 +5750,12 @@ window.pdfCliente = async function(id){
       doc.setTextColor(90,98,112);
       doc.setFont('helvetica','bold');
       doc.setFontSize(8);
-      doc.text(title, x + 4, yy + 5.5);
+      doc.text(String(title || ''), x + 4, yy + 5.5);
       doc.setTextColor(20,20,20);
       doc.setFont('helvetica','normal');
       doc.setFontSize(10);
-      doc.text(String(value || '-').slice(0, 40), x + 4, yy + 12.5);
+      const safeVal = String(value || '-').slice(0, 40);
+      doc.text(safeVal, x + 4, yy + 12.5);
     };
 
     drawBox('Nome', c.nome || '-', margin, y, 88);
@@ -5798,10 +5809,12 @@ window.pdfCliente = async function(id){
           doc.setFillColor(248,250,252);
           doc.rect(margin, y - 2, pageWidth - (margin * 2), 8, 'F');
         }
-        const tipo = String(t.tipoTrabalho || '-').slice(0, 34);
-        const data = String((typeof fmtDate === 'function' ? fmtDate(t.dataInicio || t.dataFim || t.dataPagamento || '') : (t.dataInicio || t.dataFim || '-')) || '-');
+        const tipo = String(t.tipoTrabalho || t.tipo || '-').slice(0, 34);
+        const dataRaw = t.dataInicio || t.dataFim || t.dataPagamento || t.data || '';
+        const data = String((typeof fmtDate === 'function' ? fmtDate(dataRaw) : dataRaw) || '-');
         const estado = String(t.estado || '-').slice(0, 15);
-        const valor = Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.')).toFixed(2) + ' €';
+        const valorNum = Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.'));
+        const valor = (Number.isFinite(valorNum) ? valorNum : 0).toFixed(2) + ' €';
 
         doc.text(tipo, margin + 4, y + 3.5);
         doc.text(data, margin + 95, y + 3.5);
