@@ -2403,12 +2403,9 @@ td.acoes-col, .acoes-col{
 }
 
 
-/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
-.master-edit-only.is-hidden-by-role{
-  display:none !important;
-}
-
+.master-edit-only.hidden-by-permission{display:none !important;}
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
@@ -3359,13 +3356,10 @@ function buildProfessionalReportHtml(){
         th,td{border:1px solid #e2e8f0;padding:10px;text-align:left}
         th{background:#f5f3ff;color:#4c1d95}
       
-/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
-.master-edit-only.is-hidden-by-role{
-  display:none !important;
-}
-
+.master-edit-only.hidden-by-permission{display:none !important;}
 </style>
-    </head>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
@@ -3502,23 +3496,6 @@ const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<
 const isMasterAdmin = () => currentRole === 'master_admin';
 const isAdminLike = () => currentRole === 'admin' || currentRole === 'master_admin';
 
-
-function updateTrabalhoAdvancedFields(){
-  const isEditing = !!($('trabalhoId') && $('trabalhoId').value);
-  const canSee = isMasterAdmin() || isEditing;
-  document.querySelectorAll('.master-edit-only').forEach(el => {
-    el.classList.toggle('is-hidden-by-role', !canSee);
-  });
-
-  if(!canSee){
-    if($('valor')) $('valor').value = '';
-    if($('dataInicio')) $('dataInicio').value = '';
-    if($('dataFim')) $('dataFim').value = '';
-    if($('estado')) $('estado').value = 'Pendente';
-  }
-}
-
-
 const ESTADOS_TRABALHO = ['Pendente','Em curso','Concluído','Pago','Entregue','Cancelado'];
 
 function normalizeEstado(value=''){
@@ -3611,6 +3588,35 @@ function getTodayLocalDateStr(){
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
+
+
+function isMasterAdminUser(){
+  try{
+    return String(window.currentRole || currentRole || '').toLowerCase() === 'master_admin';
+  }catch(e){
+    return false;
+  }
+}
+
+function isEditingWorkForm(){
+  try{
+    const el = document.getElementById('trabalhoId');
+    return !!(el && String(el.value || '').trim());
+  }catch(e){
+    return false;
+  }
+}
+
+function canSeeAdvancedWorkFields(){
+  return isMasterAdminUser() || isEditingWorkForm();
+}
+
+function updateAdvancedWorkFieldsVisibility(){
+  const visible = canSeeAdvancedWorkFields();
+  document.querySelectorAll('.master-edit-only').forEach(el=>{
+    el.classList.toggle('hidden-by-permission', !visible);
+  });
+}
 }
 
 function setWorkEstadoById(id, novoEstado){
@@ -3651,6 +3657,63 @@ function setWorkEstadoById(id, novoEstado){
 
   try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
   try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
+}
+
+
+
+async function setWorkEstadoById(id, novoEstado){
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : JSON.parse(localStorage.getItem('trabalhos') || '[]'));
+  const t = trabalhosLista.find(x => String(x.id) === String(id));
+  if(!t) return;
+
+  const estadoAtual = typeof getFlowEstado === 'function' ? getFlowEstado(t.estado || 'Pendente') : (t.estado || 'Pendente');
+  const estadoFinal = typeof getFlowEstado === 'function' ? getFlowEstado(novoEstado || estadoAtual) : (novoEstado || estadoAtual);
+  const hoje = typeof getTodayLocalDateStr === 'function' ? getTodayLocalDateStr() : new Date().toISOString().split('T')[0];
+
+  if(estadoAtual === 'Pendente' && estadoFinal === 'Em curso' && !String(t.dataInicio || '').trim()){
+    t.dataInicio = hoje;
+  }
+  if(estadoFinal === 'Concluído'){
+    t.dataFim = hoje;
+  }
+
+  t.estado = estadoFinal;
+  t.dataEstado = new Date().toISOString();
+  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
+  t.historicoEstados.push({ estado: estadoFinal, data: new Date().toISOString() });
+
+  // persistência local forte
+  try{
+    localStorage.setItem('trabalhos', JSON.stringify(trabalhosLista));
+    if(typeof saveData === 'function') saveData();
+    if(typeof saveTrabalhos === 'function') saveTrabalhos();
+    if(typeof saveLocal === 'function') saveLocal();
+  }catch(e){
+    console.error('Erro ao guardar estado localmente:', e);
+  }
+
+  // atualizar referência global
+  try{
+    window.trabalhos = trabalhosLista;
+  }catch(e){}
+
+  // persistência remota, se existir sync
+  try{
+    if(typeof upsertRemote === 'function'){
+      await upsertRemote('trabalhos', t);
+    } else if (typeof saveTrabalhosRemote === 'function'){
+      await saveTrabalhosRemote();
+    } else if (typeof syncAllDataToFirebase === 'function'){
+      await syncAllDataToFirebase();
+    }
+  }catch(e){
+    console.error('Erro ao sincronizar estado no Firebase:', e);
+  }
+
+  try{ if(typeof renderTrabalhos === 'function') renderTrabalhos(); }catch(e){}
+  try{ if(typeof renderDashboard === 'function') renderDashboard(); }catch(e){}
+  try{ if(typeof renderPagamentos === 'function') renderPagamentos(); }catch(e){}
+  try{ if(typeof renderRelatorios === 'function') renderRelatorios(); }catch(e){}
 }
 
 
@@ -3895,7 +3958,7 @@ function setRoleUI(){
     }
   }
   setSyncMessage(syncReady ? 'Firebase Sync' : syncMessage, syncReady ? 'ok' : 'warn');
-  updateTrabalhoAdvancedFields();
+  try{ updateAdvancedWorkFieldsVisibility(); }catch(e){}
 }
 function switchTab(tab){
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -3947,7 +4010,8 @@ async function initFirebaseSync(){
         syncReady = false;
         setSyncMessage('Sem sessão Firebase', 'bad');
       }
-      if (currentRole) renderAll();
+      if (currentRole) try{ updateAdvancedWorkFieldsVisibility(); }catch(e){}
+  renderAll();
     });
   }catch(err){
     console.error('Firebase sync error:', err);
@@ -5076,12 +5140,9 @@ td.acoes-col, .acoes-col{
 }
 
 
-/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
-.master-edit-only.is-hidden-by-role{
-  display:none !important;
-}
-
-</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+.master-edit-only.hidden-by-permission{display:none !important;}
+</style>  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -5411,7 +5472,7 @@ $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
-  updateTrabalhoAdvancedFields();
+  try{ updateAdvancedWorkFieldsVisibility(); }catch(e){}
 });
 $('clearClienteBtn')?.addEventListener('click', ()=>{
   $('clienteForm')?.reset();
@@ -5466,7 +5527,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
-  updateTrabalhoAdvancedFields();
+  try{ updateAdvancedWorkFieldsVisibility(); }catch(e){}
 
   renderAll();
   switchTab('trabalhos');
@@ -5510,7 +5571,7 @@ window.editTrabalho = function(id){
   $('estado').value=normalizeEstado(t.estado||'Pendente');
   if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fatura';
   $('descricao').value=t.descricao||'';
-  updateTrabalhoAdvancedFields();
+  try{ updateAdvancedWorkFieldsVisibility(); }catch(e){}
   switchTab('adicionar');
 };
 window.deleteTrabalho = async function(id){
@@ -5612,26 +5673,168 @@ window.generateInvoice = function(id){
 };
 
 window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
-window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valor||0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
-window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
+window.window.pdfCliente = function(id){
+  try{
+    const clientesLista = window.clientes || (typeof clientes !== 'undefined' ? clientes : JSON.parse(localStorage.getItem('clientes') || '[]'));
+    const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : JSON.parse(localStorage.getItem('trabalhos') || '[]'));
+    const c = (clientesLista || []).find(x => String(x.id) === String(id));
+    if(!c){
+      alert('Cliente não encontrado.');
+      return;
+    }
 
-function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
-$('exportBackupBtn').addEventListener('click', exportBackup);
-$('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMensal').innerHTML; printHtml('Relatório mensal', `<h1>Relatório Mensal</h1><div style="display:grid;gap:14px">${html}</div>`); });
+    const nomeCliente = String(c.nome || c.name || 'Sem nome');
+    const email = String(c.email || '-');
+    const telefone = String(c.telefone || c.phone || '-');
+    const nif = String(c.nif || c.NIF || '-');
+    const morada = String(c.morada || c.address || '-');
 
-loadLocal();
-autoBackupInvisible();
-initFirebaseSync();
+    const trabalhosCliente = (trabalhosLista || []).filter(t => {
+      const nome = String(t.cliente || t.clienteNome || t.nomeCliente || t.clientName || '').trim().toLowerCase();
+      return nome === nomeCliente.trim().toLowerCase();
+    });
 
+    const total = trabalhosCliente.reduce((sum, t) => {
+      const raw = String(t.valorPago ?? t.valor ?? 0).replace(',', '.');
+      const val = Number(raw);
+      return sum + (Number.isFinite(val) ? val : 0);
+    }, 0);
 
-window.startApp = function(role, username){
-  currentRole = role;
-  currentUsername = username;
-  loadLocal();
-  setRoleUI();
-  renderAll();
-  initFirebaseSync().catch(err => console.error(err));
-};
+    if(!(window.jspdf && window.jspdf.jsPDF)){
+      alert('Biblioteca PDF não carregada.');
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'mm', format:'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 12;
+    let y = 14;
+
+    const euro = (v) => `${Number(v || 0).toFixed(2)}€`;
+    const dataFmt = (v) => (typeof fmtDate === 'function' ? fmtDate(v) : (v || '-'));
+
+    doc.setFillColor(15,23,42);
+    doc.roundedRect(margin, y, pageW - margin*2, 22, 4, 4, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(19);
+    doc.text('Relatório do Cliente', margin + 6, y + 9);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(10);
+    doc.text('App Gestão · PDF Profissional', margin + 6, y + 16);
+    y += 30;
+
+    doc.setFillColor(248,250,252);
+    doc.setDrawColor(226,232,240);
+    doc.roundedRect(margin, y, pageW - margin*2, 34, 3, 3, 'FD');
+    doc.setTextColor(30,41,59);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(12);
+    doc.text('Dados do Cliente', margin + 4, y + 7);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(10);
+    doc.text(`Nome: ${nomeCliente}`, margin + 4, y + 14);
+    doc.text(`Telefone: ${telefone}`, margin + 4, y + 20);
+    doc.text(`Email: ${email}`, margin + 70, y + 14);
+    doc.text(`NIF: ${nif}`, margin + 70, y + 20);
+    const moradaLines = doc.splitTextToSize(`Morada: ${morada}`, pageW - margin*2 - 8);
+    doc.text(moradaLines, margin + 4, y + 26);
+    y += 42;
+
+    doc.setFillColor(88,28,135);
+    doc.roundedRect(margin, y, pageW - margin*2, 10, 3, 3, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(11);
+    doc.text('Resumo', margin + 4, y + 6.5);
+    y += 15;
+
+    doc.setTextColor(30,41,59);
+    doc.setFillColor(255,255,255);
+    doc.setDrawColor(226,232,240);
+    doc.roundedRect(margin, y, 44, 18, 3, 3, 'FD');
+    doc.roundedRect(margin + 48, y, 54, 18, 3, 3, 'FD');
+    doc.roundedRect(margin + 106, y, pageW - margin*2 - 106, 18, 3, 3, 'FD');
+
+    doc.setFontSize(8);
+    doc.setTextColor(109,40,217);
+    doc.text('TOTAL DE TRABALHOS', margin + 4, y + 5);
+    doc.text('TOTAL FATURADO', margin + 52, y + 5);
+    doc.text('ÚLTIMA EMISSÃO', margin + 110, y + 5);
+
+    doc.setTextColor(15,23,42);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(14);
+    doc.text(String(trabalhosCliente.length), margin + 4, y + 13);
+    doc.text(euro(total), margin + 52, y + 13);
+    doc.text(dataFmt(new Date().toISOString()), margin + 110, y + 13);
+    y += 26;
+
+    const cols = [margin, 34, 106, 130, 158];
+    const drawHeader = () => {
+      doc.setFillColor(241,245,249);
+      doc.setDrawColor(226,232,240);
+      doc.rect(margin, y, pageW - margin*2, 8, 'FD');
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9);
+      doc.setTextColor(76,29,149);
+      doc.text('ID', cols[0] + 2, y + 5.3);
+      doc.text('Tipo', cols[1] + 2, y + 5.3);
+      doc.text('Valor', cols[2] + 2, y + 5.3);
+      doc.text('Estado', cols[3] + 2, y + 5.3);
+      doc.text('Data', cols[4] + 2, y + 5.3);
+      y += 8;
+    };
+
+    drawHeader();
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(30,41,59);
+
+    if(!trabalhosCliente.length){
+      doc.text('Sem trabalhos associados a este cliente.', margin + 2, y + 5);
+      y += 8;
+    } else {
+      for(const t of trabalhosCliente){
+        const idTxt = String(t.workCode || t.ordemId || t.id || '-');
+        const tipoTxt = String(t.tipoTrabalho || t.tipo || t.trabalho || t.descricao || '-');
+        const valorTxt = euro(Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.')) || 0);
+        const estadoTxt = String(t.estado || '-');
+        const dataTxt = dataFmt(t.dataFim || t.dataPagamento || t.dataInicio || t.data || '-');
+
+        const tipoLines = doc.splitTextToSize(tipoTxt, cols[2] - cols[1] - 4);
+        const rowH = Math.max(8, 4 + tipoLines.length * 3.6);
+
+        if(y + rowH > pageH - 16){
+          doc.addPage();
+          y = 14;
+          drawHeader();
+          doc.setFont('helvetica','normal');
+          doc.setFontSize(8.5);
+          doc.setTextColor(30,41,59);
+        }
+
+        doc.setDrawColor(226,232,240);
+        doc.rect(margin, y, pageW - margin*2, rowH);
+        doc.text(idTxt, cols[0] + 2, y + 5);
+        doc.text(tipoLines, cols[1] + 2, y + 5);
+        doc.text(valorTxt, cols[2] + 2, y + 5);
+        doc.text(estadoTxt, cols[3] + 2, y + 5);
+        doc.text(dataTxt, cols[4] + 2, y + 5);
+
+        y += rowH;
+      }
+    }
+
+    const nomeSeguro = nomeCliente.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_');
+    doc.save(`cliente_${nomeSeguro || 'sem_nome'}.pdf`);
+  }catch(err){
+    console.error(err);
+    alert('Erro ao gerar PDF do cliente.');
+  }
+}
 
 
 function todayLocalDate(){
@@ -6245,13 +6448,10 @@ function buildProfessionalReportHtml(){
         th,td{border:1px solid #e2e8f0;padding:10px;text-align:left}
         th{background:#f5f3ff;color:#4c1d95}
       
-/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
-.master-edit-only.is-hidden-by-role{
-  display:none !important;
-}
-
+.master-edit-only.hidden-by-permission{display:none !important;}
 </style>
-    </head>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
