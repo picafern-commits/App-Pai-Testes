@@ -2620,6 +2620,128 @@ td.acoes-col, .acoes-col{
 }
 .backup-hidden-file{display:none;}
 
+
+/* EXTRA RELATÓRIOS PROFISSIONAIS */
+.relatorios-extra-wrap{
+  margin-top:18px;
+  display:grid;
+  gap:16px;
+}
+.relatorios-extra-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.relatorios-extra-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  border-radius:14px;
+  padding:10px 14px;
+  font-size:13px;
+  font-weight:800;
+  border:1px solid rgba(255,255,255,.10);
+  cursor:pointer;
+  white-space:nowrap;
+}
+.relatorios-extra-btn.primary{
+  background:linear-gradient(180deg, rgba(37,99,235,.24), rgba(29,78,216,.16));
+  border-color:rgba(96,165,250,.36);
+  color:#dbeafe;
+}
+.relatorios-extra-btn.secondary{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.36);
+  color:#dcfce7;
+}
+.relatorios-extra-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
+}
+.relatorios-extra-card{
+  background:linear-gradient(180deg, rgba(15,23,42,.94), rgba(30,41,59,.90));
+  border:1px solid rgba(148,163,184,.14);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 12px 24px rgba(0,0,0,.16);
+}
+.relatorios-extra-card h3{
+  margin:0 0 12px 0;
+  font-size:16px;
+  font-weight:800;
+  color:#fff;
+}
+.relatorios-extra-stat{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.relatorios-extra-stat .label{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#a78bfa;
+}
+.relatorios-extra-stat .value{
+  font-size:24px;
+  font-weight:800;
+  color:#fff;
+}
+.relatorios-list{
+  display:grid;
+  gap:10px;
+}
+.relatorios-list-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:rgba(15,23,42,.62);
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:14px;
+  padding:12px;
+}
+.relatorios-list-item .meta{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.relatorios-list-item .title{
+  color:#fff;
+  font-weight:700;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.relatorios-list-item .sub{
+  color:#cbd5e1;
+  font-size:12px;
+}
+.relatorios-list-item .amount{
+  color:#dcfce7;
+  font-weight:800;
+  white-space:nowrap;
+}
+.relatorios-empty{
+  color:#94a3b8;
+  font-size:13px;
+}
+@media (max-width:768px){
+  .relatorios-list-item{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
+
+
+/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
+.master-edit-only.is-hidden-by-role{
+  display:none !important;
+}
+
 </style>
 </head>
 <body>
@@ -2768,10 +2890,10 @@ td.acoes-col, .acoes-col{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
-              <div class="field"><label>Data de início</label><input id="dataInicio" type="date" /></div>
-              <div class="field"><label>Data de fim</label><input id="dataFim" type="date" /></div>
-              <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
+              <div class="field master-edit-only"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
+              <div class="field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
+              <div class="field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
+              <div class="field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
               <div class="field"><label>Faturação</label><select id="trabalhoInvoiceType"><option>Com Fatura</option><option>Sem Fatura</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
@@ -3177,7 +3299,8 @@ function importBackupDataObject(data){
   try { if(typeof renderClientes === 'function') renderClientes(); } catch(e){}
   try { if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e){}
   try { if(typeof renderDashboard === 'function') renderDashboard(); } catch(e){}
-  try { if(typeof renderRelatorios === 'function') renderRelatorios(); } catch(e){}
+  try { if(typeof renderRelatorios === 'function') { renderRelatorios(); try{ renderAdvancedReports(); }catch(e){} }
+  try{ renderAdvancedReports(); }catch(e){} } catch(e){}
   try { if(typeof loadAllData === 'function') loadAllData(); } catch(e){}
 
   alert('Backup importado com sucesso.');
@@ -3411,6 +3534,220 @@ function updateBackupWeekIndicator(){
   }
 }
 
+
+function getReportWorkList(){
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+  return Array.isArray(trabalhosLista) ? trabalhosLista : [];
+}
+
+function getClientNameFromWork(t){
+  return String(
+    (t && (t.clienteNome || t.cliente || t.nomeCliente || t.clientName || t.nome)) || 'Sem Cliente'
+  ).trim() || 'Sem Cliente';
+}
+
+function getWorkValueNumber(t){
+  const raw = t && (t.valorPago ?? t.valor ?? t.preco ?? t.price ?? 0);
+  const val = Number(String(raw).replace(',', '.'));
+  return Number.isFinite(val) ? val : 0;
+}
+
+function buildAdvancedReportData(){
+  const works = getReportWorkList();
+  const paidWorks = works.filter(t => String(t.paymentStatus || t.estado || '').toLowerCase() === 'pago' || String(t.estado || '').toLowerCase() === 'pago');
+  const totalValue = paidWorks.reduce((sum, t) => sum + getWorkValueNumber(t), 0);
+  const avgValue = paidWorks.length ? totalValue / paidWorks.length : 0;
+
+  const clientMap = {};
+  works.forEach(t => {
+    const client = getClientNameFromWork(t);
+    if(!clientMap[client]){
+      clientMap[client] = { nome: client, total: 0, count: 0, latest: null, latestWork: null };
+    }
+    clientMap[client].total += getWorkValueNumber(t);
+    clientMap[client].count += 1;
+    const dateRef = t.dataFim || t.dataPagamento || t.dataInicio || t.data || '';
+    if(dateRef && (!clientMap[client].latest || new Date(dateRef) > new Date(clientMap[client].latest))){
+      clientMap[client].latest = dateRef;
+      clientMap[client].latestWork = t;
+    }
+  });
+
+  const ranking = Object.values(clientMap).sort((a,b) => b.total - a.total).slice(0, 8);
+  const history = Object.values(clientMap)
+    .sort((a,b) => {
+      const da = a.latest ? new Date(a.latest).getTime() : 0;
+      const db = b.latest ? new Date(b.latest).getTime() : 0;
+      return db - da;
+    })
+    .slice(0, 8);
+
+  return {
+    works,
+    paidWorks,
+    totalValue,
+    avgValue,
+    ranking,
+    history,
+    topClient: ranking.length ? ranking[0] : null
+  };
+}
+
+function formatEuroValue(v){
+  const num = Number(v || 0);
+  return `${num.toFixed(2)}€`;
+}
+
+function renderAdvancedReports(){
+  const avgEl = document.getElementById('reportAvgWorkValue');
+  const topEl = document.getElementById('reportTopClientValue');
+  const rankingEl = document.getElementById('reportClientRanking');
+  const historyEl = document.getElementById('reportClientHistory');
+  if(!avgEl || !topEl || !rankingEl || !historyEl) return;
+
+  const data = buildAdvancedReportData();
+
+  avgEl.textContent = formatEuroValue(data.avgValue);
+  topEl.textContent = data.topClient ? `${data.topClient.nome} · ${formatEuroValue(data.topClient.total)}` : '--';
+
+  if(!data.ranking.length){
+    rankingEl.innerHTML = '<div class="relatorios-empty">Sem dados suficientes para ranking.</div>';
+  }else{
+    rankingEl.innerHTML = data.ranking.map((item, index) => `
+      <div class="relatorios-list-item">
+        <div class="meta">
+          <span class="title">${index + 1}. ${escapeHtml(item.nome)}</span>
+          <span class="sub">${item.count} trabalho(s)</span>
+        </div>
+        <span class="amount">${formatEuroValue(item.total)}</span>
+      </div>
+    `).join('');
+  }
+
+  if(!data.history.length){
+    historyEl.innerHTML = '<div class="relatorios-empty">Sem histórico recente.</div>';
+  }else{
+    historyEl.innerHTML = data.history.map(item => {
+      const latestWork = item.latestWork || {};
+      const dateText = item.latest ? fmtDate(item.latest) : '--';
+      const stateText = latestWork.estado || 'Sem estado';
+      return `
+        <div class="relatorios-list-item">
+          <div class="meta">
+            <span class="title">${escapeHtml(item.nome)}</span>
+            <span class="sub">${dateText} · ${escapeHtml(stateText)}</span>
+          </div>
+          <span class="amount">${item.count} reg.</span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function buildProfessionalReportHtml(){
+  const data = buildAdvancedReportData();
+  const rankingHtml = data.ranking.length ? data.ranking.map((item, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${escapeHtml(item.nome)}</td>
+      <td>${item.count}</td>
+      <td>${formatEuroValue(item.total)}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="4">Sem dados</td></tr>';
+
+  const historyHtml = data.history.length ? data.history.map(item => {
+    const latestWork = item.latestWork || {};
+    return `
+      <tr>
+        <td>${escapeHtml(item.nome)}</td>
+        <td>${item.latest ? fmtDate(item.latest) : '--'}</td>
+        <td>${escapeHtml(latestWork.estado || 'Sem estado')}</td>
+        <td>${item.count}</td>
+      </tr>
+    `;
+  }).join('') : '<tr><td colspan="4">Sem dados</td></tr>';
+
+  return `
+  <html>
+    <head>
+      <title>Relatório Profissional</title>
+      <style>
+        body{font-family:Arial,sans-serif;padding:28px;color:#0f172a}
+        .hero{padding:18px 20px;border-radius:18px;background:linear-gradient(135deg,#6d28d9,#0f172a);color:#fff;margin-bottom:18px}
+        .hero h1{margin:0 0 8px 0;font-size:28px}
+        .hero p{margin:0;opacity:.9}
+        .stats{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+        .card{border:1px solid #dbe4f0;border-radius:14px;padding:14px}
+        .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6d28d9}
+        .value{font-size:24px;font-weight:800;margin-top:8px}
+        h2{margin:24px 0 10px 0}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th,td{border:1px solid #e2e8f0;padding:10px;text-align:left}
+        th{background:#f5f3ff;color:#4c1d95}
+      
+/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
+.master-edit-only.is-hidden-by-role{
+  display:none !important;
+}
+
+</style>
+    </head>
+    <body>
+      <div class="hero">
+        <h1>Relatório Profissional</h1>
+        <p>Resumo avançado de clientes, faturação e histórico.</p>
+      </div>
+
+      <div class="stats">
+        <div class="card">
+          <div class="label">Média por trabalho</div>
+          <div class="value">${formatEuroValue(data.avgValue)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Cliente com mais faturação</div>
+          <div class="value">${data.topClient ? escapeHtml(data.topClient.nome) : '--'}</div>
+        </div>
+      </div>
+
+      <h2>Ranking de Clientes</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Cliente</th><th>Trabalhos</th><th>Total</th></tr>
+        </thead>
+        <tbody>${rankingHtml}</tbody>
+      </table>
+
+      <h2>Histórico por Cliente</h2>
+      <table>
+        <thead>
+          <tr><th>Cliente</th><th>Último registo</th><th>Estado</th><th>Total de registos</th></tr>
+        </thead>
+        <tbody>${historyHtml}</tbody>
+      </table>
+    </body>
+  </html>`;
+}
+
+function openProfessionalReportWindow(autoPrint){
+  const html = buildProfessionalReportHtml();
+  const win = window.open('', '_blank', 'width=1200,height=900');
+  if(!win) return;
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  if(autoPrint){
+    setTimeout(() => { try{ win.print(); }catch(e){} }, 500);
+  }
+}
+
+function exportProfessionalReportPdf(){
+  openProfessionalReportWindow(true);
+}
+
+function printProfessionalReport(){
+  openProfessionalReportWindow(true);
+}
+
 </script>
   <script type="module">
 const firebaseConfig = {
@@ -3500,6 +3837,23 @@ const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const isMasterAdmin = () => currentRole === 'master_admin';
 const isAdminLike = () => currentRole === 'admin' || currentRole === 'master_admin';
+
+
+function updateTrabalhoAdvancedFields(){
+  const isEditing = !!($('trabalhoId') && $('trabalhoId').value);
+  const canSee = isMasterAdmin() || isEditing;
+  document.querySelectorAll('.master-edit-only').forEach(el => {
+    el.classList.toggle('is-hidden-by-role', !canSee);
+  });
+
+  if(!canSee){
+    if($('valor')) $('valor').value = '';
+    if($('dataInicio')) $('dataInicio').value = '';
+    if($('dataFim')) $('dataFim').value = '';
+    if($('estado')) $('estado').value = 'Pendente';
+  }
+}
+
 
 const ESTADOS_TRABALHO = ['Pendente','Em curso','Concluído','Pago','Entregue','Cancelado'];
 
@@ -3877,6 +4231,7 @@ function setRoleUI(){
     }
   }
   setSyncMessage(syncReady ? 'Firebase Sync' : syncMessage, syncReady ? 'ok' : 'warn');
+  updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -3893,6 +4248,7 @@ function switchTab(tab){
   if(tab === 'clientes') renderClientes();
   if(tab === 'pagamentos') renderPagamentos();
   if(tab === 'relatorios') renderRelatorios();
+  try{ renderAdvancedReports(); }catch(e){}
   if(tab === 'configuracoes'){
     bindUiScaleSelector();
     renderManagedUsers();
@@ -5008,6 +5364,128 @@ td.acoes-col, .acoes-col{
 }
 .backup-hidden-file{display:none;}
 
+
+/* EXTRA RELATÓRIOS PROFISSIONAIS */
+.relatorios-extra-wrap{
+  margin-top:18px;
+  display:grid;
+  gap:16px;
+}
+.relatorios-extra-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.relatorios-extra-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  border-radius:14px;
+  padding:10px 14px;
+  font-size:13px;
+  font-weight:800;
+  border:1px solid rgba(255,255,255,.10);
+  cursor:pointer;
+  white-space:nowrap;
+}
+.relatorios-extra-btn.primary{
+  background:linear-gradient(180deg, rgba(37,99,235,.24), rgba(29,78,216,.16));
+  border-color:rgba(96,165,250,.36);
+  color:#dbeafe;
+}
+.relatorios-extra-btn.secondary{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.36);
+  color:#dcfce7;
+}
+.relatorios-extra-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
+}
+.relatorios-extra-card{
+  background:linear-gradient(180deg, rgba(15,23,42,.94), rgba(30,41,59,.90));
+  border:1px solid rgba(148,163,184,.14);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 12px 24px rgba(0,0,0,.16);
+}
+.relatorios-extra-card h3{
+  margin:0 0 12px 0;
+  font-size:16px;
+  font-weight:800;
+  color:#fff;
+}
+.relatorios-extra-stat{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.relatorios-extra-stat .label{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#a78bfa;
+}
+.relatorios-extra-stat .value{
+  font-size:24px;
+  font-weight:800;
+  color:#fff;
+}
+.relatorios-list{
+  display:grid;
+  gap:10px;
+}
+.relatorios-list-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:rgba(15,23,42,.62);
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:14px;
+  padding:12px;
+}
+.relatorios-list-item .meta{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.relatorios-list-item .title{
+  color:#fff;
+  font-weight:700;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.relatorios-list-item .sub{
+  color:#cbd5e1;
+  font-size:12px;
+}
+.relatorios-list-item .amount{
+  color:#dcfce7;
+  font-weight:800;
+  white-space:nowrap;
+}
+.relatorios-empty{
+  color:#94a3b8;
+  font-size:13px;
+}
+@media (max-width:768px){
+  .relatorios-list-item{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
+
+
+/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
+.master-edit-only.is-hidden-by-role{
+  display:none !important;
+}
+
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
@@ -5319,6 +5797,7 @@ function renderRelatorios() {
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
 function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+  try{ renderAdvancedReports(); }catch(e){}
   renderManagedUsers();
   updateWorkCodePreview();
   updateWorkCodePreview();
@@ -5327,7 +5806,8 @@ function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOption
 $('searchTrabalhos')?.addEventListener('input', ()=>{ renderTrabalhos(); renderMobileCards(); });
 $('filterEstado')?.addEventListener('change', ()=>{ renderTrabalhos(); renderMobileCards(); });
 $('searchClientes')?.addEventListener('input', ()=>{ renderClientes(); renderMobileCards(); });
-$('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios(); renderMobileCards(); });
+$('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+  try{ renderAdvancedReports(); }catch(e){} renderMobileCards(); });
 
 $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   $('trabalhoForm')?.reset();
@@ -5336,6 +5816,7 @@ $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
+  updateTrabalhoAdvancedFields();
 });
 $('clearClienteBtn')?.addEventListener('click', ()=>{
   $('clienteForm')?.reset();
@@ -5390,6 +5871,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
+  updateTrabalhoAdvancedFields();
 
   renderAll();
   switchTab('trabalhos');
@@ -5433,6 +5915,7 @@ window.editTrabalho = function(id){
   $('estado').value=normalizeEstado(t.estado||'Pendente');
   if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fatura';
   $('descricao').value=t.descricao||'';
+  updateTrabalhoAdvancedFields();
   switchTab('adicionar');
 };
 window.deleteTrabalho = async function(id){
@@ -6014,6 +6497,220 @@ function updateBackupWeekIndicator(){
       badge.classList.add('warn');
     }
   }
+}
+
+
+function getReportWorkList(){
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+  return Array.isArray(trabalhosLista) ? trabalhosLista : [];
+}
+
+function getClientNameFromWork(t){
+  return String(
+    (t && (t.clienteNome || t.cliente || t.nomeCliente || t.clientName || t.nome)) || 'Sem Cliente'
+  ).trim() || 'Sem Cliente';
+}
+
+function getWorkValueNumber(t){
+  const raw = t && (t.valorPago ?? t.valor ?? t.preco ?? t.price ?? 0);
+  const val = Number(String(raw).replace(',', '.'));
+  return Number.isFinite(val) ? val : 0;
+}
+
+function buildAdvancedReportData(){
+  const works = getReportWorkList();
+  const paidWorks = works.filter(t => String(t.paymentStatus || t.estado || '').toLowerCase() === 'pago' || String(t.estado || '').toLowerCase() === 'pago');
+  const totalValue = paidWorks.reduce((sum, t) => sum + getWorkValueNumber(t), 0);
+  const avgValue = paidWorks.length ? totalValue / paidWorks.length : 0;
+
+  const clientMap = {};
+  works.forEach(t => {
+    const client = getClientNameFromWork(t);
+    if(!clientMap[client]){
+      clientMap[client] = { nome: client, total: 0, count: 0, latest: null, latestWork: null };
+    }
+    clientMap[client].total += getWorkValueNumber(t);
+    clientMap[client].count += 1;
+    const dateRef = t.dataFim || t.dataPagamento || t.dataInicio || t.data || '';
+    if(dateRef && (!clientMap[client].latest || new Date(dateRef) > new Date(clientMap[client].latest))){
+      clientMap[client].latest = dateRef;
+      clientMap[client].latestWork = t;
+    }
+  });
+
+  const ranking = Object.values(clientMap).sort((a,b) => b.total - a.total).slice(0, 8);
+  const history = Object.values(clientMap)
+    .sort((a,b) => {
+      const da = a.latest ? new Date(a.latest).getTime() : 0;
+      const db = b.latest ? new Date(b.latest).getTime() : 0;
+      return db - da;
+    })
+    .slice(0, 8);
+
+  return {
+    works,
+    paidWorks,
+    totalValue,
+    avgValue,
+    ranking,
+    history,
+    topClient: ranking.length ? ranking[0] : null
+  };
+}
+
+function formatEuroValue(v){
+  const num = Number(v || 0);
+  return `${num.toFixed(2)}€`;
+}
+
+function renderAdvancedReports(){
+  const avgEl = document.getElementById('reportAvgWorkValue');
+  const topEl = document.getElementById('reportTopClientValue');
+  const rankingEl = document.getElementById('reportClientRanking');
+  const historyEl = document.getElementById('reportClientHistory');
+  if(!avgEl || !topEl || !rankingEl || !historyEl) return;
+
+  const data = buildAdvancedReportData();
+
+  avgEl.textContent = formatEuroValue(data.avgValue);
+  topEl.textContent = data.topClient ? `${data.topClient.nome} · ${formatEuroValue(data.topClient.total)}` : '--';
+
+  if(!data.ranking.length){
+    rankingEl.innerHTML = '<div class="relatorios-empty">Sem dados suficientes para ranking.</div>';
+  }else{
+    rankingEl.innerHTML = data.ranking.map((item, index) => `
+      <div class="relatorios-list-item">
+        <div class="meta">
+          <span class="title">${index + 1}. ${escapeHtml(item.nome)}</span>
+          <span class="sub">${item.count} trabalho(s)</span>
+        </div>
+        <span class="amount">${formatEuroValue(item.total)}</span>
+      </div>
+    `).join('');
+  }
+
+  if(!data.history.length){
+    historyEl.innerHTML = '<div class="relatorios-empty">Sem histórico recente.</div>';
+  }else{
+    historyEl.innerHTML = data.history.map(item => {
+      const latestWork = item.latestWork || {};
+      const dateText = item.latest ? fmtDate(item.latest) : '--';
+      const stateText = latestWork.estado || 'Sem estado';
+      return `
+        <div class="relatorios-list-item">
+          <div class="meta">
+            <span class="title">${escapeHtml(item.nome)}</span>
+            <span class="sub">${dateText} · ${escapeHtml(stateText)}</span>
+          </div>
+          <span class="amount">${item.count} reg.</span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function buildProfessionalReportHtml(){
+  const data = buildAdvancedReportData();
+  const rankingHtml = data.ranking.length ? data.ranking.map((item, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${escapeHtml(item.nome)}</td>
+      <td>${item.count}</td>
+      <td>${formatEuroValue(item.total)}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="4">Sem dados</td></tr>';
+
+  const historyHtml = data.history.length ? data.history.map(item => {
+    const latestWork = item.latestWork || {};
+    return `
+      <tr>
+        <td>${escapeHtml(item.nome)}</td>
+        <td>${item.latest ? fmtDate(item.latest) : '--'}</td>
+        <td>${escapeHtml(latestWork.estado || 'Sem estado')}</td>
+        <td>${item.count}</td>
+      </tr>
+    `;
+  }).join('') : '<tr><td colspan="4">Sem dados</td></tr>';
+
+  return `
+  <html>
+    <head>
+      <title>Relatório Profissional</title>
+      <style>
+        body{font-family:Arial,sans-serif;padding:28px;color:#0f172a}
+        .hero{padding:18px 20px;border-radius:18px;background:linear-gradient(135deg,#6d28d9,#0f172a);color:#fff;margin-bottom:18px}
+        .hero h1{margin:0 0 8px 0;font-size:28px}
+        .hero p{margin:0;opacity:.9}
+        .stats{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+        .card{border:1px solid #dbe4f0;border-radius:14px;padding:14px}
+        .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6d28d9}
+        .value{font-size:24px;font-weight:800;margin-top:8px}
+        h2{margin:24px 0 10px 0}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th,td{border:1px solid #e2e8f0;padding:10px;text-align:left}
+        th{background:#f5f3ff;color:#4c1d95}
+      
+/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
+.master-edit-only.is-hidden-by-role{
+  display:none !important;
+}
+
+</style>
+    </head>
+    <body>
+      <div class="hero">
+        <h1>Relatório Profissional</h1>
+        <p>Resumo avançado de clientes, faturação e histórico.</p>
+      </div>
+
+      <div class="stats">
+        <div class="card">
+          <div class="label">Média por trabalho</div>
+          <div class="value">${formatEuroValue(data.avgValue)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Cliente com mais faturação</div>
+          <div class="value">${data.topClient ? escapeHtml(data.topClient.nome) : '--'}</div>
+        </div>
+      </div>
+
+      <h2>Ranking de Clientes</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Cliente</th><th>Trabalhos</th><th>Total</th></tr>
+        </thead>
+        <tbody>${rankingHtml}</tbody>
+      </table>
+
+      <h2>Histórico por Cliente</h2>
+      <table>
+        <thead>
+          <tr><th>Cliente</th><th>Último registo</th><th>Estado</th><th>Total de registos</th></tr>
+        </thead>
+        <tbody>${historyHtml}</tbody>
+      </table>
+    </body>
+  </html>`;
+}
+
+function openProfessionalReportWindow(autoPrint){
+  const html = buildProfessionalReportHtml();
+  const win = window.open('', '_blank', 'width=1200,height=900');
+  if(!win) return;
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  if(autoPrint){
+    setTimeout(() => { try{ win.print(); }catch(e){} }, 500);
+  }
+}
+
+function exportProfessionalReportPdf(){
+  openProfessionalReportWindow(true);
+}
+
+function printProfessionalReport(){
+  openProfessionalReportWindow(true);
 }
 
 </script>
