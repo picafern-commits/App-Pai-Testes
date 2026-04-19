@@ -2768,6 +2768,7 @@ function runWeeklyAutomaticBackupSilently(){
     const diffDays = (now - new Date(lastDateIso)) / (1000 * 60 * 60 * 24);
     if(diffDays < 7){
       refreshBackupStatusUi();
+  try{fazerBackupSexta();}catch(e){}
       return;
     }
   }
@@ -2781,6 +2782,7 @@ function runWeeklyAutomaticBackupSilently(){
   localStorage.setItem('weeklyAutoBackups', JSON.stringify(backups));
   localStorage.setItem('weeklyAutoBackupLastDate', snapshot.dataBackup);
   refreshBackupStatusUi();
+  try{fazerBackupSexta();}catch(e){}
 }
 
 function downloadLatestWeeklyBackup(){
@@ -2845,9 +2847,80 @@ document.addEventListener("DOMContentLoaded", function(){
 
   page.appendChild(div);
 
-  try{refreshBackupStatusUi();}catch(e){}
+  try{refreshBackupStatusUi();
+  try{fazerBackupSexta();}catch(e){}}catch(e){}
 
 });
+
+
+/* BACKUP AUTOMÁTICO SEXTA-FEIRA */
+function isFriday(){
+  return new Date().getDay() === 5;
+}
+
+function getLastBackupDay(){
+  return localStorage.getItem("backupFridayDone");
+}
+
+function setBackupDoneToday(){
+  const today = new Date().toISOString().split('T')[0];
+  localStorage.setItem("backupFridayDone", today);
+}
+
+function fazerBackupSexta(){
+  const hoje = new Date().toISOString().split('T')[0];
+  const ultimo = getLastBackupDay();
+
+  if(!isFriday()) return;
+
+  if(ultimo === hoje) return;
+
+  const data = {
+    trabalhos: JSON.parse(localStorage.getItem("trabalhos") || "[]"),
+    clientes: JSON.parse(localStorage.getItem("clientes") || "[]"),
+    pagamentos: JSON.parse(localStorage.getItem("pagamentos") || "[]"),
+    dataBackup: new Date().toISOString()
+  };
+
+  const backups = JSON.parse(localStorage.getItem("backupFridayHistory") || "[]");
+  backups.push(data);
+
+  if(backups.length > 10){
+    backups.shift();
+  }
+
+  localStorage.setItem("backupFridayHistory", JSON.stringify(backups));
+
+  setBackupDoneToday();
+
+  mostrarAvisoBackup();
+}
+
+function mostrarAvisoBackup(){
+  const aviso = document.createElement("div");
+  aviso.innerHTML = `
+    <div style="
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      background:#1e293b;
+      border:1px solid rgba(255,255,255,0.1);
+      padding:12px 16px;
+      border-radius:12px;
+      z-index:9999;
+      box-shadow:0 10px 20px rgba(0,0,0,0.3);
+      color:white;
+      font-size:13px;
+    ">
+      Backup semanal criado ✔
+      <br>
+      <button onclick="exportBackupManual()" style="margin-top:6px">Exportar agora</button>
+    </div>
+  `;
+  document.body.appendChild(aviso);
+
+  setTimeout(()=>aviso.remove(), 6000);
+}
 
 </script>
   <script type="module">
@@ -5140,9 +5213,80 @@ document.addEventListener("DOMContentLoaded", function(){
 
   page.appendChild(div);
 
-  try{refreshBackupStatusUi();}catch(e){}
+  try{refreshBackupStatusUi();
+  try{fazerBackupSexta();}catch(e){}}catch(e){}
 
 });
+
+
+/* BACKUP AUTOMÁTICO SEXTA-FEIRA */
+function isFriday(){
+  return new Date().getDay() === 5;
+}
+
+function getLastBackupDay(){
+  return localStorage.getItem("backupFridayDone");
+}
+
+function setBackupDoneToday(){
+  const today = new Date().toISOString().split('T')[0];
+  localStorage.setItem("backupFridayDone", today);
+}
+
+function fazerBackupSexta(){
+  const hoje = new Date().toISOString().split('T')[0];
+  const ultimo = getLastBackupDay();
+
+  if(!isFriday()) return;
+
+  if(ultimo === hoje) return;
+
+  const data = {
+    trabalhos: JSON.parse(localStorage.getItem("trabalhos") || "[]"),
+    clientes: JSON.parse(localStorage.getItem("clientes") || "[]"),
+    pagamentos: JSON.parse(localStorage.getItem("pagamentos") || "[]"),
+    dataBackup: new Date().toISOString()
+  };
+
+  const backups = JSON.parse(localStorage.getItem("backupFridayHistory") || "[]");
+  backups.push(data);
+
+  if(backups.length > 10){
+    backups.shift();
+  }
+
+  localStorage.setItem("backupFridayHistory", JSON.stringify(backups));
+
+  setBackupDoneToday();
+
+  mostrarAvisoBackup();
+}
+
+function mostrarAvisoBackup(){
+  const aviso = document.createElement("div");
+  aviso.innerHTML = `
+    <div style="
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      background:#1e293b;
+      border:1px solid rgba(255,255,255,0.1);
+      padding:12px 16px;
+      border-radius:12px;
+      z-index:9999;
+      box-shadow:0 10px 20px rgba(0,0,0,0.3);
+      color:white;
+      font-size:13px;
+    ">
+      Backup semanal criado ✔
+      <br>
+      <button onclick="exportBackupManual()" style="margin-top:6px">Exportar agora</button>
+    </div>
+  `;
+  document.body.appendChild(aviso);
+
+  setTimeout(()=>aviso.remove(), 6000);
+}
 
 </script>
 
