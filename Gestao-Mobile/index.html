@@ -3962,54 +3962,7 @@ function setWorkEstadoById(id, novoEstado){
     t.dataInicio = hoje;
   }
 
-  if(estadoFinal === 'Concluído'){
-    t.dataFim = hoje;
-  }
-
-  t.estado = estadoFinal;
-  t.dataEstado = new Date().toISOString();
-  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
-  t.historicoEstados.push({
-    estado: estadoFinal,
-    data: new Date().toISOString()
-  });
-
-  if(typeof window.saveData === 'function') window.saveData();
-  else if(typeof saveData === 'function') saveData();
-  else if(typeof window.saveTrabalhos === 'function') window.saveTrabalhos();
-  else if(typeof saveTrabalhos === 'function') saveTrabalhos();
-  else {
-    try { localStorage.setItem('trabalhos', JSON.stringify(trabalhosLista)); } catch(e) {}
-  }
-
-  if(typeof window.renderTrabalhos === 'function') window.renderTrabalhos();
-  else if(typeof renderTrabalhos === 'function') renderTrabalhos();
-
-  try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
-  try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
-}
-
-
-
-async function setWorkEstadoById(id, novoEstado){
-  const listaLocal = JSON.parse(localStorage.getItem('trabalhos') || '[]');
-  let trabalhosLista = Array.isArray(listaLocal) && listaLocal.length
-    ? listaLocal
-    : (window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []));
-
-  const t = trabalhosLista.find(x => String(x.id) === String(id));
-  if(!t) return;
-
-  const hoje = (typeof getTodayLocalDateStr === 'function')
-    ? getTodayLocalDateStr()
-    : new Date().toISOString().split('T')[0];
-
-  const estadoFinal = String(novoEstado || t.estado || 'Pendente');
-
-  if((t.estado === 'Pendente' || !t.estado) && estadoFinal === 'Em curso' && !String(t.dataInicio || '').trim()){
-    t.dataInicio = hoje;
-  }
-  if(estadoFinal === 'Concluído' || estadoFinal === 'Entregue'){
+  if((estadoFinal === 'Concluído' || estadoFinal === 'Entregue') && !String(t.dataFim || '').trim()){
     t.dataFim = hoje;
   }
 
@@ -4022,29 +3975,37 @@ async function setWorkEstadoById(id, novoEstado){
   });
 
   try{
-    localStorage.setItem('trabalhos', JSON.stringify(trabalhosLista));
-    window.trabalhos = trabalhosLista;
-    if(typeof trabalhos !== 'undefined'){ trabalhos = trabalhosLista; }
-  }catch(e){
-    console.error('Erro a guardar estado local:', e);
-  }
+    if(typeof window.trabalhos !== 'undefined') window.trabalhos = trabalhosLista;
+    if(typeof trabalhos !== 'undefined') trabalhos = trabalhosLista;
+  }catch(e){}
 
   try{
-    if(typeof upsertRemote === 'function'){
-      await upsertRemote('trabalhos', t);
-    }else if(typeof saveData === 'function'){
-      saveData();
-    }else if(typeof saveTrabalhos === 'function'){
-      saveTrabalhos();
-    }
+    if(typeof saveLocal === 'function') saveLocal();
+    else if(typeof window.saveData === 'function') window.saveData();
+    else if(typeof saveData === 'function') saveData();
+    else if(typeof window.saveTrabalhos === 'function') window.saveTrabalhos();
+    else if(typeof saveTrabalhos === 'function') saveTrabalhos();
+    else localStorage.setItem('trabalhos', JSON.stringify(trabalhosLista));
   }catch(e){
-    console.error('Erro a sincronizar estado:', e);
+    console.error('Erro ao guardar estado localmente:', e);
   }
 
-  try{ if(typeof renderTrabalhos === 'function') renderTrabalhos(); }catch(e){}
-  try{ if(typeof renderDashboard === 'function') renderDashboard(); }catch(e){}
-  try{ if(typeof renderPagamentos === 'function') renderPagamentos(); }catch(e){}
-  try{ if(typeof renderRelatorios === 'function') renderRelatorios(); }catch(e){}
+  Promise.resolve()
+    .then(async () => {
+      try{
+        if(typeof upsertRemote === 'function' && typeof syncReady !== 'undefined' && syncReady){
+          await upsertRemote('trabalhos', t);
+        }
+      }catch(e){
+        console.error('Erro ao sincronizar estado no Firebase:', e);
+      }
+    })
+    .finally(() => {
+      try { if(typeof window.renderTrabalhos === 'function') window.renderTrabalhos(); else if(typeof renderTrabalhos === 'function') renderTrabalhos(); } catch(e) {}
+      try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
+      try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
+      try { if(typeof window.renderRelatorios === 'function') window.renderRelatorios(); else if(typeof renderRelatorios === 'function') renderRelatorios(); } catch(e) {}
+    });
 }
 
 
