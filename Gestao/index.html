@@ -5680,9 +5680,72 @@ window.generateInvoice = function(id){
 };
 
 window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
-window.pdfCliente = function(id){
+window.pdfCliente = async function(id){
   const c = clientes.find(x => x.id === id);
   if(!c) return;
+
+  // carregar jsPDF só quando precisa (não rebenta Firebase)
+  if(!window.jspdf){
+    await new Promise(resolve => {
+      const script = document.createElement('script');
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      script.onload = resolve;
+      document.body.appendChild(script);
+    });
+  }
+
+  const { jsPDF } = window.jspdf;
+
+  const trabalhosCliente = trabalhos.filter(t =>
+    (t.cliente || '').trim().toLowerCase() === (c.nome || '').trim().toLowerCase()
+  );
+
+  const totalFaturado = trabalhosCliente.reduce((s,t)=>
+    s + Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.')), 0
+  );
+
+  const doc = new jsPDF();
+
+  let y = 20;
+
+  // Título
+  doc.setFontSize(18);
+  doc.text("Ficha de Cliente", 14, y);
+  y += 10;
+
+  doc.setFontSize(12);
+  doc.text("Nome: " + (c.nome || '-'), 14, y); y += 6;
+  doc.text("Telefone: " + (c.telefone || '-'), 14, y); y += 6;
+  doc.text("Email: " + (c.email || '-'), 14, y); y += 6;
+  doc.text("NIF: " + (c.nif || '-'), 14, y); y += 6;
+
+  y += 6;
+  doc.text("Total de trabalhos: " + trabalhosCliente.length, 14, y); y += 6;
+  doc.text("Total faturado: " + totalFaturado.toFixed(2) + " €", 14, y);
+
+  y += 10;
+  doc.text("Trabalhos:", 14, y);
+  y += 6;
+
+  trabalhosCliente.forEach(t => {
+    if(y > 280){
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFontSize(10);
+    doc.text(
+      (t.tipoTrabalho || '-') + " | " +
+      (t.estado || '-') + " | " +
+      Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.')).toFixed(2) + " €",
+      14,
+      y
+    );
+    y += 5;
+  });
+
+  doc.save("cliente_" + (c.nome || 'cliente') + ".pdf");
+}
 
   const trabalhosCliente = trabalhos.filter(t => (t.cliente || '').trim().toLowerCase() === (c.nome || '').trim().toLowerCase());
   const totalFaturado = trabalhosCliente.reduce((s,t)=>s + Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.')), 0);
