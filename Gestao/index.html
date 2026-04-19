@@ -3435,7 +3435,8 @@ function printProfessionalReport(){
 }
 
 </script>
-  <script type="module">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script type="module">
 const firebaseConfig = {
   apiKey: "AIzaSyDbiMRCFhD9WC4Z17fc9M9uXdY8ETUO05Q",
   authDomain: "app-pai-feb73.firebaseapp.com",
@@ -5679,25 +5680,130 @@ window.generateInvoice = function(id){
 };
 
 window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
-window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valor||0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
-window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
+window.pdfCliente = function(id){
+  const c = clientes.find(x => x.id === id);
+  if(!c) return;
 
-function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
-$('exportBackupBtn').addEventListener('click', exportBackup);
-$('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMensal').innerHTML; printHtml('Relatório mensal', `<h1>Relatório Mensal</h1><div style="display:grid;gap:14px">${html}</div>`); });
+  const trabalhosCliente = trabalhos.filter(t => (t.cliente || '').trim().toLowerCase() === (c.nome || '').trim().toLowerCase());
+  const totalFaturado = trabalhosCliente.reduce((s,t)=>s + Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.')), 0);
 
-loadLocal();
-autoBackupInvisible();
-initFirebaseSync();
+  const jspdfLib = window.jspdf && window.jspdf.jsPDF;
+  if(!jspdfLib){
+    alert('Biblioteca de PDF não carregada. Atualiza a página e tenta novamente.');
+    return;
+  }
 
+  const doc = new jspdfLib({ orientation:'p', unit:'mm', format:'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 14;
+  let y = 18;
 
-window.startApp = function(role, username){
-  currentRole = role;
-  currentUsername = username;
-  loadLocal();
-  setRoleUI();
-  renderAll();
-  initFirebaseSync().catch(err => console.error(err));
+  doc.setFillColor(18, 28, 52);
+  doc.roundedRect(margin, y, pageWidth - (margin * 2), 26, 4, 4, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(20);
+  doc.text('Ficha de Cliente', margin + 8, y + 11);
+  doc.setFontSize(10);
+  doc.setFont('helvetica','normal');
+  doc.text('Relatório profissional do cliente', margin + 8, y + 18);
+
+  y += 34;
+  doc.setTextColor(25, 25, 25);
+
+  const drawInfoBox = (title, value, x, boxY, w) => {
+    doc.setFillColor(245, 247, 251);
+    doc.setDrawColor(220, 226, 235);
+    doc.roundedRect(x, boxY, w, 18, 3, 3, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(90, 98, 112);
+    doc.text(title, x + 4, boxY + 6);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(20, 20, 20);
+    const safeValue = String(value || '-');
+    doc.text(safeValue.slice(0, 38), x + 4, boxY + 13);
+  };
+
+  drawInfoBox('Nome', c.nome || '-', margin, y, 88);
+  drawInfoBox('Telefone', c.telefone || '-', margin + 92, y, 44);
+  drawInfoBox('NIF', c.nif || '-', margin + 140, y, 56);
+  y += 22;
+  drawInfoBox('Email', c.email || '-', margin, y, 88);
+  drawInfoBox('Total de trabalhos', String(trabalhosCliente.length), margin + 92, y, 44);
+  drawInfoBox('Total faturado', totalFaturado.toFixed(2) + ' €', margin + 140, y, 56);
+  y += 22;
+
+  doc.setFillColor(245, 247, 251);
+  doc.setDrawColor(220, 226, 235);
+  doc.roundedRect(margin, y, pageWidth - (margin * 2), 24, 3, 3, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(90, 98, 112);
+  doc.text('Morada', margin + 4, y + 6);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(20, 20, 20);
+  const moradaTxt = doc.splitTextToSize(String(c.morada || '-'), pageWidth - (margin * 2) - 8);
+  doc.text(moradaTxt, margin + 4, y + 13);
+  y += 32;
+
+  doc.setFillColor(88, 28, 135);
+  doc.setTextColor(255,255,255);
+  doc.roundedRect(margin, y, pageWidth - (margin * 2), 10, 2, 2, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.text('Trabalho', margin + 4, y + 6.5);
+  doc.text('Data', margin + 92, y + 6.5);
+  doc.text('Estado', margin + 122, y + 6.5);
+  doc.text('Valor', margin + 160, y + 6.5);
+  y += 12;
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(30,30,30);
+
+  if(!trabalhosCliente.length){
+    doc.setDrawColor(220, 226, 235);
+    doc.roundedRect(margin, y, pageWidth - (margin * 2), 10, 2, 2, 'S');
+    doc.text('Sem trabalhos associados', margin + 4, y + 6.5);
+    y += 14;
+  } else {
+    trabalhosCliente.forEach((t, idx) => {
+      if(y > 270){
+        doc.addPage();
+        y = 18;
+      }
+      const rowH = 10;
+      if(idx % 2 === 0){
+        doc.setFillColor(248, 250, 252);
+        doc.rect(margin, y - 2, pageWidth - (margin * 2), rowH, 'F');
+      }
+      const tipo = String(t.tipoTrabalho || '-').slice(0, 34);
+      const data = String((typeof fmtDate === 'function' ? fmtDate(t.dataInicio || t.dataFim || t.dataPagamento || '') : (t.dataInicio || t.dataFim || '-')) || '-');
+      const estado = String(t.estado || '-').slice(0, 16);
+      const valor = Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.')).toFixed(2) + ' €';
+
+      doc.text(tipo, margin + 4, y + 4.5);
+      doc.text(data, margin + 92, y + 4.5);
+      doc.text(estado, margin + 122, y + 4.5);
+      doc.text(valor, margin + 160, y + 4.5);
+      y += rowH;
+    });
+  }
+
+  y += 6;
+  doc.setDrawColor(220, 226, 235);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 8;
+  doc.setFont('helvetica','italic');
+  doc.setFontSize(9);
+  doc.setTextColor(100,100,100);
+  doc.text('Gerado em ' + new Date().toLocaleString('pt-PT'), margin, y);
+
+  const safeName = String(c.nome || 'cliente').replace(/[^A-Za-z0-9_-]+/g, '_');
+  doc.save('cliente_' + safeName + '.pdf');
 };
 
 
