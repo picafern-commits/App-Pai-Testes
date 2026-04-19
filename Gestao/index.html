@@ -2175,6 +2175,117 @@ td.acoes-col, .acoes-col{
   .backups-premium-head{flex-direction:column}
 }
 
+
+/* INDICADOR VISUAL BACKUP */
+.backup-indicator-card{
+  margin-top:18px;
+  background:linear-gradient(180deg, rgba(15,23,42,.94), rgba(30,41,59,.90));
+  border:1px solid rgba(148,163,184,.14);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 12px 24px rgba(0,0,0,.16);
+}
+.backup-indicator-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.backup-indicator-head h3{
+  margin:0;
+  font-size:18px;
+  font-weight:800;
+  color:#fff;
+}
+.backup-indicator-sub{
+  margin:4px 0 0 0;
+  color:#cbd5e1;
+  font-size:13px;
+}
+.backup-indicator-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.03em;
+  border:1px solid rgba(255,255,255,.10);
+}
+.backup-indicator-badge.ok{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.40);
+  color:#dcfce7;
+}
+.backup-indicator-badge.warn{
+  background:linear-gradient(180deg, rgba(239,68,68,.20), rgba(185,28,28,.14));
+  border-color:rgba(252,165,165,.32);
+  color:#fee2e2;
+}
+.backup-indicator-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:12px;
+  margin:12px 0 14px 0;
+}
+.backup-indicator-stat{
+  background:rgba(15,23,42,.62);
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:14px;
+  padding:12px;
+}
+.backup-indicator-stat .label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#a78bfa;
+  margin-bottom:8px;
+}
+.backup-indicator-stat .value{
+  display:block;
+  color:#fff;
+  font-size:18px;
+  font-weight:800;
+}
+.backup-indicator-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.backup-indicator-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:40px;
+  border-radius:14px;
+  padding:10px 14px;
+  font-size:13px;
+  font-weight:800;
+  border:1px solid rgba(255,255,255,.10);
+  cursor:pointer;
+  white-space:nowrap;
+}
+.backup-indicator-btn.primary{
+  background:linear-gradient(180deg, rgba(37,99,235,.24), rgba(29,78,216,.16));
+  border-color:rgba(96,165,250,.36);
+  color:#dbeafe;
+}
+.backup-indicator-btn.secondary{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.36);
+  color:#dcfce7;
+}
+.backup-indicator-btn.import{
+  background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
+  border-color:rgba(216,180,254,.32);
+  color:#f3e8ff;
+}
+.backup-hidden-file{display:none;}
+
 </style>
 </head>
 <body>
@@ -2680,6 +2791,7 @@ function refreshBackupStatusUi(){
   if(countEl){
     countEl.textContent = String(weeklyBackups.length);
   }
+  try{ updateBackupWeekIndicator(); }catch(e){}
 }
 
 function exportBackupManual(){
@@ -2768,6 +2880,7 @@ function runWeeklyAutomaticBackupSilently(){
     const diffDays = (now - new Date(lastDateIso)) / (1000 * 60 * 60 * 24);
     if(diffDays < 7){
       refreshBackupStatusUi();
+  try{ updateBackupWeekIndicator(); }catch(e){}
   try{fazerBackupSexta();}catch(e){}
       return;
     }
@@ -2782,6 +2895,7 @@ function runWeeklyAutomaticBackupSilently(){
   localStorage.setItem('weeklyAutoBackups', JSON.stringify(backups));
   localStorage.setItem('weeklyAutoBackupLastDate', snapshot.dataBackup);
   refreshBackupStatusUi();
+  try{ updateBackupWeekIndicator(); }catch(e){}
   try{fazerBackupSexta();}catch(e){}
 }
 
@@ -2848,6 +2962,7 @@ document.addEventListener("DOMContentLoaded", function(){
   page.appendChild(div);
 
   try{refreshBackupStatusUi();
+  try{ updateBackupWeekIndicator(); }catch(e){}
   try{fazerBackupSexta();}catch(e){}}catch(e){}
 
 });
@@ -2920,6 +3035,54 @@ function mostrarAvisoBackup(){
   document.body.appendChild(aviso);
 
   setTimeout(()=>aviso.remove(), 6000);
+}
+
+
+function getWeekStart(dateObj){
+  const d = new Date(dateObj);
+  const day = d.getDay(); // 0 domingo
+  const diff = d.getDate() - day;
+  d.setHours(0,0,0,0);
+  d.setDate(diff);
+  return d;
+}
+
+function updateBackupWeekIndicator(){
+  const badge = document.getElementById('backupWeekBadge');
+  const weekStatus = document.getElementById('backupWeekStatus');
+  const lastStatus = document.getElementById('backupLastStatus');
+  const countStatus = document.getElementById('backupCountStatus');
+
+  const backups = JSON.parse(localStorage.getItem('backupFridayHistory') || '[]');
+  const lastDateIso = localStorage.getItem('backupFridayDone') || localStorage.getItem('weeklyAutoBackupLastDate') || '';
+  const lastDate = lastDateIso ? new Date(lastDateIso) : null;
+  const now = new Date();
+
+  let hasThisWeek = false;
+  if(lastDate && !isNaN(lastDate.getTime())){
+    const weekStartNow = getWeekStart(now).getTime();
+    const weekStartLast = getWeekStart(lastDate).getTime();
+    hasThisWeek = weekStartNow === weekStartLast;
+  }
+
+  if(lastStatus) lastStatus.textContent = lastDateIso ? fmtDate(lastDateIso) : '--';
+  if(countStatus) countStatus.textContent = String(backups.length);
+
+  if(hasThisWeek){
+    if(weekStatus) weekStatus.textContent = 'Backup feito';
+    if(badge){
+      badge.textContent = 'Feito esta semana';
+      badge.classList.remove('warn');
+      badge.classList.add('ok');
+    }
+  }else{
+    if(weekStatus) weekStatus.textContent = 'Falta backup';
+    if(badge){
+      badge.textContent = 'Falta backup';
+      badge.classList.remove('ok');
+      badge.classList.add('warn');
+    }
+  }
 }
 
 </script>
@@ -4329,6 +4492,117 @@ td.acoes-col, .acoes-col{
   .backups-premium-head{flex-direction:column}
 }
 
+
+/* INDICADOR VISUAL BACKUP */
+.backup-indicator-card{
+  margin-top:18px;
+  background:linear-gradient(180deg, rgba(15,23,42,.94), rgba(30,41,59,.90));
+  border:1px solid rgba(148,163,184,.14);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 12px 24px rgba(0,0,0,.16);
+}
+.backup-indicator-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.backup-indicator-head h3{
+  margin:0;
+  font-size:18px;
+  font-weight:800;
+  color:#fff;
+}
+.backup-indicator-sub{
+  margin:4px 0 0 0;
+  color:#cbd5e1;
+  font-size:13px;
+}
+.backup-indicator-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.03em;
+  border:1px solid rgba(255,255,255,.10);
+}
+.backup-indicator-badge.ok{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.40);
+  color:#dcfce7;
+}
+.backup-indicator-badge.warn{
+  background:linear-gradient(180deg, rgba(239,68,68,.20), rgba(185,28,28,.14));
+  border-color:rgba(252,165,165,.32);
+  color:#fee2e2;
+}
+.backup-indicator-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:12px;
+  margin:12px 0 14px 0;
+}
+.backup-indicator-stat{
+  background:rgba(15,23,42,.62);
+  border:1px solid rgba(148,163,184,.12);
+  border-radius:14px;
+  padding:12px;
+}
+.backup-indicator-stat .label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#a78bfa;
+  margin-bottom:8px;
+}
+.backup-indicator-stat .value{
+  display:block;
+  color:#fff;
+  font-size:18px;
+  font-weight:800;
+}
+.backup-indicator-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.backup-indicator-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:40px;
+  border-radius:14px;
+  padding:10px 14px;
+  font-size:13px;
+  font-weight:800;
+  border:1px solid rgba(255,255,255,.10);
+  cursor:pointer;
+  white-space:nowrap;
+}
+.backup-indicator-btn.primary{
+  background:linear-gradient(180deg, rgba(37,99,235,.24), rgba(29,78,216,.16));
+  border-color:rgba(96,165,250,.36);
+  color:#dbeafe;
+}
+.backup-indicator-btn.secondary{
+  background:linear-gradient(180deg, rgba(34,197,94,.22), rgba(22,163,74,.16));
+  border-color:rgba(74,222,128,.36);
+  color:#dcfce7;
+}
+.backup-indicator-btn.import{
+  background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
+  border-color:rgba(216,180,254,.32);
+  color:#f3e8ff;
+}
+.backup-hidden-file{display:none;}
+
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
@@ -5214,6 +5488,7 @@ document.addEventListener("DOMContentLoaded", function(){
   page.appendChild(div);
 
   try{refreshBackupStatusUi();
+  try{ updateBackupWeekIndicator(); }catch(e){}
   try{fazerBackupSexta();}catch(e){}}catch(e){}
 
 });
@@ -5286,6 +5561,54 @@ function mostrarAvisoBackup(){
   document.body.appendChild(aviso);
 
   setTimeout(()=>aviso.remove(), 6000);
+}
+
+
+function getWeekStart(dateObj){
+  const d = new Date(dateObj);
+  const day = d.getDay(); // 0 domingo
+  const diff = d.getDate() - day;
+  d.setHours(0,0,0,0);
+  d.setDate(diff);
+  return d;
+}
+
+function updateBackupWeekIndicator(){
+  const badge = document.getElementById('backupWeekBadge');
+  const weekStatus = document.getElementById('backupWeekStatus');
+  const lastStatus = document.getElementById('backupLastStatus');
+  const countStatus = document.getElementById('backupCountStatus');
+
+  const backups = JSON.parse(localStorage.getItem('backupFridayHistory') || '[]');
+  const lastDateIso = localStorage.getItem('backupFridayDone') || localStorage.getItem('weeklyAutoBackupLastDate') || '';
+  const lastDate = lastDateIso ? new Date(lastDateIso) : null;
+  const now = new Date();
+
+  let hasThisWeek = false;
+  if(lastDate && !isNaN(lastDate.getTime())){
+    const weekStartNow = getWeekStart(now).getTime();
+    const weekStartLast = getWeekStart(lastDate).getTime();
+    hasThisWeek = weekStartNow === weekStartLast;
+  }
+
+  if(lastStatus) lastStatus.textContent = lastDateIso ? fmtDate(lastDateIso) : '--';
+  if(countStatus) countStatus.textContent = String(backups.length);
+
+  if(hasThisWeek){
+    if(weekStatus) weekStatus.textContent = 'Backup feito';
+    if(badge){
+      badge.textContent = 'Feito esta semana';
+      badge.classList.remove('warn');
+      badge.classList.add('ok');
+    }
+  }else{
+    if(weekStatus) weekStatus.textContent = 'Falta backup';
+    if(badge){
+      badge.textContent = 'Falta backup';
+      badge.classList.remove('ok');
+      badge.classList.add('warn');
+    }
+  }
 }
 
 </script>
