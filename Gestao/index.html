@@ -3988,7 +3988,7 @@ document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', 
 let firebaseSyncInitPromise = null;
 async function waitForFirebaseSyncReady(timeoutMs = 12000){
   const start = Date.now();
-  while(!(syncReady && firestoreDb)){
+  while(!firestoreDb){
     if(Date.now() - start > timeoutMs) throw new Error('Firebase não ficou pronto a tempo');
     await new Promise(resolve => setTimeout(resolve, 150));
   }
@@ -4001,10 +4001,21 @@ async function initFirebaseSync(){
       if (!firebaseApp) firebaseApp = initializeApp(firebaseConfig);
       if (!firebaseAuth) firebaseAuth = getAuth(firebaseApp);
       if (!firestoreDb) firestoreDb = getFirestore(firebaseApp);
-      setSyncMessage(syncReady ? 'Firebase Sync' : 'A ligar ao Firebase…', syncReady ? 'ok' : 'warn');
+
+      syncReady = true;
+      setSyncMessage('Firebase Sync', 'ok');
+      clearRealtimeListeners();
+      attachRealtimeListeners();
 
       if(!firebaseAuth.currentUser){
-        await signInAnonymously(firebaseAuth);
+        try{
+          await signInAnonymously(firebaseAuth);
+        }catch(authErr){
+          console.warn('Anonymous auth indisponível, continuo com Firestore direto:', authErr);
+          if(authErr?.code === 'auth/operation-not-allowed'){
+            setSyncMessage('Firebase Sync (sem auth anónima)', 'warn');
+          }
+        }
       }
 
       onAuthStateChanged(firebaseAuth, user => {
@@ -4013,9 +4024,6 @@ async function initFirebaseSync(){
           setSyncMessage('Firebase Sync', 'ok');
           clearRealtimeListeners();
           attachRealtimeListeners();
-        } else {
-          syncReady = false;
-          setSyncMessage('Sem sessão Firebase', 'bad');
         }
         if (currentRole) renderAll();
       });
@@ -4061,7 +4069,7 @@ function attachRealtimeListeners(){
   bind('pagamentos', rows => { pagamentos = rows; });
 }
 async function ensureFirebaseReady(timeoutMs = 12000){
-  if (!(syncReady && firestoreDb)) {
+  if (!firestoreDb) {
     await initFirebaseSync();
     await waitForFirebaseSyncReady(timeoutMs);
   }
@@ -5618,7 +5626,7 @@ window.deleteTrabalho = async function(id){
   }catch(err){
     console.error(err);
     setSyncMessage('Erro a apagar no Firebase', 'bad');
-    alert('Não foi possível apagar na Firebase.');
+    alert(`Não foi possível apagar na Firebase. ${err?.code ? '(' + err.code + ')' : ''}`.trim());
   }
 };
 window.editCliente = function(id){
@@ -5638,7 +5646,7 @@ window.deleteCliente = async function(id){
   }catch(err){
     console.error(err);
     setSyncMessage('Erro a apagar no Firebase', 'bad');
-    alert('Não foi possível apagar na Firebase.');
+    alert(`Não foi possível apagar na Firebase. ${err?.code ? '(' + err.code + ')' : ''}`.trim());
   }
 };
 
@@ -5821,7 +5829,7 @@ window.deletePagamento = async function(id){
   }catch(err){
     console.error(err);
     setSyncMessage('Erro a apagar no Firebase', 'bad');
-    alert('Não foi possível apagar o pagamento na Firebase.');
+    alert(`Não foi possível apagar o pagamento na Firebase. ${err?.code ? '(' + err.code + ')' : ''}`.trim());
   }
 };
 
@@ -5947,7 +5955,7 @@ $('paymentConfirmBtn')?.addEventListener('click', async ()=>{
     renderAll();
     setTimeout(()=>{ try { renderAll(); } catch(e) {} }, 200);
   } else {
-    alert('Não foi possível guardar o pagamento.');
+    alert(`Não foi possível guardar o pagamento na Firebase. ${err?.code ? '(' + err.code + ')' : ''}`.trim());
   }
 });
 
