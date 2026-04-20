@@ -2824,13 +2824,13 @@ function getAllowedTabsForRole(role='user'){
   return getRoleDefinition(role).tabs || ['dashboard'];
 }
 
-function hasRolePermission(permission, role=globalThis.currentRole){
+function hasRolePermission(permission, role=currentRole){
   if(!permission) return true;
   const def = getRoleDefinition(role);
   return Array.isArray(def.permissions) && def.permissions.includes(permission);
 }
 
-function canAccessTab(tab, role=globalThis.currentRole){
+function canAccessTab(tab, role=currentRole){
   return getAllowedTabsForRole(role).includes(tab);
 }
 
@@ -2847,7 +2847,7 @@ function normalizeUsers(users){
     role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta'
   }));
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -3659,17 +3659,17 @@ function formatPresenceLastSeen(lastSeenValue){
   return dt.toLocaleString('pt-PT');
 }
 async function writePresence(online=true, extra={}){
-  if(!currentUsername || !currentRole) return;
+  if(!(globalThis.currentUsername || currentUsername) || !(globalThis.currentRole || currentRole)) return;
   try{
     await ensureFirebaseReady();
     const sid = ensurePresenceSessionId();
     await setDoc(doc(firestoreDb, PRESENCE_COLLECTION, sid), {
       sessionId: sid,
-      uid: currentUserUid || currentUsername,
-      userId: currentUsername,
-      nome: currentUsername,
-      email: currentUserEmail || '',
-      role: currentRole,
+      uid: globalThis.currentUserUid || currentUserUid || globalThis.currentUsername || currentUsername,
+      userId: globalThis.currentUsername || currentUsername,
+      nome: globalThis.currentUsername || currentUsername,
+      email: globalThis.currentUserEmail || currentUserEmail || '',
+      role: globalThis.currentRole || currentRole,
       device: getPresenceDeviceType(),
       pagina: currentPresencePage || 'Dashboard',
       online,
@@ -3690,6 +3690,7 @@ async function startPresenceTracking(){
   if(presenceRefreshId) clearInterval(presenceRefreshId);
   presenceRefreshId = setInterval(renderOnlineUsersList, 10000);
   bindOnlineUsersPanel();
+  renderOnlineUsersList();
 }
 async function stopPresenceTracking(){
   if(presenceHeartbeatId){ clearInterval(presenceHeartbeatId); presenceHeartbeatId = null; }
@@ -3702,8 +3703,16 @@ async function stopPresenceTracking(){
 }
 function updatePresencePage(pageName){
   currentPresencePage = pageName || document.getElementById('pageTitle')?.textContent?.trim() || 'Dashboard';
-  if(currentUsername) writePresence(true, { pagina: currentPresencePage });
+  if(globalThis.currentUsername || currentUsername) writePresence(true, { pagina: currentPresencePage });
 }
+function notifyOnlineUsersRealtimeRefresh(){
+  try{
+    renderOnlineUsersList();
+  }catch(err){
+    console.warn('Falha a atualizar painel online:', err);
+  }
+}
+
 function renderOnlineUsersList(){
   const host = $('onlineUsersList');
   const counter = $('onlineUsersCounter');
@@ -3724,7 +3733,7 @@ function renderOnlineUsersList(){
     return;
   }
   host.innerHTML = activeRows.map(row => {
-    const stateLabel = row._presenceStatus === 'online' ? 'Online' : 'Inativo';
+    const stateLabel = row._presenceStatus === 'online' ? 'Online' : (row._presenceStatus === 'idle' ? 'Inativo' : 'Offline');
     const page = escapeHtml(row.pagina || 'Dashboard');
     const device = escapeHtml(row.device || '-');
     const role = escapeHtml(row.role || '-');
@@ -4141,7 +4150,7 @@ function fillClientContactFromSelection(){
 function normalizeManagedUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -4297,25 +4306,15 @@ navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
 
-let realtimeRenderTimer = null;
-
-function scheduleRealtimeRender(){
-  clearTimeout(realtimeRenderTimer);
-  realtimeRenderTimer = setTimeout(() => {
-    try{
-      const activePage = document.querySelector('.page.active');
-      const activeTab = activePage ? activePage.id.replace(/-page$/, '') : (sessionStorage.getItem('gestao:lastTab') || 'dashboard');
-      sessionStorage.setItem('gestao:lastTab', activeTab);
-      renderAll();
-      try{ switchTab(activeTab); }catch(e){}
-    }catch(e){
-      console.error('Erro no realtime render:', e);
-    }
-  }, 80);
-}
-
 function forceAppRefresh(){
-  scheduleRealtimeRender();
+  try{
+    const activePage = document.querySelector('.page.active');
+    const activeTab = activePage ? activePage.id.replace(/-page$/, '') : (sessionStorage.getItem('gestao:lastTab') || 'dashboard');
+    sessionStorage.setItem('gestao:lastTab', activeTab);
+  }catch(e){}
+  setTimeout(()=>{
+    try{ window.location.reload(); }catch(e){ location.reload(); }
+  }, 120);
 }
 try{
   const restoreTab = sessionStorage.getItem('gestao:lastTab');
@@ -4361,7 +4360,7 @@ async function initFirebaseSync(){
         setSyncMessage(user ? 'Firebase Sync' : 'Firebase pronto', user ? 'ok' : 'warn');
         clearRealtimeListeners();
         attachRealtimeListeners();
-        if (globalThis.currentRole) scheduleRealtimeRender();
+        if (currentRole) renderAll();
       });
 
       await waitForFirebaseSyncReady();
@@ -4393,7 +4392,7 @@ function attachRealtimeListeners(){
       const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setter(rows);
       saveLocal();
-      if (globalThis.currentRole) scheduleRealtimeRender();
+      if (currentRole) renderAll();
     }, err => {
       console.error(`Snapshot ${name} failed:`, err);
       setSyncMessage('Erro de sync, uso local', 'bad');
@@ -6136,7 +6135,7 @@ window.performLogin = async function(email, password){
   const authUser = userCredential.user;
   const profile = getRoleProfileByEmail(authUser.email || email);
   const username = profile?.username || (String(authUser.email || email).split('@')[0] || 'user');
-  const role = profile?.role || 'consulta';
+  const role = profile?.role || 'master_admin';
   currentUserUid = authUser.uid || null;
   currentUserEmail = authUser.email || email;
   return { role, username, email: currentUserEmail, uid: currentUserUid };
@@ -6147,15 +6146,25 @@ window.performLogout = async function(){
   try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
   currentUserUid = null;
   currentUserEmail = null;
+  globalThis.currentUserUid = null;
+  globalThis.currentUserEmail = null;
+  globalThis.currentUsername = null;
+  globalThis.currentRole = null;
 };
 
 
 window.startApp = function(sessionOrRole, maybeUsername){
   const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
-  currentRole = session.role;
-  currentUsername = session.username;
-  currentUserEmail = session.email || currentUserEmail || null;
-  currentUserUid = session.uid || currentUserUid || null;
+  currentRole = session.role || globalThis.currentRole || 'master_admin';
+  currentUsername = session.username || globalThis.currentUsername || 'user';
+  currentUserEmail = session.email || globalThis.currentUserEmail || null;
+  currentUserUid = session.uid || globalThis.currentUserUid || null;
+
+  globalThis.currentRole = currentRole;
+  globalThis.currentUsername = currentUsername;
+  globalThis.currentUserEmail = currentUserEmail;
+  globalThis.currentUserUid = currentUserUid;
+
   loadLocal();
   setRoleUI();
   renderAll();
