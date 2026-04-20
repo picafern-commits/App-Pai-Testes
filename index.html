@@ -320,6 +320,138 @@ body.ui-laptop .main{padding:12px}
 .bottom-nav{gap:var(--ui-space-sm,8px)}
 .settings-card{background:rgba(255,255,255,.04);border:1px solid var(--line2);margin-bottom:var(--ui-space,14px)}
 
+
+.online-compact-widget{
+  position:fixed;
+  top:14px;
+  right:14px;
+  z-index:220;
+  width:min(320px, calc(100vw - 28px));
+  border-radius:18px;
+  padding:12px 14px;
+  background:linear-gradient(180deg, rgba(10,14,25,.94), rgba(18,24,40,.92));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 18px 40px rgba(0,0,0,.28);
+  backdrop-filter:blur(14px);
+}
+.online-compact-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.online-compact-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:#dbe7ff;
+}
+.online-compact-dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:#22c55e;
+  box-shadow:0 0 0 4px rgba(34,197,94,.16);
+}
+.online-compact-count{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:28px;
+  height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  background:rgba(111,92,255,.18);
+  border:1px solid rgba(167,139,250,.24);
+  font-size:12px;
+  font-weight:800;
+  color:#efe9ff;
+}
+.online-compact-meta{
+  font-size:11px;
+  color:var(--muted);
+}
+.online-compact-list{
+  display:grid;
+  gap:8px;
+}
+.online-compact-row{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:10px;
+  padding:8px 10px;
+  border-radius:14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.05);
+}
+.online-compact-row:last-child{margin-bottom:0}
+.online-compact-state{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:#6b7280;
+}
+.online-compact-state.online{
+  background:#22c55e;
+  box-shadow:0 0 0 4px rgba(34,197,94,.16);
+}
+.online-compact-state.idle{
+  background:#f59e0b;
+  box-shadow:0 0 0 4px rgba(245,158,11,.14);
+}
+.online-compact-user{
+  min-width:0;
+}
+.online-compact-user strong{
+  display:block;
+  font-size:13px;
+  color:#f8fbff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.online-compact-user span{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.online-compact-badge{
+  font-size:11px;
+  color:#dbeafe;
+  background:rgba(59,130,246,.14);
+  border:1px solid rgba(96,165,250,.18);
+  border-radius:999px;
+  padding:5px 8px;
+  white-space:nowrap;
+}
+.online-compact-empty{
+  font-size:12px;
+  color:var(--muted);
+  padding:6px 2px 2px;
+}
+@media (max-width: 900px){
+  .online-compact-widget{
+    top:10px;
+    right:10px;
+    left:auto;
+    width:min(280px, calc(100vw - 20px));
+    padding:10px 12px;
+    border-radius:16px;
+  }
+  .topbar{
+    padding-right:0 !important;
+  }
+}
+
 .online-users-panel{margin-top:14px}
 .online-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .online-summary .badge-soft{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(124,58,237,.16);border:1px solid rgba(167,139,250,.22);font-size:12px;color:#e9ddff}
@@ -2457,17 +2589,17 @@ td.acoes-col, .acoes-col{
           <h1>Entrar</h1>
         </div>
 
-        <form id="loginForm" class="login-form">
-          <div class="field">
-            <label>Email</label>
-            <input id="loginEmail" type="email" placeholder="pica.fern@gmail.com" required autocomplete="username" />
-          </div>
-          <div class="field">
-            <label>Palavra-passe</label>
-            <input id="loginPassword" type="password" placeholder="••••••••" required autocomplete="current-password" />
-          </div>
-          <button type="submit" class="btn btn-primary full">Entrar</button>
-        </form>
+			<form id="loginForm" class="login-form" novalidate>
+				<div class="field">
+					<label for="loginEmail">Email</label>
+					<input id="loginEmail" name="loginEmail" type="email" placeholder="pica.fern@gmail.com" autocomplete="username" />
+				</div>
+				<div class="field">
+					<label for="loginPassword">Palavra-passe</label>
+					<input id="loginPassword" name="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+				</div>
+				<button id="loginBtn" type="submit" class="btn btn-primary full">Entrar</button>
+			</form>
         <div id="loginError" class="login-error"></div>
       </div>
     </div>
@@ -2507,6 +2639,18 @@ td.acoes-col, .acoes-col{
     </aside>
 
     <main class="main">
+      <section class="online-compact-widget" id="onlineCompactWidget">
+        <div class="online-compact-head">
+          <div>
+            <div class="online-compact-title"><span class="online-compact-dot"></span> Utilizadores online</div>
+            <div class="online-compact-meta" id="onlineCompactUpdatedAt">À espera de atividade…</div>
+          </div>
+          <div class="online-compact-count" id="onlineCompactCounter">0</div>
+        </div>
+        <div class="online-compact-list" id="onlineCompactList">
+          <div class="online-compact-empty">Sem sessões online.</div>
+        </div>
+      </section>
       <header class="topbar">
         <div class="topbar-left">
           <div>
@@ -2917,22 +3061,43 @@ function bootFromSession(){
 loginForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const password = document.getElementById('loginPassword').value;
+  const emailInput = document.getElementById('loginEmail');
+  const passwordInput = document.getElementById('loginPassword');
+  const errorEl = document.getElementById('loginError');
 
-  try{
-    if(typeof window.performLogin !== 'function'){
+  const email = (emailInput?.value || '').trim().toLowerCase();
+  const password = passwordInput?.value || '';
+
+  if (errorEl) errorEl.textContent = '';
+
+  if (!email) {
+    if (errorEl) errorEl.textContent = 'Preenche o email.';
+    emailInput?.focus();
+    return;
+  }
+
+  if (!password) {
+    if (errorEl) errorEl.textContent = 'Preenche a palavra-passe.';
+    passwordInput?.focus();
+    return;
+  }
+
+  try {
+    if (typeof window.performLogin !== 'function') {
       throw new Error('Sistema de autenticação ainda não ficou pronto.');
     }
+
     const session = await window.performLogin(email, password);
     saveSession(session.role, session.username, session.email || email, session.uid || '');
-    document.getElementById('loginError').textContent = '';
+
+    if (errorEl) errorEl.textContent = '';
     showApp();
-    if(window.startApp){
+
+    if (window.startApp) {
       window.startApp(session);
     }
-  }catch(err){
-    document.getElementById('loginError').textContent = err?.message || 'Credenciais inválidas.';
+  } catch (err) {
+    if (errorEl) errorEl.textContent = err?.message || 'Credenciais inválidas.';
   }
 });
 
@@ -3659,17 +3824,17 @@ function formatPresenceLastSeen(lastSeenValue){
   return dt.toLocaleString('pt-PT');
 }
 async function writePresence(online=true, extra={}){
-  if(!(globalThis.currentUsername || currentUsername) || !(globalThis.currentRole || currentRole)) return;
+  if(!currentUsername || !currentRole) return;
   try{
     await ensureFirebaseReady();
     const sid = ensurePresenceSessionId();
     await setDoc(doc(firestoreDb, PRESENCE_COLLECTION, sid), {
       sessionId: sid,
-      uid: globalThis.currentUserUid || currentUserUid || globalThis.currentUsername || currentUsername,
-      userId: globalThis.currentUsername || currentUsername,
-      nome: globalThis.currentUsername || currentUsername,
-      email: globalThis.currentUserEmail || currentUserEmail || '',
-      role: globalThis.currentRole || currentRole,
+      uid: currentUserUid || currentUsername,
+      userId: currentUsername,
+      nome: currentUsername,
+      email: currentUserEmail || '',
+      role: currentRole,
       device: getPresenceDeviceType(),
       pagina: currentPresencePage || 'Dashboard',
       online,
@@ -3690,7 +3855,6 @@ async function startPresenceTracking(){
   if(presenceRefreshId) clearInterval(presenceRefreshId);
   presenceRefreshId = setInterval(renderOnlineUsersList, 10000);
   bindOnlineUsersPanel();
-  renderOnlineUsersList();
 }
 async function stopPresenceTracking(){
   if(presenceHeartbeatId){ clearInterval(presenceHeartbeatId); presenceHeartbeatId = null; }
@@ -3703,14 +3867,40 @@ async function stopPresenceTracking(){
 }
 function updatePresencePage(pageName){
   currentPresencePage = pageName || document.getElementById('pageTitle')?.textContent?.trim() || 'Dashboard';
-  if(globalThis.currentUsername || currentUsername) writePresence(true, { pagina: currentPresencePage });
+  if(currentUsername) writePresence(true, { pagina: currentPresencePage });
 }
-function notifyOnlineUsersRealtimeRefresh(){
-  try{
-    renderOnlineUsersList();
-  }catch(err){
-    console.warn('Falha a atualizar painel online:', err);
+
+function renderOnlineCompactWidget(activeRows){
+  const host = $('onlineCompactList');
+  const counter = $('onlineCompactCounter');
+  const updatedAt = $('onlineCompactUpdatedAt');
+  if(!host) return;
+
+  const rows = Array.isArray(activeRows) ? activeRows.slice(0,4) : [];
+  if(counter) counter.textContent = String(activeRows?.length || 0);
+  if(updatedAt) updatedAt.textContent = `Atualizado: ${new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' })}`;
+
+  if(!rows.length){
+    host.innerHTML = '<div class="online-compact-empty">Sem sessões online.</div>';
+    return;
   }
+
+  host.innerHTML = rows.map(row => {
+    const stateClass = row._presenceStatus === 'online' ? 'online' : (row._presenceStatus === 'idle' ? 'idle' : '');
+    const name = escapeHtml(row.nome || row.userId || 'Utilizador');
+    const meta = escapeHtml(`${row.role || '-'} · ${row.device || '-'}`);
+    const page = escapeHtml(row.pagina || 'Dashboard');
+    return `
+      <div class="online-compact-row">
+        <span class="online-compact-state ${stateClass}"></span>
+        <div class="online-compact-user">
+          <strong>${name}</strong>
+          <span>${meta}</span>
+        </div>
+        <div class="online-compact-badge">${page}</div>
+      </div>
+    `;
+  }).join('');
 }
 
 function renderOnlineUsersList(){
@@ -3728,12 +3918,13 @@ function renderOnlineUsersList(){
     });
   if(counter) counter.textContent = String(activeRows.length);
   if(updatedAt) updatedAt.textContent = `Atualizado: ${new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' })}`;
+  renderOnlineCompactWidget(activeRows);
   if(!activeRows.length){
     host.innerHTML = '<div class="online-empty">Sem sessões online de momento.</div>';
     return;
   }
   host.innerHTML = activeRows.map(row => {
-    const stateLabel = row._presenceStatus === 'online' ? 'Online' : (row._presenceStatus === 'idle' ? 'Inativo' : 'Offline');
+    const stateLabel = row._presenceStatus === 'online' ? 'Online' : 'Inativo';
     const page = escapeHtml(row.pagina || 'Dashboard');
     const device = escapeHtml(row.device || '-');
     const role = escapeHtml(row.role || '-');
@@ -4167,8 +4358,8 @@ function getManagedUsers(){
   }catch{}
   const fixedDefaults = normalizeManagedUsers([
     { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
-    { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'user' },
-    { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' }
+    { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'admin' },
+	{ username: 'pica.fern', email: 'pica.fern@gmail.com', password: 'A_TUA_PASSWORD', role: 'master_admin' }
   ]);
   localStorage.setItem('app_users', JSON.stringify(fixedDefaults));
   return fixedDefaults;
@@ -4273,12 +4464,119 @@ function setRoleUI(){
   try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 }
+<script>
 function switchTab(tab){
-  if(!canAccessTab(tab)){
-    const fallback = getAllowedTabsForRole(currentRole)[0] || 'dashboard';
-    if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
-    tab = fallback;
+  try{
+    if(!tab) return;
+
+    const targetPage = document.getElementById(`${tab}-page`);
+    if(!targetPage){
+      console.warn('Página não encontrada para tab:', tab);
+      return;
+    }
+
+    if(typeof canAccessTab === 'function' && !canAccessTab(tab)){
+      const fallback = (typeof getAllowedTabsForRole === 'function'
+        ? (getAllowedTabsForRole(currentRole)[0] || 'dashboard')
+        : 'dashboard');
+
+      if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
+      tab = fallback;
+    }
+
+    try{
+      sessionStorage.setItem('gestao:lastTab', tab);
+    }catch(e){}
+
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+
+    document.querySelectorAll('.bottom-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+
+    document.querySelectorAll('.page').forEach(p => {
+      p.classList.remove('active');
+      p.style.display = 'none';
+    });
+
+    targetPage.classList.add('active');
+    targetPage.style.display = 'block';
+
+    const btn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+    const titleEl = document.getElementById('pageTitle');
+    if(titleEl){
+      titleEl.textContent = btn
+        ? btn.textContent.trim()
+        : tab.charAt(0).toUpperCase() + tab.slice(1);
+    }
+
+    if(tab === 'dashboard' && typeof renderDashboard === 'function'){
+      renderDashboard();
+      if(typeof renderAlerts === 'function') renderAlerts();
+    }
+    if(tab === 'trabalhos' && typeof renderTrabalhos === 'function') renderTrabalhos();
+    if(tab === 'clientes' && typeof renderClientes === 'function') renderClientes();
+    if(tab === 'pagamentos' && typeof renderPagamentos === 'function') renderPagamentos();
+    if(tab === 'relatorios' && typeof renderRelatorios === 'function') renderRelatorios();
+    if(tab === 'configuracoes'){
+      if(typeof bindUiScaleSelector === 'function') bindUiScaleSelector();
+      if(typeof renderManagedUsers === 'function') renderManagedUsers();
+    }
+
+    if(typeof updatePresencePage === 'function'){
+      updatePresencePage(titleEl?.textContent?.trim() || tab);
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }catch(err){
+    console.error('Erro no switchTab:', err);
   }
+}
+
+window.switchTab = switchTab;
+
+function bindSidebarNavigation(){
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(this.dataset.tab);
+    };
+  });
+
+  document.querySelectorAll('.bottom-btn').forEach(btn => {
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(this.dataset.tab);
+    };
+  });
+
+  document.querySelectorAll('[data-go]').forEach(btn => {
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(this.dataset.go);
+    };
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  bindSidebarNavigation();
+
+  let restoreTab = 'dashboard';
+  try{
+    restoreTab = sessionStorage.getItem('gestao:lastTab') || 'dashboard';
+  }catch(e){}
+
+  setTimeout(() => {
+    switchTab(restoreTab);
+  }, 0);
+});
+</script>
+
   try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(e){}
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   bottomButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -6135,7 +6433,7 @@ window.performLogin = async function(email, password){
   const authUser = userCredential.user;
   const profile = getRoleProfileByEmail(authUser.email || email);
   const username = profile?.username || (String(authUser.email || email).split('@')[0] || 'user');
-  const role = profile?.role || 'master_admin';
+  const role = profile?.role || 'consulta';
   currentUserUid = authUser.uid || null;
   currentUserEmail = authUser.email || email;
   return { role, username, email: currentUserEmail, uid: currentUserUid };
@@ -6146,25 +6444,15 @@ window.performLogout = async function(){
   try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
   currentUserUid = null;
   currentUserEmail = null;
-  globalThis.currentUserUid = null;
-  globalThis.currentUserEmail = null;
-  globalThis.currentUsername = null;
-  globalThis.currentRole = null;
 };
 
 
 window.startApp = function(sessionOrRole, maybeUsername){
   const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
-  currentRole = session.role || globalThis.currentRole || 'master_admin';
-  currentUsername = session.username || globalThis.currentUsername || 'user';
-  currentUserEmail = session.email || globalThis.currentUserEmail || null;
-  currentUserUid = session.uid || globalThis.currentUserUid || null;
-
-  globalThis.currentRole = currentRole;
-  globalThis.currentUsername = currentUsername;
-  globalThis.currentUserEmail = currentUserEmail;
-  globalThis.currentUserUid = currentUserUid;
-
+  currentRole = session.role;
+  currentUsername = session.username;
+  currentUserEmail = session.email || currentUserEmail || null;
+  currentUserUid = session.uid || currentUserUid || null;
   loadLocal();
   setRoleUI();
   renderAll();
