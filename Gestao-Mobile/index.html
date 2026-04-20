@@ -6302,17 +6302,32 @@ window.marcarComoPagoComValor = function(id){
   $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
   if($('paymentDateInput')) { $('paymentDateInput').value = todayLocalDate(); $('paymentDateInput').removeAttribute('readonly'); $('paymentDateInput').disabled = false; setTimeout(() => { const el = $('paymentDateInput'); if(el && !el.value) el.value = todayLocalDate(); }, 0); }
   $('paymentMethodModal').classList.remove('hidden');
+  $('paymentMethodModal').classList.add('show');
+  $('paymentMethodModal').style.display = 'flex';
 };
 
-$('closePaymentMethodModal')?.addEventListener('click', ()=>{
+function hardClosePaymentMethodModal(){
+  const modal = $('paymentMethodModal');
+  if(!modal) return;
   pendingPaymentWorkId = null;
-  $('paymentMethodModal').classList.add('hidden');
+  modal.classList.add('hidden');
+  modal.classList.remove('show');
+  modal.style.display = 'none';
+  const hiddenId = $('paymentWorkId');
+  const methodInput = $('paymentMethodInput');
+  const valueInput = $('paymentValueInput');
+  if(hiddenId) hiddenId.value = '';
+  if(methodInput) methodInput.value = '';
+  if(valueInput) valueInput.value = '';
+}
+
+$('closePaymentMethodModal')?.addEventListener('click', ()=>{
+  hardClosePaymentMethodModal();
   refreshVisibleUi();
 });
 $('paymentMethodModal')?.addEventListener('click', (e)=>{
   if(e.target.id === 'paymentMethodModal'){
-    pendingPaymentWorkId = null;
-    $('paymentMethodModal').classList.add('hidden');
+    hardClosePaymentMethodModal();
     refreshVisibleUi();
   }
 });
@@ -6321,11 +6336,16 @@ document.querySelectorAll('.pay-method-btn').forEach(btn=>{
     if(!pendingPaymentWorkId) return;
     const method = btn.dataset.method || 'Manual';
     const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
+    const selectedPaymentValue = $('paymentValueInput')?.value || '';
+    const numericValue = Number(String(selectedPaymentValue).trim().replace(',', '.'));
+    if(!selectedPaymentValue || Number.isNaN(numericValue)){
+      alert('Introduz um valor de pagamento válido.');
+      return;
+    }
     const workId = pendingPaymentWorkId;
-    const ok = await window.markAsPaid(workId, method, selectedPaymentDate);
+    const ok = await window.markAsPaid(workId, method, selectedPaymentDate, numericValue);
     if(ok){
-      pendingPaymentWorkId = null;
-      $('paymentMethodModal').classList.add('hidden');
+      hardClosePaymentMethodModal();
       refreshVisibleUi();
     }
   });
@@ -6457,84 +6477,58 @@ function renderMobileCards(){
 
 
 function openPaymentMethodModal(id){
-  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
-  const t = trabalhosLista.find(x => String(x.id) === String(id));
-  if(!t) return;
-
-  const modal = document.getElementById('paymentMethodModal');
-  if(!modal) return;
-
-  const dateInput = document.getElementById('paymentDateInput');
-  const valueInput = document.getElementById('paymentValueInput');
-  const hiddenId = document.getElementById('paymentWorkId');
-  const methodInput = document.getElementById('paymentMethodInput');
-
-  if(hiddenId) hiddenId.value = id;
-  if(methodInput) methodInput.value = '';
-  if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
-  if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
-
-  modal.style.display = 'flex';
-  modal.classList.add('show');
+  if(typeof window.marcarComoPagoComValor === 'function'){
+    window.marcarComoPagoComValor(id);
+  }
 }
 
 function closePaymentMethodModal(){
-  const modal = document.getElementById('paymentMethodModal');
-  if(!modal) return;
-  modal.style.display = 'none';
-  modal.classList.remove('show');
+  if(typeof hardClosePaymentMethodModal === 'function'){
+    hardClosePaymentMethodModal();
+  } else {
+    const modal = document.getElementById('paymentMethodModal');
+    if(!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+  }
 }
 
-function confirmPaymentMethod(method){
-  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
+async function confirmPaymentMethod(method){
   const hiddenId = document.getElementById('paymentWorkId');
   const dateInput = document.getElementById('paymentDateInput');
   const valueInput = document.getElementById('paymentValueInput');
   const methodInput = document.getElementById('paymentMethodInput');
 
   const id = hiddenId ? hiddenId.value : '';
-  const t = trabalhosLista.find(x => String(x.id) === String(id));
-  if(!t) return;
+  if(!id) return false;
 
   const dataPagamento = dateInput && dateInput.value ? dateInput.value : getTodayLocalDateStr();
   const valorRaw = valueInput ? String(valueInput.value || '').trim().replace(',', '.') : '';
   if(!valorRaw){
     alert('Introduz o valor do pagamento.');
-    return;
+    return false;
   }
+
   const valorNum = Number(valorRaw);
   if(Number.isNaN(valorNum)){
     alert('Valor inválido.');
-    return;
+    return false;
   }
 
-  t.paymentStatus = 'Pago';
-  t.paymentMethod = method || (methodInput ? methodInput.value : '') || 'Outro';
-  t.dataPagamento = dataPagamento;
-  t.valorPago = valorNum;
-  t.estado = 'Pago';
-  t.dataEstado = new Date().toISOString();
-  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
-  t.historicoEstados.push({
-    estado: 'Pago',
-    data: new Date().toISOString()
-  });
+  const finalMethod = method || (methodInput ? methodInput.value : '') || 'Outro';
+  const ok = typeof window.markAsPaid === 'function'
+    ? await window.markAsPaid(id, finalMethod, dataPagamento, valorNum)
+    : false;
 
-  if(typeof window.saveData === 'function') window.saveData();
-  else if(typeof saveData === 'function') saveData();
-  else if(typeof window.saveTrabalhos === 'function') window.saveTrabalhos();
-  else if(typeof saveTrabalhos === 'function') saveTrabalhos();
-  else {
-    try { localStorage.setItem('trabalhos', JSON.stringify(trabalhosLista)); } catch(e) {}
+  if(!ok){
+    alert('Não foi possível guardar o pagamento na Firebase.');
+    return false;
   }
 
   closePaymentMethodModal();
-
-  if(typeof window.renderTrabalhos === 'function') window.renderTrabalhos();
-  else if(typeof renderTrabalhos === 'function') renderTrabalhos();
-
-  try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
-  try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
+  if(typeof refreshVisibleUi === 'function') refreshVisibleUi();
+  return true;
 }
 
 
