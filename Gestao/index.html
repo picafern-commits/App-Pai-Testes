@@ -1216,6 +1216,9 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 }
 
 
+
+.presence-panel{margin-top:16px}.presence-list{display:grid;gap:10px}.presence-card{border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px 14px;background:rgba(255,255,255,.03)}.presence-card.is-self{outline:1px solid rgba(106,166,255,.55)}.presence-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}.presence-user{font-weight:700}.presence-meta{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;opacity:.88}.presence-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700;background:rgba(255,255,255,.07)}.presence-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:#9ca3af}.presence-badge.online::before{background:#22c55e}.presence-badge.away::before{background:#f59e0b}.presence-badge.offline::before{background:#9ca3af}.presence-empty{padding:12px;border:1px dashed rgba(255,255,255,.15);border-radius:14px;opacity:.8}
+
 /* ===== MOBILE PREMIUM OVERRIDES 1.0.6 ===== */
 @media (max-width: 900px){
   :root{
@@ -2422,13 +2425,6 @@ td.acoes-col, .acoes-col{
   display:none !important;
 }
 
-
-.online-users-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.mini-status{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);font-size:12px;color:var(--muted)}
-.mini-status.status-online{border-color:rgba(58,227,116,.35);color:#9ff0ba;background:rgba(58,227,116,.08)}
-.presence-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#3ae374;box-shadow:0 0 0 4px rgba(58,227,116,.14);margin-right:8px;vertical-align:middle}
-.me-badge{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:rgba(107,152,255,.16);color:#b8ccff;font-size:11px;font-weight:700}
-
 </style>
 </head>
 <body>
@@ -2491,7 +2487,7 @@ td.acoes-col, .acoes-col{
           <span class="mini-label">Versão</span>
           <strong id="versionBadge">-</strong>
         </div>
-        <button id="logoutBtn" class="btn btn-secondary full" onclick="window.performLogout && window.performLogout()">Terminar sessão</button>
+        <button id="logoutBtn" class="btn btn-secondary full" onclick="window.fullLogout && window.fullLogout()">Terminar sessão</button>
       </div>
     </aside>
 
@@ -2706,7 +2702,11 @@ td.acoes-col, .acoes-col{
                     <tbody id="managedUsersTableBody"></tbody>
                   </table>
                 </div>
-                <div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-actions">
+                <div class="panel presence-panel">
+                <div class="panel-head"><h3>Utilizadores online</h3><span id="presenceSummary" class="mini-label">0 online</span></div>
+                <div id="presenceList" class="presence-list"></div>
+              </div>
+              <div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-actions">
                   <button class="btn btn-secondary" id="exportBackupBtn">Backup JSON</button>
                 </div>
               </section>
@@ -2813,7 +2813,13 @@ loginForm?.addEventListener('submit', (e) => {
 
 document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
   e.preventDefault();
-  await performLogout();
+  if(window.fullLogout){
+    await window.fullLogout();
+    return;
+  }
+  clearSession();
+  showLogin();
+  loginForm.reset();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -2824,16 +2830,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-document.addEventListener('visibilitychange', () => {
-  if(!currentUsername || isLoggingOut) return;
-  if(document.hidden){
-    writePresenceState(true, { keepOpenedAt:true, page:'Em segundo plano' });
-  }else{
-    writePresenceState(true, { keepOpenedAt:true, page:getPresencePageLabel() });
-  }
-});
-window.addEventListener('focus', () => { if(currentUsername && !isLoggingOut) writePresenceState(true, { keepOpenedAt:true, page:getPresencePageLabel() }); });
-window.addEventListener('beforeunload', () => { stopPresenceHeartbeat(); });
+
 
 function legacy_openPaymentMethodModal(id){
   const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
@@ -3477,7 +3474,7 @@ const firebaseConfig = {
 
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const APP_VERSION = '1.0.6';
@@ -3493,190 +3490,6 @@ let firestoreDb = null;
 let syncReady = false;
 let syncMessage = 'Local';
 let unsubs = [];
-
-let presenceHeartbeatTimer = null;
-let onlineUsersUnsub = null;
-let presenceSessionId = null;
-let presenceDocId = null;
-let currentPageLabel = 'Dashboard';
-let isLoggingOut = false;
-const ONLINE_HEARTBEAT_MS = 20000;
-const ONLINE_STALE_MS = 70000;
-
-function getPresenceSessionId(){
-  let sid = sessionStorage.getItem('gestao_presence_session_id');
-  if(!sid){
-    sid = `sess_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;
-    sessionStorage.setItem('gestao_presence_session_id', sid);
-  }
-  return sid;
-}
-function getDeviceTypeLabel(){
-  try{
-    const ua = navigator.userAgent || '';
-    if(/ipad|tablet/i.test(ua)) return 'Tablet';
-    if(/iphone|android.+mobile|mobile/i.test(ua) || window.innerWidth <= 900) return 'Mobile';
-    return 'PC';
-  }catch(e){ return 'PC'; }
-}
-function getRoleLabel(role){
-  if(role === 'master_admin') return 'Admin Mestre';
-  if(role === 'admin') return 'Admin';
-  return 'User';
-}
-function getPresencePageLabel(){
-  try{
-    const activePage = document.querySelector('.page.active');
-    if(activePage){
-      const id = String(activePage.id || '').replace(/-page$/,'');
-      const btn = document.querySelector(`.nav-btn[data-tab="${id}"]`) || document.querySelector(`.bottom-btn[data-tab="${id}"]`);
-      return (btn?.textContent || id || 'Dashboard').trim();
-    }
-  }catch(e){}
-  return currentPageLabel || 'Dashboard';
-}
-async function writePresenceState(online = true, extra = {}){
-  try{
-    if(!currentUsername || !firestoreDb || !firebaseAuth?.currentUser) return;
-    presenceSessionId = getPresenceSessionId();
-    presenceDocId = `${String(currentUsername).toLowerCase()}__${presenceSessionId}`;
-    currentPageLabel = extra.page || getPresencePageLabel();
-    const payload = {
-      username: currentUsername,
-      usernameKey: String(currentUsername).toLowerCase(),
-      role: currentRole || 'user',
-      roleLabel: getRoleLabel(currentRole || 'user'),
-      device: getDeviceTypeLabel(),
-      page: currentPageLabel,
-      online,
-      appVersion: APP_VERSION,
-      updatedAt: serverTimestamp(),
-      lastSeen: serverTimestamp(),
-      sessionId: presenceSessionId
-    };
-    if(online){
-      payload.openedAt = extra.keepOpenedAt ? undefined : serverTimestamp();
-      payload.startedAt = extra.keepOpenedAt ? undefined : new Date().toISOString();
-    }
-    Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
-    await setDoc(doc(firestoreDb, 'onlineUsers', presenceDocId), payload, { merge: true });
-    updateOnlineStatusBadge(true);
-  }catch(err){
-    console.warn('Presence write failed:', err);
-    updateOnlineStatusBadge(false, 'Presença offline');
-  }
-}
-function stopPresenceHeartbeat(){
-  if(presenceHeartbeatTimer){ clearInterval(presenceHeartbeatTimer); presenceHeartbeatTimer = null; }
-}
-function startPresenceHeartbeat(){
-  stopPresenceHeartbeat();
-  presenceHeartbeatTimer = setInterval(() => {
-    writePresenceState(true, { keepOpenedAt:true, page:getPresencePageLabel() });
-  }, ONLINE_HEARTBEAT_MS);
-}
-async function startPresenceSession(){
-  try{
-    if(!currentUsername) return;
-    await ensureFirebaseReady();
-    await writePresenceState(true, { page:getPresencePageLabel() });
-    startPresenceHeartbeat();
-    subscribeOnlineUsers();
-  }catch(err){
-    console.warn('Presence init failed:', err);
-  }
-}
-async function stopPresenceSession(markOffline = true){
-  stopPresenceHeartbeat();
-  if(onlineUsersUnsub){ try{ onlineUsersUnsub(); }catch(e){} onlineUsersUnsub = null; }
-  if(markOffline){
-    try{ await writePresenceState(false, { page:getPresencePageLabel(), keepOpenedAt:true }); }catch(e){}
-  }
-  updateOnlineStatusBadge(false, 'Sem sessão');
-}
-function updateOnlineStatusBadge(isOnline, text){
-  const el = document.getElementById('onlinePresenceStatus');
-  if(!el) return;
-  el.textContent = text || (isOnline ? 'Ligado ao sistema online' : 'Sem sessão');
-  el.classList.toggle('status-online', !!isOnline);
-}
-function renderOnlineUsersList(rows){
-  const tbody = document.getElementById('onlineUsersTableBody');
-  const countEl = document.getElementById('onlineUsersCount');
-  const emptyEl = document.getElementById('onlineUsersEmpty');
-  if(!tbody) return;
-  const now = Date.now();
-  const activeRows = rows
-    .filter(r => r && r.online)
-    .filter(r => {
-      const ts = r.updatedAt?.toDate ? r.updatedAt.toDate().getTime() : (r.updatedAt?.seconds ? r.updatedAt.seconds * 1000 : (r.lastSeen?.toDate ? r.lastSeen.toDate().getTime() : (r.lastSeen?.seconds ? r.lastSeen.seconds * 1000 : 0)));
-      return ts && (now - ts) <= ONLINE_STALE_MS;
-    })
-    .sort((a,b) => String(a.username || '').localeCompare(String(b.username || '')) || String(a.device || '').localeCompare(String(b.device || '')));
-
-  if(countEl) countEl.textContent = String(activeRows.length);
-  if(emptyEl) emptyEl.style.display = activeRows.length ? 'none' : 'block';
-
-  tbody.innerHTML = activeRows.map(user => {
-    const updated = user.updatedAt?.toDate ? user.updatedAt.toDate() : (user.updatedAt?.seconds ? new Date(user.updatedAt.seconds * 1000) : (user.lastSeen?.toDate ? user.lastSeen.toDate() : (user.lastSeen?.seconds ? new Date(user.lastSeen.seconds * 1000) : null)));
-    const mins = updated ? Math.max(0, Math.round((Date.now() - updated.getTime()) / 60000)) : 0;
-    const me = String(user.username || '').toLowerCase() === String(currentUsername || '').toLowerCase() ? ' <span class="me-badge">Tu</span>' : '';
-    return `<tr>
-      <td><span class="presence-dot"></span> ${escapeHtml(user.username || '-')} ${me}</td>
-      <td>${escapeHtml(user.roleLabel || getRoleLabel(user.role || 'user'))}</td>
-      <td>${escapeHtml(user.device || '-')}</td>
-      <td>${escapeHtml(user.page || '-')}</td>
-      <td>${updated ? escapeHtml(updated.toLocaleString('pt-PT')) : '-'}</td>
-      <td>${mins <= 1 ? 'Agora mesmo' : `há ${mins} min`}</td>
-    </tr>`;
-  }).join('');
-}
-function subscribeOnlineUsers(){
-  if(!firestoreDb || onlineUsersUnsub) return;
-  const tbody = document.getElementById('onlineUsersTableBody');
-  if(!tbody) return;
-  onlineUsersUnsub = onSnapshot(collection(firestoreDb, 'onlineUsers'), snap => {
-    const rows = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-    renderOnlineUsersList(rows);
-  }, err => {
-    console.warn('Online users snapshot failed:', err);
-    updateOnlineStatusBadge(false, 'Erro ao ler online');
-  });
-}
-function ensureOnlineUsersSection(){
-  const page = document.getElementById('configuracoes-page');
-  if(!page || document.getElementById('onlineUsersSection')) return;
-  const section = document.createElement('section');
-  section.id = 'onlineUsersSection';
-  section.className = 'panel wide-panel history-panel';
-  section.innerHTML = `
-    <div class="panel-head"><h3>Utilizadores online</h3><div class="online-users-meta"><span id="onlinePresenceStatus" class="mini-status">Sem sessão</span><span class="mini-status">Ativos: <strong id="onlineUsersCount">0</strong></span></div></div>
-    <div class="settings-help"><small>Presença em tempo real por sessão. Se alguém fechar a app à força pode demorar cerca de 1 minuto a sair da lista.</small></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Utilizador</th><th>Tipo</th><th>Dispositivo</th><th>Página</th><th>Última atividade</th><th>Estado</th></tr></thead>
-        <tbody id="onlineUsersTableBody"></tbody>
-      </table>
-      <div id="onlineUsersEmpty" class="empty-state" style="padding:12px 4px">Nenhum utilizador online de momento.</div>
-    </div>`;
-  const targetGrid = page.querySelector('.content-grid') || page;
-  targetGrid.appendChild(section);
-}
-async function performLogout(){
-  if(isLoggingOut) return;
-  isLoggingOut = true;
-  try{ await stopPresenceSession(true); }catch(e){}
-  try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(e){}
-  clearSession();
-  currentRole = null;
-  currentUsername = null;
-  showLogin();
-  try{ loginForm.reset(); }catch(e){}
-  document.getElementById('loginError').textContent = '';
-  isLoggingOut = false;
-}
-window.performLogout = performLogout;
-
 
 const $ = (id) => document.getElementById(id);
 initUiScale();
@@ -4093,6 +3906,7 @@ function renderManagedUsers(){
       </td>
     </tr>
   `).join('') : '<tr><td colspan="3">Sem utilizadores.</td></tr>';
+  renderPresenceList();
 }
 
 window.editManagedUser = function(index){
@@ -4177,8 +3991,6 @@ function switchTab(tab){
   pages.forEach(p => p.classList.toggle('active', p.id===`${tab}-page`));
   const btn=document.querySelector(`.nav-btn[data-tab="${tab}"]`);
   $('pageTitle').textContent = btn ? btn.textContent.trim() : 'Dashboard';
-  currentPageLabel = btn ? btn.textContent.trim() : tab;
-  if(currentUsername && !isLoggingOut){ writePresenceState(true, { keepOpenedAt:true, page: currentPageLabel }); }
   if(tab === 'dashboard'){
     renderDashboard();
     renderAlerts();
@@ -4192,9 +4004,11 @@ function switchTab(tab){
   if(tab === 'configuracoes'){
     bindUiScaleSelector();
     renderManagedUsers();
-    ensureOnlineUsersSection();
-    subscribeOnlineUsers();
   }
+  if(currentRole){
+    upsertPresence({ page: getActivePageName() }).catch(err => console.warn('Falha ao atualizar presença da página:', err));
+  }
+  renderPresenceList();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
@@ -4262,7 +4076,6 @@ async function initFirebaseSync(){
       });
 
       await waitForFirebaseSyncReady();
-      if(currentUsername && !isLoggingOut){ await startPresenceSession(); }
       return true;
     }catch(err){
       console.error('Firebase sync error:', err);
@@ -4321,6 +4134,196 @@ async function removeRemote(collectionName, id){
   await deleteDoc(doc(firestoreDb, collectionName, id));
   return true;
 }
+
+const PRESENCE_COLLECTION = 'presence_sessions';
+const PRESENCE_SESSION_KEY = 'gestao_presence_session_id';
+const PRESENCE_ACTIVE_MS = 45000;
+const PRESENCE_AWAY_MS = 120000;
+let presenceHeartbeatTimer = null;
+let presenceUnsub = null;
+let presenceRows = [];
+let presenceStartedFor = null;
+let isLoggingOutNow = false;
+
+function getPresenceSessionId(){
+  try{
+    let id = sessionStorage.getItem(PRESENCE_SESSION_KEY);
+    if(!id){
+      id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : `sess_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      sessionStorage.setItem(PRESENCE_SESSION_KEY, id);
+    }
+    return id;
+  }catch{
+    return `sess_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  }
+}
+function detectPresenceDevice(){
+  const ua = navigator.userAgent || '';
+  if(/ipad|tablet|android(?!.*mobile)/i.test(ua)) return 'Tablet';
+  if(/mobi|iphone|android/i.test(ua)) return 'Mobile';
+  return 'PC';
+}
+function getActivePageName(){
+  const activePage = document.querySelector('.page.active');
+  if(!activePage) return 'Dashboard';
+  const id = activePage.id.replace(/-page$/, '');
+  const names = {dashboard:'Dashboard', adicionar:'Adicionar', trabalhos:'Histórico', clientes:'Clientes', pagamentos:'Pagamentos', relatorios:'Relatórios', configuracoes:'Configurações'};
+  return names[id] || id;
+}
+function presenceStatusFromRow(row){
+  const stamp = row?.lastSeen?.toDate ? row.lastSeen.toDate().getTime() : (row?.lastSeen?.seconds ? row.lastSeen.seconds*1000 : Number(row?.clientLastSeenTs || 0));
+  const age = Date.now() - stamp;
+  if(age <= PRESENCE_ACTIVE_MS) return 'online';
+  if(age <= PRESENCE_AWAY_MS) return 'away';
+  return 'offline';
+}
+function formatPresenceAgo(row){
+  const stamp = row?.lastSeen?.toDate ? row.lastSeen.toDate().getTime() : (row?.lastSeen?.seconds ? row.lastSeen.seconds*1000 : Number(row?.clientLastSeenTs || 0));
+  if(!stamp) return 'sem atividade';
+  const diff = Math.max(0, Date.now() - stamp);
+  const sec = Math.round(diff/1000);
+  if(sec < 5) return 'agora mesmo';
+  if(sec < 60) return `há ${sec}s`;
+  const min = Math.round(sec/60);
+  if(min < 60) return `há ${min} min`;
+  const hr = Math.round(min/60);
+  return `há ${hr} h`;
+}
+function renderPresenceList(){
+  const wrap = $('presenceList');
+  const summary = $('presenceSummary');
+  if(!wrap) return;
+  const rows = (presenceRows || []).slice().sort((a,b)=>{
+    const sa = presenceStatusFromRow(a); const sb = presenceStatusFromRow(b);
+    const rank = {online:0, away:1, offline:2};
+    const ra = rank[sa] ?? 9, rb = rank[sb] ?? 9;
+    if(ra !== rb) return ra-rb;
+    const ta = a?.lastSeen?.seconds ? a.lastSeen.seconds : Number(a?.clientLastSeenTs || 0);
+    const tb = b?.lastSeen?.seconds ? b.lastSeen.seconds : Number(b?.clientLastSeenTs || 0);
+    return tb-ta;
+  });
+  const onlineCount = rows.filter(r => presenceStatusFromRow(r) === 'online').length;
+  if(summary) summary.textContent = `${onlineCount} online · ${rows.length} sessão(ões)`;
+  if(!rows.length){
+    wrap.innerHTML = '<div class="presence-empty">Sem sessões online neste momento.</div>';
+    return;
+  }
+  const currentSessionId = (()=>{ try{return sessionStorage.getItem(PRESENCE_SESSION_KEY) || '';}catch{return '';} })();
+  wrap.innerHTML = rows.map(row => {
+    const status = presenceStatusFromRow(row);
+    const isSelf = row.sessionId === currentSessionId;
+    const statusLabel = status === 'online' ? 'Online' : status === 'away' ? 'Inativo' : 'Offline';
+    return `<div class="presence-card ${isSelf ? 'is-self' : ''}">
+      <div class="presence-head">
+        <div>
+          <div class="presence-user">${escapeHtml(row.username || 'Sem nome')} ${isSelf ? '<span class="mini-label">(tu)</span>' : ''}</div>
+          <div class="presence-meta">
+            <span>${escapeHtml(row.role || 'user')}</span>
+            <span>${escapeHtml(row.device || '-')}</span>
+            <span>Página: ${escapeHtml(row.page || '-')}</span>
+          </div>
+        </div>
+        <span class="presence-badge ${status}">${statusLabel}</span>
+      </div>
+      <div class="presence-meta">
+        <span>Última atividade: ${escapeHtml(formatPresenceAgo(row))}</span>
+        <span>Sessão: ${escapeHtml(String(row.sessionId || '').slice(0,8))}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function upsertPresence(extra = {}){
+  if(!currentUsername || !currentRole || !firestoreDb || isLoggingOutNow) return;
+  const sessionId = getPresenceSessionId();
+  const payload = {
+    sessionId,
+    username: currentUsername,
+    role: currentRole,
+    device: detectPresenceDevice(),
+    page: getActivePageName(),
+    online: true,
+    clientLastSeenTs: Date.now(),
+    lastSeen: serverTimestamp(),
+    ...extra
+  };
+  await setDoc(doc(firestoreDb, PRESENCE_COLLECTION, sessionId), payload, { merge: true });
+}
+async function clearPresenceSession(){
+  if(!firestoreDb) return;
+  const sessionId = getPresenceSessionId();
+  try{
+    await setDoc(doc(firestoreDb, PRESENCE_COLLECTION, sessionId), {
+      sessionId,
+      username: currentUsername || '',
+      role: currentRole || '',
+      device: detectPresenceDevice(),
+      page: getActivePageName(),
+      online: false,
+      clientLastSeenTs: Date.now(),
+      lastSeen: serverTimestamp(),
+      closedAtClientTs: Date.now()
+    }, { merge:true });
+  }catch(err){
+    console.warn('Falha a limpar presença:', err);
+  }
+}
+function bindPresenceRealtime(){
+  if(!firestoreDb || presenceUnsub) return;
+  presenceUnsub = onSnapshot(collection(firestoreDb, PRESENCE_COLLECTION), snap => {
+    presenceRows = snap.docs.map(d => ({ id:d.id, ...d.data() }))
+      .filter(row => row && row.username);
+    renderPresenceList();
+  }, err => {
+    console.error('Presence snapshot failed:', err);
+  });
+}
+function stopPresenceRealtime(){
+  if(presenceUnsub){
+    try{ presenceUnsub(); }catch{}
+    presenceUnsub = null;
+  }
+}
+async function startPresenceSystem(force = false){
+  if(!currentUsername || !currentRole) return;
+  await ensureFirebaseReady();
+  if(!force && presenceStartedFor === `${currentUsername}:${currentRole}` && presenceHeartbeatTimer) {
+    bindPresenceRealtime();
+    renderPresenceList();
+    return;
+  }
+  presenceStartedFor = `${currentUsername}:${currentRole}`;
+  isLoggingOutNow = false;
+  if(presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+  bindPresenceRealtime();
+  await upsertPresence();
+  presenceHeartbeatTimer = setInterval(() => {
+    upsertPresence().catch(err => console.warn('Heartbeat presença falhou:', err));
+    renderPresenceList();
+  }, 15000);
+}
+async function stopPresenceSystem(){
+  if(presenceHeartbeatTimer){
+    clearInterval(presenceHeartbeatTimer);
+    presenceHeartbeatTimer = null;
+  }
+  isLoggingOutNow = true;
+  await clearPresenceSession();
+  stopPresenceRealtime();
+  presenceRows = [];
+  renderPresenceList();
+}
+window.fullLogout = async function(){
+  try{ await stopPresenceSystem(); }catch(err){ console.warn(err); }
+  clearSession();
+  try{ sessionStorage.removeItem(PRESENCE_SESSION_KEY); }catch{}
+  currentRole = null;
+  currentUsername = null;
+  showLogin();
+  if(loginForm) loginForm.reset();
+};
+window.addEventListener('pagehide', () => { if(currentUsername && !isLoggingOutNow){ clearPresenceSession(); } });
+window.addEventListener('beforeunload', () => { if(currentUsername && !isLoggingOutNow){ clearPresenceSession(); } });
+setInterval(() => { if(currentRole) renderPresenceList(); }, 5000);
 
 
 function adminGuard(){ if(!isAdminLike()){ alert('Só o Admin pode fazer alterações.'); return false; } return true; }
@@ -6026,7 +6029,6 @@ $('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMen
 
 loadLocal();
 autoBackupInvisible();
-ensureOnlineUsersSection();
 initFirebaseSync();
 
 
@@ -6035,9 +6037,8 @@ window.startApp = function(role, username){
   currentUsername = username;
   loadLocal();
   setRoleUI();
-  ensureOnlineUsersSection();
   renderAll();
-  initFirebaseSync().then(() => startPresenceSession()).catch(err => console.error(err));
+  initFirebaseSync().then(() => startPresenceSystem(true)).catch(err => console.error(err));
 };
 
 
