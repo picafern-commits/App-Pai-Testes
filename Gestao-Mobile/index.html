@@ -4017,6 +4017,68 @@ function printProfessionalReport(){
   openProfessionalReportWindow(true);
 }
 
+
+async function deleteTrabalho(id){
+  try{
+    const ok = confirm('Apagar este trabalho?');
+    if(!ok) return;
+  }catch(e){}
+
+  let lista = [];
+  try{
+    lista = JSON.parse(localStorage.getItem('trabalhos') || '[]');
+  }catch(e){
+    lista = [];
+  }
+
+  if(!Array.isArray(lista) || !lista.length){
+    try{
+      lista = Array.isArray(window.trabalhos) ? [...window.trabalhos] : [];
+    }catch(e){
+      lista = [];
+    }
+  }
+
+  const idx = lista.findIndex(x => String(x.id) === String(id));
+  if(idx === -1){
+    try{
+      if(Array.isArray(window.trabalhos)){
+        const idx2 = window.trabalhos.findIndex(x => String(x.id) === String(id));
+        if(idx2 !== -1){
+          window.trabalhos.splice(idx2, 1);
+          localStorage.setItem('trabalhos', JSON.stringify(window.trabalhos));
+        }
+      }
+    }catch(e){}
+  }else{
+    lista.splice(idx, 1);
+    try{
+      localStorage.setItem('trabalhos', JSON.stringify(lista));
+    }catch(e){}
+    try{
+      window.trabalhos = lista;
+      if(typeof trabalhos !== 'undefined'){ trabalhos = lista; }
+    }catch(e){}
+  }
+
+  try{
+    if(typeof deleteRemote === 'function'){
+      await deleteRemote('trabalhos', id);
+    }else if(typeof removeRemote === 'function'){
+      await removeRemote('trabalhos', id);
+    }else if(typeof deleteDocSafe === 'function'){
+      await deleteDocSafe('trabalhos', id);
+    }
+  }catch(e){
+    console.error('Erro a apagar no Firebase:', e);
+  }
+
+  try{ if(typeof renderTrabalhos === 'function') renderTrabalhos(); }catch(e){}
+  try{ if(typeof renderDashboard === 'function') renderDashboard(); }catch(e){}
+  try{ if(typeof renderPagamentos === 'function') renderPagamentos(); }catch(e){}
+  try{ if(typeof renderRelatorios === 'function') renderRelatorios(); }catch(e){}
+}
+
 </script>
   <script type="module">
 const firebaseConfig = {
