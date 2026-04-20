@@ -6015,9 +6015,16 @@ window.editTrabalho = function(id){
 window.deleteTrabalho = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este trabalho?')) return;
-  trabalhos=trabalhos.filter(x=>x.id!==id);
-  saveLocal(); renderAll();
-  try{ await removeRemote('trabalhos', id); }catch(err){ console.error(err); setSyncMessage('Erro a apagar no Firebase', 'bad'); }
+  try{
+    await removeRemote('trabalhos', id);
+    trabalhos = trabalhos.filter(x=>x.id!==id);
+    saveLocal();
+    renderAll();
+  }catch(err){
+    console.error(err);
+    setSyncMessage('Erro a apagar no Firebase', 'bad');
+    alert('Não foi possível apagar na Firebase.');
+  }
 };
 window.editCliente = function(id){
   if(!adminGuard()) return;
@@ -6028,9 +6035,16 @@ window.editCliente = function(id){
 window.deleteCliente = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este cliente?')) return;
-  clientes=clientes.filter(x=>x.id!==id);
-  saveLocal(); renderAll();
-  try{ await removeRemote('clientes', id); }catch(err){ console.error(err); setSyncMessage('Erro a apagar no Firebase', 'bad'); }
+  try{
+    await removeRemote('clientes', id);
+    clientes = clientes.filter(x=>x.id!==id);
+    saveLocal();
+    renderAll();
+  }catch(err){
+    console.error(err);
+    setSyncMessage('Erro a apagar no Firebase', 'bad');
+    alert('Não foi possível apagar na Firebase.');
+  }
 };
 
 const clientModal = $('clientModal');
@@ -6144,77 +6158,76 @@ function getAgendaSmartDate(t){
 window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorPersonalizado=null){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return false;
-  const snapshotTrabalho = JSON.parse(JSON.stringify(t));
-  const existingPagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
-  const existingPagamentoSnapshot = existingPagamento ? JSON.parse(JSON.stringify(existingPagamento)) : null;
   const finalPaymentDate = dataPagamento || todayLocalDate();
   const valorFinal = Number(valorPersonalizado ?? t.valorPago ?? t.valor ?? 0);
-  t.estado = 'Pago';
-  t.dataEstado = new Date().toISOString();
-  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
-  const last = t.historicoEstados[t.historicoEstados.length - 1];
+  const updatedTrabalho = JSON.parse(JSON.stringify(t));
+  updatedTrabalho.estado = 'Pago';
+  updatedTrabalho.dataEstado = new Date().toISOString();
+  updatedTrabalho.historicoEstados = Array.isArray(updatedTrabalho.historicoEstados) ? updatedTrabalho.historicoEstados : [];
+  const last = updatedTrabalho.historicoEstados[updatedTrabalho.historicoEstados.length - 1];
   if(!last || normalizeEstado(last.estado) !== 'Pago'){
-    t.historicoEstados.push({ estado:'Pago', data:t.dataEstado });
+    updatedTrabalho.historicoEstados.push({ estado:'Pago', data:updatedTrabalho.dataEstado });
   }
-  t.paymentStatus = 'Pago';
-  t.paymentMethod = metodo;
-  t.metodoPagamento = metodo;
-  t.dataPagamento = finalPaymentDate;
-  t.dataFim = finalPaymentDate;
-  t.valorPago = valorFinal;
+  updatedTrabalho.paymentStatus = 'Pago';
+  updatedTrabalho.paymentMethod = metodo;
+  updatedTrabalho.metodoPagamento = metodo;
+  updatedTrabalho.dataPagamento = finalPaymentDate;
+  updatedTrabalho.dataFim = finalPaymentDate;
+  updatedTrabalho.valorPago = valorFinal;
 
+  const existingPagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
   const pagamento = {
+    ...(existingPagamento ? JSON.parse(JSON.stringify(existingPagamento)) : {}),
     id: existingPagamento?.id || genId('pay'),
-    cliente: t.cliente || '',
-    referencia: t.workCode || t.tipoTrabalho || '',
-    workDate: t.dataInicio || '',
+    cliente: updatedTrabalho.cliente || '',
+    referencia: updatedTrabalho.workCode || updatedTrabalho.tipoTrabalho || '',
+    workDate: updatedTrabalho.dataInicio || '',
     data: finalPaymentDate,
     valor: valorFinal,
     metodo,
-    invoiceType: t.invoiceType || 'Com Fatura',
-    sourceWorkId: t.id,
-    workCode: t.workCode || ''
+    invoiceType: updatedTrabalho.invoiceType || 'Com Fatura',
+    sourceWorkId: updatedTrabalho.id,
+    workCode: updatedTrabalho.workCode || ''
   };
-  if(existingPagamento){
-    Object.assign(existingPagamento, pagamento);
-  } else {
-    pagamentos.push(pagamento);
-  }
 
-  saveLocal();
-  renderAll();
   try {
     await ensureFirebaseReady();
     await Promise.all([
-      upsertRemote('trabalhos', { ...t }),
-      upsertRemote('pagamentos', { ...pagamento })
+      upsertRemote('trabalhos', updatedTrabalho),
+      upsertRemote('pagamentos', pagamento)
     ]);
+
+    Object.assign(t, updatedTrabalho);
+    if(existingPagamento){
+      Object.assign(existingPagamento, pagamento);
+    } else {
+      pagamentos.push(pagamento);
+    }
     saveLocal();
     renderAll();
     setTimeout(()=>{ try{ renderAll(); }catch(e){} }, 200);
     return true;
   } catch(err){
     console.error(err);
-    Object.assign(t, snapshotTrabalho);
-    if(existingPagamento){
-      Object.assign(existingPagamento, existingPagamentoSnapshot || {});
-    } else {
-      pagamentos = pagamentos.filter(p => p.id !== pagamento.id);
-    }
-    saveLocal();
-    renderAll();
+    setSyncMessage('Erro a guardar pagamento no Firebase', 'bad');
     return false;
   }
 }
 
 
-window.deletePagamento = function(id){
+window.deletePagamento = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este registo de pagamento?')) return;
-  pagamentos = pagamentos.filter(x => x.id !== id);
-  saveLocal();
-  renderAll();
-  removeRemote('pagamentos', id).catch(err => console.error(err));
+  try{
+    await removeRemote('pagamentos', id);
+    pagamentos = pagamentos.filter(x => x.id !== id);
+    saveLocal();
+    renderAll();
+  }catch(err){
+    console.error(err);
+    setSyncMessage('Erro a apagar no Firebase', 'bad');
+    alert('Não foi possível apagar o pagamento na Firebase.');
+  }
 };
 
 
