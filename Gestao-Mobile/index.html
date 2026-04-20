@@ -2775,6 +2775,18 @@ td.acoes-col, .acoes-col{
 }
 
 </style>
+
+<style id="sidebar-click-fix">
+.sidebar{position:relative !important; z-index:1200 !important; pointer-events:auto !important;}
+.sidebar .nav, .sidebar .sidebar-footer, .sidebar .brand-card{position:relative; z-index:1201; pointer-events:auto !important;}
+.nav-btn,.bottom-btn,[data-go]{position:relative; z-index:1202; pointer-events:auto !important; cursor:pointer !important; -webkit-tap-highlight-color: transparent;}
+.main{position:relative; z-index:1;}
+.topbar,.hero,.panel{position:relative; z-index:1;}
+@media (max-width:900px){
+  .sidebar{z-index:1200 !important;}
+  .bottom-nav{z-index:1250 !important;}
+}
+</style>
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
@@ -3857,7 +3869,19 @@ function buildProfessionalReportHtml(){
 }
 
 </style>
-    </head>
+    
+<style id="sidebar-click-fix">
+.sidebar{position:relative !important; z-index:1200 !important; pointer-events:auto !important;}
+.sidebar .nav, .sidebar .sidebar-footer, .sidebar .brand-card{position:relative; z-index:1201; pointer-events:auto !important;}
+.nav-btn,.bottom-btn,[data-go]{position:relative; z-index:1202; pointer-events:auto !important; cursor:pointer !important; -webkit-tap-highlight-color: transparent;}
+.main{position:relative; z-index:1;}
+.topbar,.hero,.panel{position:relative; z-index:1;}
+@media (max-width:900px){
+  .sidebar{z-index:1200 !important;}
+  .bottom-nav{z-index:1250 !important;}
+}
+</style>
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
@@ -3890,7 +3914,64 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script id="sidebar-nav-fix">
+(function(){
+  function closeMobileSidebar(){
+    try{
+      document.body.classList.remove('sidebar-open');
+      document.documentElement.classList.remove('sidebar-open');
+    }catch(e){}
+  }
+
+  function safeSwitch(tab){
+    if(!tab) return;
+    try{
+      if(typeof window.switchTab === 'function'){
+        window.switchTab(tab);
+      } else if (typeof switchTab === 'function'){
+        switchTab(tab);
+      }
+    }catch(err){
+      try{
+        var pages=document.querySelectorAll('.page');
+        pages.forEach(function(p){ p.classList.toggle('active', p.id===tab+'-page'); });
+        document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+        document.querySelectorAll('.bottom-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+        var titleBtn=document.querySelector('.nav-btn[data-tab="'+tab+'"]');
+        var title=document.getElementById('pageTitle');
+        if(title && titleBtn) title.textContent = titleBtn.textContent.trim();
+      }catch(e2){}
+    }
+    closeMobileSidebar();
+  }
+
+  function bindSidebarClicks(){
+    document.querySelectorAll('.nav-btn[data-tab], .bottom-btn[data-tab], [data-go]').forEach(function(btn){
+      if(btn.dataset.boundSidebarFix === '1') return;
+      btn.dataset.boundSidebarFix = '1';
+      btn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        var tab = btn.dataset.tab || btn.dataset.go;
+        safeSwitch(tab);
+      }, true);
+      btn.onclick = function(ev){
+        if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+        var tab = btn.dataset.tab || btn.dataset.go;
+        safeSwitch(tab);
+      };
+    });
+  }
+
+  window.addEventListener('load', function(){
+    bindSidebarClicks();
+    setTimeout(bindSidebarClicks, 300);
+    setTimeout(bindSidebarClicks, 1200);
+  });
+})();
+</script>
+</body>
   </html>`;
 }
 
@@ -5911,7 +5992,76 @@ td.acoes-col, .acoes-col{
   display:none !important;
 }
 
-</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</style>
+<style id="sidebar-click-fix">
+.sidebar{position:relative !important; z-index:1200 !important; pointer-events:auto !important;}
+.sidebar .nav, .sidebar .sidebar-footer, .sidebar .brand-card{position:relative; z-index:1201; pointer-events:auto !important;}
+.nav-btn,.bottom-btn,[data-go]{position:relative; z-index:1202; pointer-events:auto !important; cursor:pointer !important; -webkit-tap-highlight-color: transparent;}
+.main{position:relative; z-index:1;}
+.topbar,.hero,.panel{position:relative; z-index:1;}
+@media (max-width:900px){
+  .sidebar{z-index:1200 !important;}
+  .bottom-nav{z-index:1250 !important;}
+}
+</style>
+</head><body>${bodyHtml}
+<script id="sidebar-nav-fix">
+(function(){
+  function closeMobileSidebar(){
+    try{
+      document.body.classList.remove('sidebar-open');
+      document.documentElement.classList.remove('sidebar-open');
+    }catch(e){}
+  }
+
+  function safeSwitch(tab){
+    if(!tab) return;
+    try{
+      if(typeof window.switchTab === 'function'){
+        window.switchTab(tab);
+      } else if (typeof switchTab === 'function'){
+        switchTab(tab);
+      }
+    }catch(err){
+      try{
+        var pages=document.querySelectorAll('.page');
+        pages.forEach(function(p){ p.classList.toggle('active', p.id===tab+'-page'); });
+        document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+        document.querySelectorAll('.bottom-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+        var titleBtn=document.querySelector('.nav-btn[data-tab="'+tab+'"]');
+        var title=document.getElementById('pageTitle');
+        if(title && titleBtn) title.textContent = titleBtn.textContent.trim();
+      }catch(e2){}
+    }
+    closeMobileSidebar();
+  }
+
+  function bindSidebarClicks(){
+    document.querySelectorAll('.nav-btn[data-tab], .bottom-btn[data-tab], [data-go]').forEach(function(btn){
+      if(btn.dataset.boundSidebarFix === '1') return;
+      btn.dataset.boundSidebarFix = '1';
+      btn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        var tab = btn.dataset.tab || btn.dataset.go;
+        safeSwitch(tab);
+      }, true);
+      btn.onclick = function(ev){
+        if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+        var tab = btn.dataset.tab || btn.dataset.go;
+        safeSwitch(tab);
+      };
+    });
+  }
+
+  window.addEventListener('load', function(){
+    bindSidebarClicks();
+    setTimeout(bindSidebarClicks, 300);
+    setTimeout(bindSidebarClicks, 1200);
+  });
+})();
+</script>
+</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -7293,7 +7443,19 @@ function buildProfessionalReportHtml(){
 }
 
 </style>
-    </head>
+    
+<style id="sidebar-click-fix">
+.sidebar{position:relative !important; z-index:1200 !important; pointer-events:auto !important;}
+.sidebar .nav, .sidebar .sidebar-footer, .sidebar .brand-card{position:relative; z-index:1201; pointer-events:auto !important;}
+.nav-btn,.bottom-btn,[data-go]{position:relative; z-index:1202; pointer-events:auto !important; cursor:pointer !important; -webkit-tap-highlight-color: transparent;}
+.main{position:relative; z-index:1;}
+.topbar,.hero,.panel{position:relative; z-index:1;}
+@media (max-width:900px){
+  .sidebar{z-index:1200 !important;}
+  .bottom-nav{z-index:1250 !important;}
+}
+</style>
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
@@ -7326,7 +7488,64 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script id="sidebar-nav-fix">
+(function(){
+  function closeMobileSidebar(){
+    try{
+      document.body.classList.remove('sidebar-open');
+      document.documentElement.classList.remove('sidebar-open');
+    }catch(e){}
+  }
+
+  function safeSwitch(tab){
+    if(!tab) return;
+    try{
+      if(typeof window.switchTab === 'function'){
+        window.switchTab(tab);
+      } else if (typeof switchTab === 'function'){
+        switchTab(tab);
+      }
+    }catch(err){
+      try{
+        var pages=document.querySelectorAll('.page');
+        pages.forEach(function(p){ p.classList.toggle('active', p.id===tab+'-page'); });
+        document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+        document.querySelectorAll('.bottom-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+        var titleBtn=document.querySelector('.nav-btn[data-tab="'+tab+'"]');
+        var title=document.getElementById('pageTitle');
+        if(title && titleBtn) title.textContent = titleBtn.textContent.trim();
+      }catch(e2){}
+    }
+    closeMobileSidebar();
+  }
+
+  function bindSidebarClicks(){
+    document.querySelectorAll('.nav-btn[data-tab], .bottom-btn[data-tab], [data-go]').forEach(function(btn){
+      if(btn.dataset.boundSidebarFix === '1') return;
+      btn.dataset.boundSidebarFix = '1';
+      btn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        var tab = btn.dataset.tab || btn.dataset.go;
+        safeSwitch(tab);
+      }, true);
+      btn.onclick = function(ev){
+        if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+        var tab = btn.dataset.tab || btn.dataset.go;
+        safeSwitch(tab);
+      };
+    });
+  }
+
+  window.addEventListener('load', function(){
+    bindSidebarClicks();
+    setTimeout(bindSidebarClicks, 300);
+    setTimeout(bindSidebarClicks, 1200);
+  });
+})();
+</script>
+</body>
   </html>`;
 }
 
@@ -7406,5 +7625,62 @@ function printProfessionalReport(){
     </div>
   </div>
 
+
+<script id="sidebar-nav-fix">
+(function(){
+  function closeMobileSidebar(){
+    try{
+      document.body.classList.remove('sidebar-open');
+      document.documentElement.classList.remove('sidebar-open');
+    }catch(e){}
+  }
+
+  function safeSwitch(tab){
+    if(!tab) return;
+    try{
+      if(typeof window.switchTab === 'function'){
+        window.switchTab(tab);
+      } else if (typeof switchTab === 'function'){
+        switchTab(tab);
+      }
+    }catch(err){
+      try{
+        var pages=document.querySelectorAll('.page');
+        pages.forEach(function(p){ p.classList.toggle('active', p.id===tab+'-page'); });
+        document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+        document.querySelectorAll('.bottom-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+        var titleBtn=document.querySelector('.nav-btn[data-tab="'+tab+'"]');
+        var title=document.getElementById('pageTitle');
+        if(title && titleBtn) title.textContent = titleBtn.textContent.trim();
+      }catch(e2){}
+    }
+    closeMobileSidebar();
+  }
+
+  function bindSidebarClicks(){
+    document.querySelectorAll('.nav-btn[data-tab], .bottom-btn[data-tab], [data-go]').forEach(function(btn){
+      if(btn.dataset.boundSidebarFix === '1') return;
+      btn.dataset.boundSidebarFix = '1';
+      btn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        var tab = btn.dataset.tab || btn.dataset.go;
+        safeSwitch(tab);
+      }, true);
+      btn.onclick = function(ev){
+        if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+        var tab = btn.dataset.tab || btn.dataset.go;
+        safeSwitch(tab);
+      };
+    });
+  }
+
+  window.addEventListener('load', function(){
+    bindSidebarClicks();
+    setTimeout(bindSidebarClicks, 300);
+    setTimeout(bindSidebarClicks, 1200);
+  });
+})();
+</script>
 </body>
 </html>
