@@ -5990,9 +5990,21 @@ window.editTrabalho = function(id){
 window.deleteTrabalho = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este trabalho?')) return;
-  trabalhos=trabalhos.filter(x=>x.id!==id);
-  saveLocal(); renderAll();
-  try{ await removeRemote('trabalhos', id); }catch(err){ console.error(err); setSyncMessage('Erro a apagar no Firebase', 'bad'); }
+  const prev = [...trabalhos];
+  try{
+    await removeRemote('trabalhos', id);
+    trabalhos = trabalhos.filter(x => x.id !== id);
+    saveLocal();
+    renderAll();
+    setSyncMessage('Trabalho apagado na Firebase', 'ok');
+  }catch(err){
+    console.error(err);
+    trabalhos = prev;
+    saveLocal();
+    renderAll();
+    setSyncMessage('Erro a apagar no Firebase', 'bad');
+    alert('Não foi possível apagar o trabalho na Firebase.');
+  }
 };
 window.editCliente = function(id){
   if(!adminGuard()) return;
@@ -6003,9 +6015,21 @@ window.editCliente = function(id){
 window.deleteCliente = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este cliente?')) return;
-  clientes=clientes.filter(x=>x.id!==id);
-  saveLocal(); renderAll();
-  try{ await removeRemote('clientes', id); }catch(err){ console.error(err); setSyncMessage('Erro a apagar no Firebase', 'bad'); }
+  const prev = [...clientes];
+  try{
+    await removeRemote('clientes', id);
+    clientes = clientes.filter(x => x.id !== id);
+    saveLocal();
+    renderAll();
+    setSyncMessage('Cliente apagado na Firebase', 'ok');
+  }catch(err){
+    console.error(err);
+    clientes = prev;
+    saveLocal();
+    renderAll();
+    setSyncMessage('Erro a apagar no Firebase', 'bad');
+    alert('Não foi possível apagar o cliente na Firebase.');
+  }
 };
 
 const clientModal = $('clientModal');
@@ -6189,13 +6213,24 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorO
 }
 
 
-window.deletePagamento = function(id){
+window.deletePagamento = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este registo de pagamento?')) return;
-  pagamentos = pagamentos.filter(x => x.id !== id);
-  saveLocal();
-  renderAll();
-  removeRemote('pagamentos', id).catch(err => console.error(err));
+  const prev = [...pagamentos];
+  try{
+    await removeRemote('pagamentos', id);
+    pagamentos = pagamentos.filter(x => x.id !== id);
+    saveLocal();
+    renderAll();
+    setSyncMessage('Pagamento apagado na Firebase', 'ok');
+  }catch(err){
+    console.error(err);
+    pagamentos = prev;
+    saveLocal();
+    renderAll();
+    setSyncMessage('Erro a apagar no Firebase', 'bad');
+    alert('Não foi possível apagar o pagamento na Firebase.');
+  }
 };
 
 
