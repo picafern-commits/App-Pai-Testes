@@ -2809,7 +2809,7 @@ const ROLE_DEFINITIONS = {
 const DEFAULT_USERS = [
   { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
   { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'financeiro' },
-  { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' }
+  { username: 'pica.fern', email: 'pica.fern@gmail.com', password: 'master_local_reference', role: 'master_admin' }
 ];
 
 function getRoleDefinition(role='user'){
@@ -2847,7 +2847,7 @@ function normalizeUsers(users){
     role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta'
   }));
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: (list[idx]?.password || 'master_local_reference'), role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -2910,7 +2910,7 @@ function bootFromSession(){
   if(!session || !window.startApp) return false;
 
   showApp();
-  window.startApp(session.role, session.username);
+  window.startApp(session);
   return true;
 }
 
@@ -2953,6 +2953,7 @@ loginForm?.addEventListener('submit', async (e) => {
       window.startApp(session);
     }
   } catch (err) {
+    console.error('Erro login:', err);
     if (errorEl) errorEl.textContent = err?.message || 'Credenciais inválidas.';
   }
 });
@@ -4162,7 +4163,7 @@ function fillClientContactFromSelection(){
 function normalizeManagedUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: 'Ricardo25959', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: (list[idx]?.password || 'master_local_reference'), role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -4180,7 +4181,7 @@ function getManagedUsers(){
   const fixedDefaults = normalizeManagedUsers([
     { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
     { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'admin' },
-	{ username: 'Ricardo', email: 'pica.fern@gmail.com', password: 'Ricardo25959', role: 'master_admin' }
+	{ username: 'pica.fern', email: 'pica.fern@gmail.com', password: 'master_local_reference', role: 'master_admin' }
   ]);
   localStorage.setItem('app_users', JSON.stringify(fixedDefaults));
   return fixedDefaults;
