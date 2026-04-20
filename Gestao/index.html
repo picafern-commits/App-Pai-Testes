@@ -140,30 +140,6 @@ textarea{resize:vertical}
   grid-template-columns:260px minmax(0,1fr);
   min-height:100vh;
 }
-.sidebar-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(2,6,23,.58);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .22s ease;
-  z-index:1200;
-}
-.sidebar-toggle{
-  display:none;
-  width:44px;
-  height:44px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.05);
-  color:var(--text);
-  cursor:pointer;
-  font-size:20px;
-  align-items:center;
-  justify-content:center;
-  box-shadow:var(--shadow);
-}
-.sidebar-toggle:hover{background:rgba(255,255,255,.08)}
 .sidebar{
   background:rgba(7,10,19,.78);
   border-right:1px solid var(--line);
@@ -543,10 +519,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   .clean-brand-copy h1{font-size:40px}
   .login-only-title h1{font-size:44px}
   .app-shell{grid-template-columns:1fr}
-  .sidebar-toggle{display:inline-flex}
-  .sidebar-overlay.open{opacity:1;pointer-events:auto}
-  .sidebar{position:fixed;left:0;top:0;height:100vh;max-width:min(86vw,320px);width:min(86vw,320px);transform:translateX(-104%);transition:transform .25s ease;z-index:1400;overflow:auto}
-  .app-shell.sidebar-open .sidebar{transform:translateX(0)}
+  .sidebar{position:static;height:auto}
   .main{padding:16px 16px 86px}
   .topbar{flex-direction:column;align-items:flex-start}
   .global-search{min-width:100%;max-width:none}
@@ -623,6 +596,7 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   }
 
   .sidebar{
+    width:100%;
     flex:unset;
   }
 
@@ -2467,12 +2441,6 @@ td.acoes-col, .acoes-col{
 }
 
 </style>
-
-<style id="sidebar-click-fix">
-.sidebar{position:relative;z-index:1600;}
-.nav,.nav-btn,.sidebar-footer{position:relative;z-index:1601;pointer-events:auto;}
-.main{position:relative;z-index:1;}
-</style>
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
@@ -2506,8 +2474,7 @@ td.acoes-col, .acoes-col{
   </div>
 
   <div id="appRoot" class="app-shell hidden">
-    <div id="sidebarOverlay" class="sidebar-overlay"></div>
-    <aside id="appSidebar" class="sidebar">
+    <aside class="sidebar">
       <div class="brand-card">
         <img class="sidebar-logo" src="logo-icon-dark.png" alt="Logo Jorge Torneiro" />
         <div>
@@ -2517,13 +2484,13 @@ td.acoes-col, .acoes-col{
       </div>
 
       <nav class="nav">
-        <button type="button" class="nav-btn active" data-tab="dashboard" onclick="window.switchTab && window.switchTab('dashboard')"><span class="nav-icon">◈</span><span>Dashboard</span></button>
-        <button type="button" class="nav-btn" data-tab="adicionar" onclick="window.switchTab && window.switchTab('adicionar')"><span class="nav-icon">＋</span><span>Adicionar Trabalho</span></button>
-        <button type="button" class="nav-btn" data-tab="trabalhos" onclick="window.switchTab && window.switchTab('trabalhos')"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
-        <button type="button" class="nav-btn" data-tab="clientes" onclick="window.switchTab && window.switchTab('clientes')"><span class="nav-icon">◉</span><span>Clientes</span></button>
-        <button type="button" class="nav-btn" data-tab="pagamentos" onclick="window.switchTab && window.switchTab('pagamentos')"><span class="nav-icon">€</span><span>Pagamentos</span></button>
-        <button type="button" class="nav-btn" data-tab="relatorios" onclick="window.switchTab && window.switchTab('relatorios')"><span class="nav-icon">▣</span><span>Relatórios</span></button>
-        <button type="button" class="nav-btn" data-tab="configuracoes" onclick="window.switchTab && window.switchTab('configuracoes')"><span class="nav-icon">⚙</span><span>Configurações</span></button>
+        <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">◈</span><span>Dashboard</span></button>
+        <button class="nav-btn" data-tab="adicionar"><span class="nav-icon">＋</span><span>Adicionar Trabalho</span></button>
+        <button class="nav-btn" data-tab="trabalhos"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
+        <button class="nav-btn" data-tab="clientes"><span class="nav-icon">◉</span><span>Clientes</span></button>
+        <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">€</span><span>Pagamentos</span></button>
+        <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">▣</span><span>Relatórios</span></button>
+        <button class="nav-btn" data-tab="configuracoes"><span class="nav-icon">⚙</span><span>Configurações</span></button>
       </nav>
 
       <div class="sidebar-footer">
@@ -2541,7 +2508,6 @@ td.acoes-col, .acoes-col{
 
     <main class="main">
       <header class="topbar">
-        <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Abrir menu">☰</button>
         <div class="topbar-left">
           <div>
             <h2 id="pageTitle">Dashboard</h2>
@@ -2790,13 +2756,13 @@ td.acoes-col, .acoes-col{
           </div>
       </section>
   <nav class="bottom-nav">
-    <button type="button" class="bottom-btn active" data-tab="dashboard" onclick="window.switchTab && window.switchTab('dashboard')">Dashboard</button>
-    <button type="button" class="bottom-btn" data-tab="adicionar" onclick="window.switchTab && window.switchTab('adicionar')">Adicionar</button>
-    <button type="button" class="bottom-btn" data-tab="trabalhos" onclick="window.switchTab && window.switchTab('trabalhos')">Histórico</button>
-    <button type="button" class="bottom-btn" data-tab="clientes" onclick="window.switchTab && window.switchTab('clientes')">Clientes</button>
-    <button type="button" class="bottom-btn" data-tab="pagamentos" onclick="window.switchTab && window.switchTab('pagamentos')">Pagamentos</button>
-    <button type="button" class="bottom-btn" data-tab="relatorios" onclick="window.switchTab && window.switchTab('relatorios')">Relatórios</button>
-    <button type="button" class="bottom-btn" data-tab="configuracoes" onclick="window.switchTab && window.switchTab('configuracoes')">Configurações</button>
+    <button class="bottom-btn active" data-tab="dashboard">Dashboard</button>
+    <button class="bottom-btn" data-tab="adicionar">Adicionar</button>
+    <button class="bottom-btn" data-tab="trabalhos">Histórico</button>
+    <button class="bottom-btn" data-tab="clientes">Clientes</button>
+    <button class="bottom-btn" data-tab="pagamentos">Pagamentos</button>
+    <button class="bottom-btn" data-tab="relatorios">Relatórios</button>
+    <button class="bottom-btn" data-tab="configuracoes">Configurações</button>
   </nav>
 
   <script>
@@ -2881,9 +2847,9 @@ function normalizeUsers(users){
     role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta'
   }));
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const primaryAdmin = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
-  if(idx >= 0) list[idx] = { ...list[idx], ...primaryAdmin };
-  else list.push(primaryAdmin);
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
+  if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
+  else list.push(ricardo);
   return list;
 }
 
@@ -3565,13 +3531,7 @@ function buildProfessionalReportHtml(){
 }
 
 </style>
-    
-<style id="sidebar-click-fix">
-.sidebar{position:relative;z-index:1600;}
-.nav,.nav-btn,.sidebar-footer{position:relative;z-index:1601;pointer-events:auto;}
-.main{position:relative;z-index:1;}
-</style>
-</head>
+    </head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
@@ -3604,95 +3564,7 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    
-<script id="final-sidebar-nav-fix">
-(function(){
-  function safeRender(tab){
-    try{
-      if(tab==='dashboard' && typeof window.renderDashboard==='function') window.renderDashboard();
-      if(tab==='dashboard' && typeof window.renderAlerts==='function') window.renderAlerts();
-      if(tab==='trabalhos' && typeof window.renderTrabalhos==='function') window.renderTrabalhos();
-      if(tab==='clientes' && typeof window.renderClientes==='function') window.renderClientes();
-      if(tab==='pagamentos' && typeof window.renderPagamentos==='function') window.renderPagamentos();
-      if(tab==='relatorios' && typeof window.renderRelatorios==='function') window.renderRelatorios();
-      if(tab==='configuracoes' && typeof window.bindUiScaleSelector==='function') window.bindUiScaleSelector();
-      if(tab==='configuracoes' && typeof window.renderManagedUsers==='function') window.renderManagedUsers();
-      if(tab==='configuracoes' && typeof renderManagedUsers==='function') renderManagedUsers();
-    }catch(err){ console.warn('Erro ao renderizar tab', tab, err); }
-  }
-  function updateTitle(tab){
-    var titleMap = {
-      dashboard:'Dashboard',
-      adicionar:'Adicionar Trabalho',
-      trabalhos:'Histórico Trabalhos',
-      clientes:'Clientes',
-      pagamentos:'Pagamentos',
-      relatorios:'Relatórios',
-      configuracoes:'Configurações'
-    };
-    var titleEl = document.getElementById('pageTitle');
-    if(titleEl) titleEl.textContent = titleMap[tab] || 'Dashboard';
-  }
-  function closeSidebar(){
-    try{
-      var appRoot = document.getElementById('appRoot');
-      var overlay = document.getElementById('sidebarOverlay');
-      var toggle = document.getElementById('sidebarToggle');
-      if(window.matchMedia('(max-width: 900px)').matches){
-        if(appRoot) appRoot.classList.remove('sidebar-open');
-        if(overlay) overlay.classList.remove('open');
-        if(toggle) toggle.setAttribute('aria-expanded','false');
-      }
-    }catch(err){}
-  }
-  window.switchTab = function(tab){
-    try{
-      document.querySelectorAll('.nav-btn').forEach(function(b){
-        b.classList.toggle('active', b.dataset.tab===tab);
-      });
-      document.querySelectorAll('.bottom-btn').forEach(function(b){
-        b.classList.toggle('active', b.dataset.tab===tab);
-      });
-      document.querySelectorAll('.page').forEach(function(p){
-        p.classList.toggle('active', p.id === tab + '-page');
-      });
-      try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(err){}
-      updateTitle(tab);
-      safeRender(tab);
-      if(typeof window.updatePresencePage==='function'){
-        try{ window.updatePresencePage((document.getElementById('pageTitle')||{}).textContent || tab); }catch(err){}
-      }
-      closeSidebar();
-      window.scrollTo({top:0, behavior:'smooth'});
-      return false;
-    }catch(err){
-      console.error('Falha no switchTab final', err);
-      return false;
-    }
-  };
-  function bindButtons(){
-    document.querySelectorAll('.nav-btn,.bottom-btn,[data-go]').forEach(function(btn){
-      if(btn.dataset.sidebarBound==='1') return;
-      btn.dataset.sidebarBound='1';
-      btn.addEventListener('click', function(ev){
-        var tab = btn.dataset.tab || btn.dataset.go;
-        if(!tab) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.switchTab(tab);
-      }, true);
-    });
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', bindButtons);
-  } else {
-    bindButtons();
-  }
-  window.addEventListener('load', bindButtons);
-})();
-</script>
-
-</body>
+    </body>
   </html>`;
 }
 
@@ -3901,22 +3773,6 @@ document.addEventListener('visibilitychange', () => {
 const $ = (id) => document.getElementById(id);
 initUiScale();
 const navButtons = document.querySelectorAll('.nav-btn');
-const appShell = document.getElementById('appRoot');
-const appSidebar = document.getElementById('appSidebar');
-const sidebarToggle = document.getElementById('sidebarToggle');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-function setSidebarOpen(open){
-  if(!appShell) return;
-  appShell.classList.toggle('sidebar-open', !!open);
-  if(sidebarOverlay) sidebarOverlay.classList.toggle('open', !!open);
-  if(sidebarToggle) sidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-}
-function closeSidebarIfMobile(){
-  if(window.matchMedia('(max-width: 900px)').matches) setSidebarOpen(false);
-}
-if(sidebarToggle) sidebarToggle.addEventListener('click', ()=> setSidebarOpen(!(appShell && appShell.classList.contains('sidebar-open'))));
-if(sidebarOverlay) sidebarOverlay.addEventListener('click', ()=> setSidebarOpen(false));
-window.addEventListener('resize', ()=> { if(window.innerWidth > 900) setSidebarOpen(false); });
 const bottomButtons = document.querySelectorAll('.bottom-btn');
 const pages = document.querySelectorAll('.page');
 
@@ -4285,9 +4141,9 @@ function fillClientContactFromSelection(){
 function normalizeManagedUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const primaryAdmin = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
-  if(idx >= 0) list[idx] = { ...list[idx], ...primaryAdmin };
-  else list.push(primaryAdmin);
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
+  if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
+  else list.push(ricardo);
   return list;
 }
 
@@ -4435,23 +4291,11 @@ function switchTab(tab){
     renderManagedUsers();
   }
   updatePresencePage(document.getElementById('pageTitle')?.textContent?.trim() || tab);
-  closeSidebarIfMobile();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
-document.addEventListener('click', (event)=>{
-  const btn = event.target.closest('.nav-btn,[data-go],.bottom-btn');
-  if(!btn) return;
-  const tab = btn.dataset.tab || btn.dataset.go;
-  if(!tab) return;
-  event.preventDefault();
-  switchTab(tab);
-});
-
-
-window.switchTab = switchTab;
 
 function forceAppRefresh(){
   try{
@@ -5663,101 +5507,7 @@ td.acoes-col, .acoes-col{
   display:none !important;
 }
 
-</style>
-<style id="sidebar-click-fix">
-.sidebar{position:relative;z-index:1600;}
-.nav,.nav-btn,.sidebar-footer{position:relative;z-index:1601;pointer-events:auto;}
-.main{position:relative;z-index:1;}
-</style>
-</head><body>${bodyHtml}
-<script id="final-sidebar-nav-fix">
-(function(){
-  function safeRender(tab){
-    try{
-      if(tab==='dashboard' && typeof window.renderDashboard==='function') window.renderDashboard();
-      if(tab==='dashboard' && typeof window.renderAlerts==='function') window.renderAlerts();
-      if(tab==='trabalhos' && typeof window.renderTrabalhos==='function') window.renderTrabalhos();
-      if(tab==='clientes' && typeof window.renderClientes==='function') window.renderClientes();
-      if(tab==='pagamentos' && typeof window.renderPagamentos==='function') window.renderPagamentos();
-      if(tab==='relatorios' && typeof window.renderRelatorios==='function') window.renderRelatorios();
-      if(tab==='configuracoes' && typeof window.bindUiScaleSelector==='function') window.bindUiScaleSelector();
-      if(tab==='configuracoes' && typeof window.renderManagedUsers==='function') window.renderManagedUsers();
-      if(tab==='configuracoes' && typeof renderManagedUsers==='function') renderManagedUsers();
-    }catch(err){ console.warn('Erro ao renderizar tab', tab, err); }
-  }
-  function updateTitle(tab){
-    var titleMap = {
-      dashboard:'Dashboard',
-      adicionar:'Adicionar Trabalho',
-      trabalhos:'Histórico Trabalhos',
-      clientes:'Clientes',
-      pagamentos:'Pagamentos',
-      relatorios:'Relatórios',
-      configuracoes:'Configurações'
-    };
-    var titleEl = document.getElementById('pageTitle');
-    if(titleEl) titleEl.textContent = titleMap[tab] || 'Dashboard';
-  }
-  function closeSidebar(){
-    try{
-      var appRoot = document.getElementById('appRoot');
-      var overlay = document.getElementById('sidebarOverlay');
-      var toggle = document.getElementById('sidebarToggle');
-      if(window.matchMedia('(max-width: 900px)').matches){
-        if(appRoot) appRoot.classList.remove('sidebar-open');
-        if(overlay) overlay.classList.remove('open');
-        if(toggle) toggle.setAttribute('aria-expanded','false');
-      }
-    }catch(err){}
-  }
-  window.switchTab = function(tab){
-    try{
-      document.querySelectorAll('.nav-btn').forEach(function(b){
-        b.classList.toggle('active', b.dataset.tab===tab);
-      });
-      document.querySelectorAll('.bottom-btn').forEach(function(b){
-        b.classList.toggle('active', b.dataset.tab===tab);
-      });
-      document.querySelectorAll('.page').forEach(function(p){
-        p.classList.toggle('active', p.id === tab + '-page');
-      });
-      try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(err){}
-      updateTitle(tab);
-      safeRender(tab);
-      if(typeof window.updatePresencePage==='function'){
-        try{ window.updatePresencePage((document.getElementById('pageTitle')||{}).textContent || tab); }catch(err){}
-      }
-      closeSidebar();
-      window.scrollTo({top:0, behavior:'smooth'});
-      return false;
-    }catch(err){
-      console.error('Falha no switchTab final', err);
-      return false;
-    }
-  };
-  function bindButtons(){
-    document.querySelectorAll('.nav-btn,.bottom-btn,[data-go]').forEach(function(btn){
-      if(btn.dataset.sidebarBound==='1') return;
-      btn.dataset.sidebarBound='1';
-      btn.addEventListener('click', function(ev){
-        var tab = btn.dataset.tab || btn.dataset.go;
-        if(!tab) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.switchTab(tab);
-      }, true);
-    });
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', bindButtons);
-  } else {
-    bindButtons();
-  }
-  window.addEventListener('load', bindButtons);
-})();
-</script>
-
-</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -7139,13 +6889,7 @@ function buildProfessionalReportHtml(){
 }
 
 </style>
-    
-<style id="sidebar-click-fix">
-.sidebar{position:relative;z-index:1600;}
-.nav,.nav-btn,.sidebar-footer{position:relative;z-index:1601;pointer-events:auto;}
-.main{position:relative;z-index:1;}
-</style>
-</head>
+    </head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
@@ -7178,95 +6922,7 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    
-<script id="final-sidebar-nav-fix">
-(function(){
-  function safeRender(tab){
-    try{
-      if(tab==='dashboard' && typeof window.renderDashboard==='function') window.renderDashboard();
-      if(tab==='dashboard' && typeof window.renderAlerts==='function') window.renderAlerts();
-      if(tab==='trabalhos' && typeof window.renderTrabalhos==='function') window.renderTrabalhos();
-      if(tab==='clientes' && typeof window.renderClientes==='function') window.renderClientes();
-      if(tab==='pagamentos' && typeof window.renderPagamentos==='function') window.renderPagamentos();
-      if(tab==='relatorios' && typeof window.renderRelatorios==='function') window.renderRelatorios();
-      if(tab==='configuracoes' && typeof window.bindUiScaleSelector==='function') window.bindUiScaleSelector();
-      if(tab==='configuracoes' && typeof window.renderManagedUsers==='function') window.renderManagedUsers();
-      if(tab==='configuracoes' && typeof renderManagedUsers==='function') renderManagedUsers();
-    }catch(err){ console.warn('Erro ao renderizar tab', tab, err); }
-  }
-  function updateTitle(tab){
-    var titleMap = {
-      dashboard:'Dashboard',
-      adicionar:'Adicionar Trabalho',
-      trabalhos:'Histórico Trabalhos',
-      clientes:'Clientes',
-      pagamentos:'Pagamentos',
-      relatorios:'Relatórios',
-      configuracoes:'Configurações'
-    };
-    var titleEl = document.getElementById('pageTitle');
-    if(titleEl) titleEl.textContent = titleMap[tab] || 'Dashboard';
-  }
-  function closeSidebar(){
-    try{
-      var appRoot = document.getElementById('appRoot');
-      var overlay = document.getElementById('sidebarOverlay');
-      var toggle = document.getElementById('sidebarToggle');
-      if(window.matchMedia('(max-width: 900px)').matches){
-        if(appRoot) appRoot.classList.remove('sidebar-open');
-        if(overlay) overlay.classList.remove('open');
-        if(toggle) toggle.setAttribute('aria-expanded','false');
-      }
-    }catch(err){}
-  }
-  window.switchTab = function(tab){
-    try{
-      document.querySelectorAll('.nav-btn').forEach(function(b){
-        b.classList.toggle('active', b.dataset.tab===tab);
-      });
-      document.querySelectorAll('.bottom-btn').forEach(function(b){
-        b.classList.toggle('active', b.dataset.tab===tab);
-      });
-      document.querySelectorAll('.page').forEach(function(p){
-        p.classList.toggle('active', p.id === tab + '-page');
-      });
-      try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(err){}
-      updateTitle(tab);
-      safeRender(tab);
-      if(typeof window.updatePresencePage==='function'){
-        try{ window.updatePresencePage((document.getElementById('pageTitle')||{}).textContent || tab); }catch(err){}
-      }
-      closeSidebar();
-      window.scrollTo({top:0, behavior:'smooth'});
-      return false;
-    }catch(err){
-      console.error('Falha no switchTab final', err);
-      return false;
-    }
-  };
-  function bindButtons(){
-    document.querySelectorAll('.nav-btn,.bottom-btn,[data-go]').forEach(function(btn){
-      if(btn.dataset.sidebarBound==='1') return;
-      btn.dataset.sidebarBound='1';
-      btn.addEventListener('click', function(ev){
-        var tab = btn.dataset.tab || btn.dataset.go;
-        if(!tab) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.switchTab(tab);
-      }, true);
-    });
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', bindButtons);
-  } else {
-    bindButtons();
-  }
-  window.addEventListener('load', bindButtons);
-})();
-</script>
-
-</body>
+    </body>
   </html>`;
 }
 
@@ -7346,101 +7002,5 @@ function printProfessionalReport(){
     </div>
   </div>
 
-<style id="sidebar-desktop-fix">
-@media (min-width:901px){
-  .sidebar-overlay{display:none!important}
-  .sidebar-toggle{display:none!important}
-}
-</style>
-
-
-<script id="final-sidebar-nav-fix">
-(function(){
-  function safeRender(tab){
-    try{
-      if(tab==='dashboard' && typeof window.renderDashboard==='function') window.renderDashboard();
-      if(tab==='dashboard' && typeof window.renderAlerts==='function') window.renderAlerts();
-      if(tab==='trabalhos' && typeof window.renderTrabalhos==='function') window.renderTrabalhos();
-      if(tab==='clientes' && typeof window.renderClientes==='function') window.renderClientes();
-      if(tab==='pagamentos' && typeof window.renderPagamentos==='function') window.renderPagamentos();
-      if(tab==='relatorios' && typeof window.renderRelatorios==='function') window.renderRelatorios();
-      if(tab==='configuracoes' && typeof window.bindUiScaleSelector==='function') window.bindUiScaleSelector();
-      if(tab==='configuracoes' && typeof window.renderManagedUsers==='function') window.renderManagedUsers();
-      if(tab==='configuracoes' && typeof renderManagedUsers==='function') renderManagedUsers();
-    }catch(err){ console.warn('Erro ao renderizar tab', tab, err); }
-  }
-  function updateTitle(tab){
-    var titleMap = {
-      dashboard:'Dashboard',
-      adicionar:'Adicionar Trabalho',
-      trabalhos:'Histórico Trabalhos',
-      clientes:'Clientes',
-      pagamentos:'Pagamentos',
-      relatorios:'Relatórios',
-      configuracoes:'Configurações'
-    };
-    var titleEl = document.getElementById('pageTitle');
-    if(titleEl) titleEl.textContent = titleMap[tab] || 'Dashboard';
-  }
-  function closeSidebar(){
-    try{
-      var appRoot = document.getElementById('appRoot');
-      var overlay = document.getElementById('sidebarOverlay');
-      var toggle = document.getElementById('sidebarToggle');
-      if(window.matchMedia('(max-width: 900px)').matches){
-        if(appRoot) appRoot.classList.remove('sidebar-open');
-        if(overlay) overlay.classList.remove('open');
-        if(toggle) toggle.setAttribute('aria-expanded','false');
-      }
-    }catch(err){}
-  }
-  window.switchTab = function(tab){
-    try{
-      document.querySelectorAll('.nav-btn').forEach(function(b){
-        b.classList.toggle('active', b.dataset.tab===tab);
-      });
-      document.querySelectorAll('.bottom-btn').forEach(function(b){
-        b.classList.toggle('active', b.dataset.tab===tab);
-      });
-      document.querySelectorAll('.page').forEach(function(p){
-        p.classList.toggle('active', p.id === tab + '-page');
-      });
-      try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(err){}
-      updateTitle(tab);
-      safeRender(tab);
-      if(typeof window.updatePresencePage==='function'){
-        try{ window.updatePresencePage((document.getElementById('pageTitle')||{}).textContent || tab); }catch(err){}
-      }
-      closeSidebar();
-      window.scrollTo({top:0, behavior:'smooth'});
-      return false;
-    }catch(err){
-      console.error('Falha no switchTab final', err);
-      return false;
-    }
-  };
-  function bindButtons(){
-    document.querySelectorAll('.nav-btn,.bottom-btn,[data-go]').forEach(function(btn){
-      if(btn.dataset.sidebarBound==='1') return;
-      btn.dataset.sidebarBound='1';
-      btn.addEventListener('click', function(ev){
-        var tab = btn.dataset.tab || btn.dataset.go;
-        if(!tab) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.switchTab(tab);
-      }, true);
-    });
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', bindButtons);
-  } else {
-    bindButtons();
-  }
-  window.addEventListener('load', bindButtons);
-})();
-</script>
-
 </body>
 </html>
-

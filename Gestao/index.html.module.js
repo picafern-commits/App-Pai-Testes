@@ -549,10 +549,10 @@ function fillClientContactFromSelection(){
 
 function normalizeManagedUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
-  const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const primaryAdmin = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
-  if(idx >= 0) list[idx] = { ...list[idx], ...primaryAdmin };
-  else list.push(primaryAdmin);
+  const idx = list.findIndex(u => String(u.username || '').toLowerCase() === 'ricardo');
+  const ricardo = { username: 'ricardo', email: 'ricardo@empresa.pt', password: '2297', role: 'master_admin' };
+  if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
+  else list.push(ricardo);
   return list;
 }
 
@@ -568,7 +568,7 @@ function getManagedUsers(){
   const fixedDefaults = normalizeManagedUsers([
     { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
     { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'user' },
-    { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' }
+    { username: 'ricardo', email: 'ricardo@empresa.pt', password: '2297', role: 'master_admin' }
   ]);
   localStorage.setItem('app_users', JSON.stringify(fixedDefaults));
   return fixedDefaults;
