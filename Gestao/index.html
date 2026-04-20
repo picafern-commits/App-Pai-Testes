@@ -3985,42 +3985,57 @@ navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
 
-async function initFirebaseSync(){
-  try{
-    if (firebaseApp && firebaseAuth && firestoreDb) {
-      if (syncReady) setSyncMessage('Firebase Sync', 'ok');
-      return;
-    }
-
-    firebaseApp = initializeApp(firebaseConfig);
-    firebaseAuth = getAuth(firebaseApp);
-    firestoreDb = getFirestore(firebaseApp);
-    setSyncMessage('A ligar ao Firebase…', 'warn');
-
-    await signInAnonymously(firebaseAuth);
-
-    onAuthStateChanged(firebaseAuth, user => {
-      if (user) {
-        syncReady = true;
-        setSyncMessage('Firebase Sync', 'ok');
-        clearRealtimeListeners();
-        attachRealtimeListeners();
-      } else {
-        syncReady = false;
-        setSyncMessage('Sem sessão Firebase', 'bad');
-      }
-      if (currentRole) renderAll();
-    });
-  }catch(err){
-    console.error('Firebase sync error:', err);
-    syncReady = false;
-    const msg = location.protocol === 'file:'
-      ? 'Abre por servidor/GitHub Pages (não file://)'
-      : err?.code === 'auth/operation-not-allowed'
-        ? 'Ativa Anonymous Auth no Firebase'
-        : 'Local (Firebase indisponível)';
-    setSyncMessage(msg, 'bad');
+let firebaseSyncInitPromise = null;
+async function waitForFirebaseSyncReady(timeoutMs = 12000){
+  const start = Date.now();
+  while(!(syncReady && firestoreDb)){
+    if(Date.now() - start > timeoutMs) throw new Error('Firebase não ficou pronto a tempo');
+    await new Promise(resolve => setTimeout(resolve, 150));
   }
+  return true;
+}
+async function initFirebaseSync(){
+  if(firebaseSyncInitPromise) return firebaseSyncInitPromise;
+  firebaseSyncInitPromise = (async()=>{
+    try{
+      if (!firebaseApp) firebaseApp = initializeApp(firebaseConfig);
+      if (!firebaseAuth) firebaseAuth = getAuth(firebaseApp);
+      if (!firestoreDb) firestoreDb = getFirestore(firebaseApp);
+      setSyncMessage(syncReady ? 'Firebase Sync' : 'A ligar ao Firebase…', syncReady ? 'ok' : 'warn');
+
+      if(!firebaseAuth.currentUser){
+        await signInAnonymously(firebaseAuth);
+      }
+
+      onAuthStateChanged(firebaseAuth, user => {
+        if (user) {
+          syncReady = true;
+          setSyncMessage('Firebase Sync', 'ok');
+          clearRealtimeListeners();
+          attachRealtimeListeners();
+        } else {
+          syncReady = false;
+          setSyncMessage('Sem sessão Firebase', 'bad');
+        }
+        if (currentRole) renderAll();
+      });
+
+      await waitForFirebaseSyncReady();
+      return true;
+    }catch(err){
+      console.error('Firebase sync error:', err);
+      syncReady = false;
+      firebaseSyncInitPromise = null;
+      const msg = location.protocol === 'file:'
+        ? 'Abre por servidor/GitHub Pages (não file://)'
+        : err?.code === 'auth/operation-not-allowed'
+          ? 'Ativa Anonymous Auth no Firebase'
+          : 'Local (Firebase indisponível)';
+      setSyncMessage(msg, 'bad');
+      throw err;
+    }
+  })();
+  return firebaseSyncInitPromise;
 }
 
 function clearRealtimeListeners(){
@@ -4045,13 +4060,10 @@ function attachRealtimeListeners(){
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
 }
-async function ensureFirebaseReady(timeoutMs = 8000){
-  if (syncReady && firestoreDb) return true;
-  try { await initFirebaseSync(); } catch(err) { console.error(err); }
-  const start = Date.now();
-  while(!(syncReady && firestoreDb)){
-    if(Date.now() - start > timeoutMs) throw new Error('Firebase não ficou pronto a tempo');
-    await new Promise(resolve => setTimeout(resolve, 150));
+async function ensureFirebaseReady(timeoutMs = 12000){
+  if (!(syncReady && firestoreDb)) {
+    await initFirebaseSync();
+    await waitForFirebaseSyncReady(timeoutMs);
   }
   return true;
 }
@@ -5767,12 +5779,14 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
   saveLocal();
   renderAll();
   try {
+    await ensureFirebaseReady();
     await Promise.all([
-      upsertRemote('trabalhos', t),
-      upsertRemote('pagamentos', pagamento)
+      upsertRemote('trabalhos', { ...t }),
+      upsertRemote('pagamentos', { ...pagamento })
     ]);
-    await new Promise(resolve => setTimeout(resolve, 250));
+    saveLocal();
     renderAll();
+    setTimeout(()=>{ try{ renderAll(); }catch(e){} }, 200);
     return true;
   } catch(err){
     console.error(err);
