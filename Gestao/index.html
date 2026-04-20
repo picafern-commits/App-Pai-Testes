@@ -4030,6 +4030,41 @@ function attachRealtimeListeners(){
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
 }
+
+function softRefreshApp(){
+  try{
+    if (typeof loadLocal === 'function') loadLocal();
+  }catch(e){ console.error('Soft refresh loadLocal failed:', e); }
+  try{
+    if (currentRole) renderAll();
+  }catch(e){ console.error('Soft refresh render failed:', e); }
+}
+function syncRefreshApp(){
+  try{
+    if (syncReady && firestoreDb){
+      clearRealtimeListeners();
+      attachRealtimeListeners();
+      setSyncMessage('A atualizar…', 'warn');
+      setTimeout(() => {
+        if (syncReady) setSyncMessage('Firebase Sync', 'ok');
+      }, 700);
+    }
+  }catch(e){ console.error('Sync refresh failed:', e); }
+  softRefreshApp();
+}
+function installAutoRefreshHooks(){
+  if (window.__autoRefreshInstalled) return;
+  window.__autoRefreshInstalled = true;
+  window.refreshAppNow = syncRefreshApp;
+  window.addEventListener('focus', () => syncRefreshApp());
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncRefreshApp();
+  });
+  window.__autoRefreshTimer = setInterval(() => {
+    if (!document.hidden) syncRefreshApp();
+  }, 15000);
+}
+
 async function ensureFirebaseReady(timeoutMs = 8000){
   if (syncReady && firestoreDb) return true;
   try { await initFirebaseSync(); } catch(err) { console.error('initFirebaseSync failed:', err); }
@@ -5714,6 +5749,7 @@ $('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMen
 
 loadLocal();
 autoBackupInvisible();
+installAutoRefreshHooks();
 initFirebaseSync();
 
 
@@ -5723,6 +5759,7 @@ window.startApp = function(role, username){
   loadLocal();
   setRoleUI();
   renderAll();
+  installAutoRefreshHooks();
   initFirebaseSync().catch(err => console.error(err));
 };
 
