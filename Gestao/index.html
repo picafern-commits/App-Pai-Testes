@@ -2715,7 +2715,7 @@ td.acoes-col, .acoes-col{
                   <div class="field"><label>Nome</label><input id="managedUsername" type="text" required /></div>
                   <div class="field"><label>Email Firebase</label><input id="managedEmail" type="email" placeholder="nome@empresa.pt" required /></div>
                   <div class="field"><label>Tipo</label><select id="managedRole"><option value="consulta">Consulta</option><option value="operador">Operador</option><option value="financeiro">Financeiro</option><option value="gestor">Gestor</option><option value="admin">Admin</option><option value="master_admin">Master Admin</option></select></div>
-                  <div class="field"><label>Observação interna (opcional)</label><input id="managedPassword" type="text" placeholder="Opcional" /></div>
+                  <div class="field"><label>Palavra-passe de referência</label><input id="managedPassword" type="text" placeholder="Só para referência interna" required /></div>
                   <div class="field field-span-2">
                     <div class="inline-actions">
                       <button type="submit" class="btn btn-primary">Guardar utilizador</button>
@@ -2807,9 +2807,9 @@ const ROLE_DEFINITIONS = {
 };
 
 const DEFAULT_USERS = [
-  { username: 'jorge', email: 'jorge@empresa.pt', role: 'admin', note: '' },
-  { username: 'fatima', email: 'fatima@empresa.pt', role: 'financeiro', note: '' },
-  { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin', note: '' }
+  { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
+  { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'financeiro' },
+  { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' }
 ];
 
 function getRoleDefinition(role='user'){
@@ -2843,15 +2843,13 @@ function roleGuard(permission, deniedMessage='Sem permissão para esta ação.')
 function normalizeUsers(users){
   const validRoles = new Set(Object.keys(ROLE_DEFINITIONS));
   const list = (Array.isArray(users) ? users.slice() : []).map(u => ({
-    username: String(u?.username || '').trim(),
-    email: normalizeEmail(u?.email || ''),
-    role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta',
-    note: String(u?.note || u?.managedNote || '').trim()
+    ...u,
+    role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta'
   }));
-  const idx = list.findIndex(u => normalizeEmail(u.email) === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const principal = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin', note: '' };
-  if(idx >= 0) list[idx] = { ...list[idx], ...principal };
-  else list.push(principal);
+  const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
+  if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
+  else list.push(ricardo);
   return list;
 }
 
@@ -3771,10 +3769,7 @@ document.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'visible') writePresence(true, { pagina: currentPresencePage || 'Dashboard' });
 });
 
-let currentRole = 'master_admin';
-let currentUsername = '';
-let currentUserEmail = '';
-let currentUserUid = '';
+
 const $ = (id) => document.getElementById(id);
 initUiScale();
 const navButtons = document.querySelectorAll('.nav-btn');
@@ -4144,15 +4139,34 @@ function fillClientContactFromSelection(){
 
 
 function normalizeManagedUsers(users){
-  return normalizeUsers(users);
+  const list = Array.isArray(users) ? users.slice() : [];
+  const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
+  if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
+  else list.push(ricardo);
+  return list;
 }
 
 function getManagedUsers(){
-  return getUsers();
+  try{
+    const stored = JSON.parse(localStorage.getItem('app_users') || 'null');
+    if(Array.isArray(stored) && stored.length){
+      const fixed = normalizeManagedUsers(stored);
+      localStorage.setItem('app_users', JSON.stringify(fixed));
+      return fixed;
+    }
+  }catch{}
+  const fixedDefaults = normalizeManagedUsers([
+    { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
+    { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'user' },
+    { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' }
+  ]);
+  localStorage.setItem('app_users', JSON.stringify(fixedDefaults));
+  return fixedDefaults;
 }
 
 function saveManagedUsers(users){
-  localStorage.setItem('app_users', JSON.stringify(normalizeUsers(users)));
+  localStorage.setItem('app_users', JSON.stringify(users));
 }
 
 function renderManagedUsers(){
@@ -4182,7 +4196,7 @@ window.editManagedUser = function(index){
   $('managedUserIndex').value = String(index);
   $('managedUsername').value = u.username || '';
   $('managedEmail').value = u.email || '';
-  $('managedPassword').value = u.note || '';
+  $('managedPassword').value = u.password || '';
   $('managedRole').value = u.role || 'user';
   switchTab('configuracoes');
 };
@@ -6107,21 +6121,19 @@ autoBackupInvisible();
 initFirebaseSync();
 
 window.performLogin = async function(email, password){
-  await initFirebaseSync();
   await ensureAuthReady();
-  const userCredential = await signInWithEmailAndPassword(firebaseAuth, String(email || '').trim(), String(password || ''));
+  const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
   const authUser = userCredential.user;
   const profile = getRoleProfileByEmail(authUser.email || email);
   const username = profile?.username || (String(authUser.email || email).split('@')[0] || 'user');
-  const role = profile?.role || 'master_admin';
+  const role = profile?.role || 'consulta';
   currentUserUid = authUser.uid || null;
-  currentUserEmail = authUser.email || String(email || '').trim();
+  currentUserEmail = authUser.email || email;
   return { role, username, email: currentUserEmail, uid: currentUserUid };
 };
 
 window.performLogout = async function(){
   try{ await stopPresenceTracking(); }catch(err){ console.warn(err); }
-  try{ await ensureAuthReady(); }catch(err){ console.warn(err); }
   try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
   currentUserUid = null;
   currentUserEmail = null;
@@ -6129,16 +6141,16 @@ window.performLogout = async function(){
 
 
 window.startApp = function(session){
-
   currentRole = session.role || 'master_admin';
   currentUsername = session.username || 'user';
   currentUserEmail = session.email || '';
   currentUserUid = session.uid || '';
 
-  document.getElementById('appUserName').textContent = currentUsername;
+  const userNameEl = document.getElementById('appUserName');
+  if (userNameEl) userNameEl.textContent = currentUsername;
 
   renderAll();
-}
+};
 
 
 function todayLocalDate(){
@@ -6364,16 +6376,16 @@ $('userManagerForm')?.addEventListener('submit', (e) => {
   const indexRaw = $('managedUserIndex').value;
   const username = $('managedUsername').value.trim();
   const email = normalizeEmail($('managedEmail').value);
-  const note = $('managedPassword').value.trim();
+  const password = $('managedPassword').value.trim();
   const role = $('managedRole').value;
 
-  if(!username || !email){
-    alert('Preenche nome e email.');
+  if(!username || !email || !password){
+    alert('Preenche nome, email e palavra-passe de referência.');
     return;
   }
 
   const users = getManagedUsers();
-  const item = { username, email, note, role };
+  const item = { username, email, password, role };
 
   if(indexRaw !== ''){
     users[Number(indexRaw)] = item;
