@@ -2793,12 +2793,12 @@ td.acoes-col, .acoes-col{
 
         <form id="loginForm" class="login-form">
           <div class="field">
-            <label>Utilizador</label>
-            <input id="loginUsername" type="text" placeholder="Ricardo, admin ou user" required />
+            <label>Email</label>
+            <input id="loginEmail" type="email" placeholder="ricardo@empresa.pt" required autocomplete="username" />
           </div>
           <div class="field">
             <label>Palavra-passe</label>
-            <input id="loginPassword" type="password" placeholder="••••••••" required />
+            <input id="loginPassword" type="password" placeholder="••••••••" required autocomplete="current-password" />
           </div>
           <button type="submit" class="btn btn-primary full">Entrar</button>
         </form>
@@ -3045,11 +3045,13 @@ td.acoes-col, .acoes-col{
             <div class="content-grid single-panel-grid">
               <section class="panel admin-only form-panel">
                 <div class="panel-head"><h3>Novo utilizador</h3></div>
+                <div class="settings-help"><small>Este registo guarda nome, email e role dentro da app. O utilizador também tem de existir em Firebase Authentication &gt; Users com o mesmo email.</small></div>
                 <form id="userManagerForm" class="form-grid">
                   <input type="hidden" id="managedUserIndex" />
                   <div class="field"><label>Nome</label><input id="managedUsername" type="text" required /></div>
-                  <div class="field"><label>Palavra-passe</label><input id="managedPassword" type="text" required /></div>
+                  <div class="field"><label>Email Firebase</label><input id="managedEmail" type="email" placeholder="nome@empresa.pt" required /></div>
                   <div class="field"><label>Tipo</label><select id="managedRole"><option value="user">User</option><option value="admin">Admin</option><option value="master_admin">Master Admin</option></select></div>
+                  <div class="field"><label>Palavra-passe de referência</label><input id="managedPassword" type="text" placeholder="Só para referência interna" required /></div>
                   <div class="field field-span-2">
                     <div class="inline-actions">
                       <button type="submit" class="btn btn-primary">Guardar utilizador</button>
@@ -3062,7 +3064,7 @@ td.acoes-col, .acoes-col{
                 <div class="panel-head"><h3>Lista de utilizadores</h3></div>
                 <div class="table-wrap">
                   <table>
-                    <thead><tr><th>Nome</th><th>Tipo</th><th>Ações</th></tr></thead>
+                    <thead><tr><th>Nome</th><th>Email</th><th>Tipo</th><th>Ações</th></tr></thead>
                     <tbody id="managedUsersTableBody"></tbody>
                   </table>
                 </div>
@@ -3076,15 +3078,15 @@ td.acoes-col, .acoes-col{
 <script>
 
 const DEFAULT_USERS = [
-  { username: 'jorge', password: 'jfernandes', role: 'admin' },
-  { username: 'fatima', password: 'ffernandes', role: 'user' },
-  { username: 'ricardo', password: '2297', role: 'master_admin' }
+  { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
+  { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'user' },
+  { username: 'ricardo', email: 'ricardo@empresa.pt', password: '2297', role: 'master_admin' }
 ];
 
 function normalizeUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
   const idx = list.findIndex(u => String(u.username || '').toLowerCase() === 'ricardo');
-  const ricardo = { username: 'ricardo', password: '2297', role: 'master_admin' };
+  const ricardo = { username: 'ricardo', email: 'ricardo@empresa.pt', password: '2297', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -3106,8 +3108,22 @@ function getUsers(){
 
 const loginForm = document.getElementById('loginForm');
 
-function saveSession(role, username){
-  localStorage.setItem('app_session', JSON.stringify({ role, username }));
+function normalizeEmail(value=''){
+  return String(value || '').trim().toLowerCase();
+}
+
+function getRoleProfileByEmail(email=''){
+  const target = normalizeEmail(email);
+  if(!target) return null;
+  const users = getUsers();
+  const exact = users.find(u => normalizeEmail(u.email) === target);
+  if(exact) return exact;
+  const localPart = target.split('@')[0] || '';
+  return users.find(u => String(u.username || '').trim().toLowerCase() === localPart) || null;
+}
+
+function saveSession(role, username, email='', uid=''){
+  localStorage.setItem('app_session', JSON.stringify({ role, username, email, uid }));
 }
 
 function readSession(){
@@ -3137,37 +3153,39 @@ function bootFromSession(){
   return true;
 }
 
-loginForm?.addEventListener('submit', (e) => {
+loginForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
 
-  const found = getUsers().find(
-    u => u.username.toLowerCase() === username && u.password === password
-  );
-
-  if (!found) {
-    document.getElementById('loginError').textContent = 'Credenciais inválidas.';
-    return;
-  }
-
-  saveSession(found.role, found.username);
-  document.getElementById('loginError').textContent = '';
-  showApp();
-
-  if(window.startApp){
-    window.startApp(found.role, found.username);
+  try{
+    if(typeof window.performLogin !== 'function'){
+      throw new Error('Sistema de autenticação ainda não ficou pronto.');
+    }
+    const session = await window.performLogin(email, password);
+    saveSession(session.role, session.username, session.email || email, session.uid || '');
+    document.getElementById('loginError').textContent = '';
+    showApp();
+    if(window.startApp){
+      window.startApp(session);
+    }
+  }catch(err){
+    document.getElementById('loginError').textContent = err?.message || 'Credenciais inválidas.';
   }
 });
 
 document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
   e.preventDefault();
-  try{ await stopPresenceTracking(); }catch(err){ console.warn(err); }
+  try{
+    if(typeof window.performLogout === 'function') await window.performLogout();
+  }catch(err){
+    console.warn(err);
+  }
   clearSession();
   localStorage.removeItem('ge_presence_session_id');
   showLogin();
-  loginForm.reset();
+  loginForm?.reset();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -3822,13 +3840,13 @@ const firebaseConfig = {
 
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const APP_VERSION = '1.0.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
 
-let currentRole = null, currentUsername = null;
+let currentRole = null, currentUsername = null, currentUserEmail = null, currentUserUid = null;
 let trabalhos = [], clientes = [], pagamentos = [];
 let lastTrabId = 0;
 
@@ -3886,8 +3904,10 @@ async function writePresence(online=true, extra={}){
     const sid = ensurePresenceSessionId();
     await setDoc(doc(firestoreDb, PRESENCE_COLLECTION, sid), {
       sessionId: sid,
+      uid: currentUserUid || currentUsername,
       userId: currentUsername,
       nome: currentUsername,
+      email: currentUserEmail || '',
       role: currentRole,
       device: getPresenceDeviceType(),
       pagina: currentPresencePage || 'Dashboard',
@@ -4370,7 +4390,7 @@ function fillClientContactFromSelection(){
 function normalizeManagedUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
   const idx = list.findIndex(u => String(u.username || '').toLowerCase() === 'ricardo');
-  const ricardo = { username: 'ricardo', password: '2297', role: 'master_admin' };
+  const ricardo = { username: 'ricardo', email: 'ricardo@empresa.pt', password: '2297', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -4386,9 +4406,9 @@ function getManagedUsers(){
     }
   }catch{}
   const fixedDefaults = normalizeManagedUsers([
-    { username: 'jorge', password: 'jfernandes', role: 'admin' },
-    { username: 'fatima', password: 'ffernandes', role: 'user' },
-    { username: 'ricardo', password: '2297', role: 'master_admin' }
+    { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
+    { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'user' },
+    { username: 'ricardo', email: 'ricardo@empresa.pt', password: '2297', role: 'master_admin' }
   ]);
   localStorage.setItem('app_users', JSON.stringify(fixedDefaults));
   return fixedDefaults;
@@ -4405,6 +4425,7 @@ function renderManagedUsers(){
   tbody.innerHTML = users.length ? users.map((u, idx) => `
     <tr>
       <td>${escapeHtml(u.username || '-')}</td>
+      <td>${escapeHtml(u.email || '-')}</td>
       <td>${escapeHtml(u.role || 'user')}</td>
       <td>
         <div class="row-actions">
@@ -4413,7 +4434,7 @@ function renderManagedUsers(){
         </div>
       </td>
     </tr>
-  `).join('') : '<tr><td colspan="3">Sem utilizadores.</td></tr>';
+  `).join('') : '<tr><td colspan="4">Sem utilizadores.</td></tr>';
 }
 
 window.editManagedUser = function(index){
@@ -4423,6 +4444,7 @@ window.editManagedUser = function(index){
   if(!u) return;
   $('managedUserIndex').value = String(index);
   $('managedUsername').value = u.username || '';
+  $('managedEmail').value = u.email || '';
   $('managedPassword').value = u.password || '';
   $('managedRole').value = u.role || 'user';
   switchTab('configuracoes');
@@ -4546,6 +4568,16 @@ async function waitForFirebaseSyncReady(timeoutMs = 12000){
   }
   return true;
 }
+
+async function ensureAuthReady(timeoutMs = 12000){
+  await waitForFirebaseSyncReady(timeoutMs);
+  const start = Date.now();
+  while(!firebaseAuth){
+    if(Date.now() - start > timeoutMs) throw new Error('Firebase Auth não ficou pronto a tempo');
+    await new Promise(resolve => setTimeout(resolve, 150));
+  }
+  return true;
+}
 async function initFirebaseSync(){
   if(firebaseSyncInitPromise) return firebaseSyncInitPromise;
   firebaseSyncInitPromise = (async()=>{
@@ -4559,24 +4591,11 @@ async function initFirebaseSync(){
       clearRealtimeListeners();
       attachRealtimeListeners();
 
-      if(!firebaseAuth.currentUser){
-        try{
-          await signInAnonymously(firebaseAuth);
-        }catch(authErr){
-          console.warn('Anonymous auth indisponível, continuo com Firestore direto:', authErr);
-          if(authErr?.code === 'auth/operation-not-allowed'){
-            setSyncMessage('Firebase Sync (sem auth anónima)', 'warn');
-          }
-        }
-      }
-
       onAuthStateChanged(firebaseAuth, user => {
-        if (user) {
-          syncReady = true;
-          setSyncMessage('Firebase Sync', 'ok');
-          clearRealtimeListeners();
-          attachRealtimeListeners();
-        }
+        syncReady = true;
+        setSyncMessage(user ? 'Firebase Sync' : 'Firebase pronto', user ? 'ok' : 'warn');
+        clearRealtimeListeners();
+        attachRealtimeListeners();
         if (currentRole) renderAll();
       });
 
@@ -4589,7 +4608,7 @@ async function initFirebaseSync(){
       const msg = location.protocol === 'file:'
         ? 'Abre por servidor/GitHub Pages (não file://)'
         : err?.code === 'auth/operation-not-allowed'
-          ? 'Ativa Anonymous Auth no Firebase'
+          ? 'Ativa Email/Password Auth no Firebase'
           : 'Local (Firebase indisponível)';
       setSyncMessage(msg, 'bad');
       throw err;
@@ -6413,10 +6432,32 @@ loadLocal();
 autoBackupInvisible();
 initFirebaseSync();
 
+window.performLogin = async function(email, password){
+  await ensureAuthReady();
+  const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
+  const authUser = userCredential.user;
+  const profile = getRoleProfileByEmail(authUser.email || email);
+  const username = profile?.username || (String(authUser.email || email).split('@')[0] || 'user');
+  const role = profile?.role || 'user';
+  currentUserUid = authUser.uid || null;
+  currentUserEmail = authUser.email || email;
+  return { role, username, email: currentUserEmail, uid: currentUserUid };
+};
 
-window.startApp = function(role, username){
-  currentRole = role;
-  currentUsername = username;
+window.performLogout = async function(){
+  try{ await stopPresenceTracking(); }catch(err){ console.warn(err); }
+  try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
+  currentUserUid = null;
+  currentUserEmail = null;
+};
+
+
+window.startApp = function(sessionOrRole, maybeUsername){
+  const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
+  currentRole = session.role;
+  currentUsername = session.username;
+  currentUserEmail = session.email || currentUserEmail || null;
+  currentUserUid = session.uid || currentUserUid || null;
   loadLocal();
   setRoleUI();
   renderAll();
@@ -6646,23 +6687,24 @@ $('userManagerForm')?.addEventListener('submit', (e) => {
 
   const indexRaw = $('managedUserIndex').value;
   const username = $('managedUsername').value.trim();
+  const email = normalizeEmail($('managedEmail').value);
   const password = $('managedPassword').value.trim();
   const role = $('managedRole').value;
 
-  if(!username || !password){
-    alert('Preenche nome e palavra-passe.');
+  if(!username || !email || !password){
+    alert('Preenche nome, email e palavra-passe de referência.');
     return;
   }
 
   const users = getManagedUsers();
-  const item = { username, password, role };
+  const item = { username, email, password, role };
 
   if(indexRaw !== ''){
     users[Number(indexRaw)] = item;
   }else{
-    const exists = users.some(u => (u.username || '').toLowerCase() === username.toLowerCase());
+    const exists = users.some(u => (u.username || '').toLowerCase() === username.toLowerCase() || normalizeEmail(u.email) === email);
     if(exists){
-      alert('Esse utilizador já existe.');
+      alert('Esse utilizador ou email já existe.');
       return;
     }
     users.push(item);
@@ -6671,6 +6713,7 @@ $('userManagerForm')?.addEventListener('submit', (e) => {
   saveManagedUsers(users);
   $('userManagerForm').reset();
   $('managedUserIndex').value = '';
+  if($('managedEmail')) $('managedEmail').value = '';
   $('managedRole').value = 'user';
   renderManagedUsers();
   updateWorkCodePreview();
@@ -6681,6 +6724,7 @@ $('userManagerForm')?.addEventListener('submit', (e) => {
 $('clearManagedUserBtn')?.addEventListener('click', ()=>{
   $('userManagerForm')?.reset();
   $('managedUserIndex').value = '';
+  if($('managedEmail')) $('managedEmail').value = '';
   $('managedRole').value = 'user';
 });
 
