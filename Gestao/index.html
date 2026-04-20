@@ -2881,8 +2881,6 @@ function updateTrabalhoFieldVisibility(){
   });
 }
 
->
-
 /* ===== ROLES SISTEMA ===== */
 function getRole(){
   return String(window.currentRole || (typeof currentRole!=='undefined'?currentRole:'') || '').toLowerCase();
@@ -2904,8 +2902,6 @@ function isViewOnly(){
   return getRole() === 'user' || getRole() === 'mobile_user';
 }
 
->
-
 function isMasterAdmin(){
   try{
     const r = String(window.currentRole || (typeof currentRole!=='undefined'?currentRole:'') || '').toLowerCase();
@@ -2915,8 +2911,6 @@ function isMasterAdmin(){
 function podeEditar(){
   return isMasterAdmin();
 }
-
->
 
 const DEFAULT_USERS = [
   { username: 'jorge', password: 'jfernandes', role: 'admin' },
