@@ -13,6 +13,7 @@
   <style>
 
 :root{
+  if(!canEdit()){ return; }
   --bg:#070b14;
   --bg2:#0d1324;
   --panel:rgba(16,22,38,.88);
@@ -2408,12 +2409,6 @@ td.acoes-col, .acoes-col{
   display:none !important;
 }
 
-
-/* CAMPOS AVANÇADOS DO TRABALHO */
-.field-hidden-by-role{
-  display:none !important;
-}
-
 </style>
 </head>
 <body>
@@ -2560,10 +2555,10 @@ td.acoes-col, .acoes-col{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field advanced-work-field master-edit-only"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
-              <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
-              <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
-              <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
+              <div class="field master-edit-only"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
+              <div class="field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
+              <div class="field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
+              <div class="field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
               <div class="field"><label>Faturação</label><select id="trabalhoInvoiceType"><option>Com Fatura</option><option>Sem Fatura</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
@@ -2701,6 +2696,41 @@ td.acoes-col, .acoes-col{
   </nav>
 
   <script>
+
+/* ===== ROLES SISTEMA ===== */
+function getRole(){
+  return String(window.currentRole || (typeof currentRole!=='undefined'?currentRole:'') || '').toLowerCase();
+}
+
+function isMaster(){
+  return getRole() === 'master_admin';
+}
+
+function isAdmin(){
+  return getRole() === 'admin' || isMaster();
+}
+
+function canEdit(){
+  return isAdmin();
+}
+
+function isViewOnly(){
+  return getRole() === 'user' || getRole() === 'mobile_user';
+}
+
+>
+
+function isMasterAdmin(){
+  try{
+    const r = String(window.currentRole || (typeof currentRole!=='undefined'?currentRole:'') || '').toLowerCase();
+    return r === 'master_admin';
+  }catch(e){ return false; }
+}
+function podeEditar(){
+  return isMasterAdmin();
+}
+
+>
 
 const DEFAULT_USERS = [
   { username: 'jorge', password: 'jfernandes', role: 'admin' },
@@ -3370,12 +3400,6 @@ function buildProfessionalReportHtml(){
   display:none !important;
 }
 
-
-/* CAMPOS AVANÇADOS DO TRABALHO */
-.field-hidden-by-role{
-  display:none !important;
-}
-
 </style>
     </head>
     <body>
@@ -3616,33 +3640,6 @@ function getNextFlowEstado(value=''){
   const idx = ESTADOS_FLUXO.indexOf(atual);
   return idx >= 0 && idx < ESTADOS_FLUXO.length - 1 ? ESTADOS_FLUXO[idx + 1] : null;
 }
-
-
-function isMasterAdminUser(){
-  try{
-    const role = String(window.currentRole || (typeof currentRole !== 'undefined' ? currentRole : '') || '').toLowerCase();
-    return role === 'master_admin';
-  }catch(e){
-    return false;
-  }
-}
-
-function isEditingTrabalho(){
-  try{
-    const idEl = document.getElementById('trabalhoId');
-    return !!(idEl && String(idEl.value || '').trim());
-  }catch(e){
-    return false;
-  }
-}
-
-function updateTrabalhoFieldVisibility(){
-  const showAdvanced = isMasterAdminUser() || isEditingTrabalho();
-  document.querySelectorAll('.advanced-work-field').forEach(el => {
-    el.classList.toggle('field-hidden-by-role', !showAdvanced);
-  });
-}
-
 
 function getTodayLocalDateStr(){
   const now = new Date();
@@ -3953,7 +3950,6 @@ function setRoleUI(){
     }
   }
   setSyncMessage(syncReady ? 'Firebase Sync' : syncMessage, syncReady ? 'ok' : 'warn');
-  try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
@@ -5140,12 +5136,6 @@ td.acoes-col, .acoes-col{
   display:none !important;
 }
 
-
-/* CAMPOS AVANÇADOS DO TRABALHO */
-.field-hidden-by-role{
-  display:none !important;
-}
-
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
@@ -5476,7 +5466,6 @@ $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
-  try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 });
 $('clearClienteBtn')?.addEventListener('click', ()=>{
@@ -5532,7 +5521,6 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
-  try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 
   renderAll();
@@ -5679,166 +5667,25 @@ window.generateInvoice = function(id){
 };
 
 window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
-window.pdfCliente = async function(id){
-  const listaClientes = window.clientes || (typeof clientes !== 'undefined' ? clientes : []);
-  const listaTrabalhos = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
-  const c = (Array.isArray(listaClientes) ? listaClientes : []).find(x => String(x.id) === String(id));
-  if(!c) return;
+window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valor||0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
+window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
-  try{
-    if(!window.jspdf || !window.jspdf.jsPDF){
-      await new Promise((resolve, reject) => {
-        const existing = document.querySelector('script[data-jspdf-clientes="1"]');
-        if(existing){
-          if(existing.dataset.loaded === '1'){
-            resolve();
-            return;
-          }
-          existing.addEventListener('load', () => resolve(), { once:true });
-          existing.addEventListener('error', () => reject(new Error('Erro ao carregar jsPDF')), { once:true });
-          return;
-        }
-        const s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-        s.dataset.jspdfClientes = '1';
-        s.onload = function(){ s.dataset.loaded = '1'; resolve(); };
-        s.onerror = function(){ reject(new Error('Erro ao carregar jsPDF')); };
-        document.body.appendChild(s);
-      });
-    }
+function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
+$('exportBackupBtn').addEventListener('click', exportBackup);
+$('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMensal').innerHTML; printHtml('Relatório mensal', `<h1>Relatório Mensal</h1><div style="display:grid;gap:14px">${html}</div>`); });
 
-    if(!window.jspdf || !window.jspdf.jsPDF){
-      alert('Não foi possível carregar o gerador de PDF.');
-      return;
-    }
+loadLocal();
+autoBackupInvisible();
+initFirebaseSync();
 
-    const { jsPDF } = window.jspdf;
-    const nomeCliente = String(c.nome || '').trim().toLowerCase();
 
-    const trabalhosCliente = (Array.isArray(listaTrabalhos) ? listaTrabalhos : []).filter(t => {
-      const nomeTrabalho = String(t.cliente || t.clienteNome || '').trim().toLowerCase();
-      return nomeTrabalho === nomeCliente;
-    });
-
-    const totalFaturado = trabalhosCliente.reduce((sum, t) => {
-      const raw = String(t.valorPago ?? t.valor ?? 0).replace(',', '.');
-      const num = Number(raw);
-      return sum + (Number.isFinite(num) ? num : 0);
-    }, 0);
-
-    const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 14;
-    let y = 18;
-
-    // Header
-    doc.setFillColor(18, 28, 52);
-    doc.roundedRect(margin, y, pageWidth - (margin * 2), 24, 4, 4, 'F');
-    doc.setTextColor(255,255,255);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(18);
-    doc.text('Ficha de Cliente', margin + 8, y + 9);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(9);
-    doc.text('Relatório profissional do cliente', margin + 8, y + 16);
-    y += 32;
-
-    const drawBox = (title, value, x, yy, w) => {
-      doc.setFillColor(245,247,251);
-      doc.setDrawColor(220,226,235);
-      doc.roundedRect(x, yy, w, 18, 3, 3, 'FD');
-      doc.setTextColor(90,98,112);
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(8);
-      doc.text(String(title || ''), x + 4, yy + 5.5);
-      doc.setTextColor(20,20,20);
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(10);
-      const safeVal = String(value || '-').slice(0, 40);
-      doc.text(safeVal, x + 4, yy + 12.5);
-    };
-
-    drawBox('Nome', c.nome || '-', margin, y, 88);
-    drawBox('Telefone', c.telefone || '-', margin + 92, y, 44);
-    drawBox('NIF', c.nif || '-', margin + 140, y, 56);
-    y += 22;
-    drawBox('Email', c.email || '-', margin, y, 88);
-    drawBox('Total de trabalhos', String(trabalhosCliente.length), margin + 92, y, 44);
-    drawBox('Total faturado', totalFaturado.toFixed(2) + ' €', margin + 140, y, 56);
-    y += 22;
-
-    doc.setFillColor(245,247,251);
-    doc.setDrawColor(220,226,235);
-    doc.roundedRect(margin, y, pageWidth - (margin * 2), 22, 3, 3, 'FD');
-    doc.setTextColor(90,98,112);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(8);
-    doc.text('Morada', margin + 4, y + 5.5);
-    doc.setTextColor(20,20,20);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(10);
-    const moradaLines = doc.splitTextToSize(String(c.morada || '-'), pageWidth - (margin * 2) - 8);
-    doc.text(moradaLines, margin + 4, y + 12);
-    y += 30;
-
-    doc.setFillColor(88, 28, 135);
-    doc.setTextColor(255,255,255);
-    doc.roundedRect(margin, y, pageWidth - (margin * 2), 9, 2, 2, 'F');
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(9);
-    doc.text('Trabalho', margin + 4, y + 6);
-    doc.text('Data', margin + 95, y + 6);
-    doc.text('Estado', margin + 124, y + 6);
-    doc.text('Valor', margin + 160, y + 6);
-    y += 11;
-
-    doc.setTextColor(30,30,30);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(8.5);
-
-    if(!trabalhosCliente.length){
-      doc.text('Sem trabalhos associados.', margin + 4, y + 4);
-      y += 8;
-    } else {
-      trabalhosCliente.forEach((t, idx) => {
-        if(y > 275){
-          doc.addPage();
-          y = 18;
-        }
-        if(idx % 2 === 0){
-          doc.setFillColor(248,250,252);
-          doc.rect(margin, y - 2, pageWidth - (margin * 2), 8, 'F');
-        }
-        const tipo = String(t.tipoTrabalho || t.tipo || '-').slice(0, 34);
-        const dataRaw = t.dataInicio || t.dataFim || t.dataPagamento || t.data || '';
-        const data = String((typeof fmtDate === 'function' ? fmtDate(dataRaw) : dataRaw) || '-');
-        const estado = String(t.estado || '-').slice(0, 15);
-        const valorNum = Number(String(t.valorPago ?? t.valor ?? 0).replace(',', '.'));
-        const valor = (Number.isFinite(valorNum) ? valorNum : 0).toFixed(2) + ' €';
-
-        doc.text(tipo, margin + 4, y + 3.5);
-        doc.text(data, margin + 95, y + 3.5);
-        doc.text(estado, margin + 124, y + 3.5);
-        doc.text(valor, margin + 160, y + 3.5);
-        y += 8;
-      });
-    }
-
-    y += 6;
-    doc.setDrawColor(220,226,235);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 7;
-    doc.setTextColor(110,110,110);
-    doc.setFont('helvetica','italic');
-    doc.setFontSize(8);
-    doc.text('Gerado em ' + new Date().toLocaleString('pt-PT'), margin, y);
-
-    const safeName = String(c.nome || 'cliente').replace(/[^A-Za-z0-9_-]+/g, '_');
-    doc.save('cliente_' + safeName + '.pdf');
-  }catch(err){
-    console.error('Erro ao gerar PDF do cliente:', err);
-    alert('Não foi possível gerar o PDF do cliente.');
-  }
+window.startApp = function(role, username){
+  currentRole = role;
+  currentUsername = username;
+  loadLocal();
+  setRoleUI();
+  renderAll();
+  initFirebaseSync().catch(err => console.error(err));
 };
 
 
@@ -6455,12 +6302,6 @@ function buildProfessionalReportHtml(){
       
 /* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
 .master-edit-only.is-hidden-by-role{
-  display:none !important;
-}
-
-
-/* CAMPOS AVANÇADOS DO TRABALHO */
-.field-hidden-by-role{
   display:none !important;
 }
 
