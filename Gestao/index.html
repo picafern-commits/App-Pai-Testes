@@ -2467,6 +2467,12 @@ td.acoes-col, .acoes-col{
 }
 
 </style>
+
+<style id="sidebar-click-fix">
+.sidebar{position:relative;z-index:1600;}
+.nav,.nav-btn,.sidebar-footer{position:relative;z-index:1601;pointer-events:auto;}
+.main{position:relative;z-index:1;}
+</style>
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
@@ -2511,13 +2517,13 @@ td.acoes-col, .acoes-col{
       </div>
 
       <nav class="nav">
-        <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">◈</span><span>Dashboard</span></button>
-        <button class="nav-btn" data-tab="adicionar"><span class="nav-icon">＋</span><span>Adicionar Trabalho</span></button>
-        <button class="nav-btn" data-tab="trabalhos"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
-        <button class="nav-btn" data-tab="clientes"><span class="nav-icon">◉</span><span>Clientes</span></button>
-        <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">€</span><span>Pagamentos</span></button>
-        <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">▣</span><span>Relatórios</span></button>
-        <button class="nav-btn" data-tab="configuracoes"><span class="nav-icon">⚙</span><span>Configurações</span></button>
+        <button type="button" class="nav-btn active" data-tab="dashboard" onclick="window.switchTab && window.switchTab('dashboard')"><span class="nav-icon">◈</span><span>Dashboard</span></button>
+        <button type="button" class="nav-btn" data-tab="adicionar" onclick="window.switchTab && window.switchTab('adicionar')"><span class="nav-icon">＋</span><span>Adicionar Trabalho</span></button>
+        <button type="button" class="nav-btn" data-tab="trabalhos" onclick="window.switchTab && window.switchTab('trabalhos')"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
+        <button type="button" class="nav-btn" data-tab="clientes" onclick="window.switchTab && window.switchTab('clientes')"><span class="nav-icon">◉</span><span>Clientes</span></button>
+        <button type="button" class="nav-btn" data-tab="pagamentos" onclick="window.switchTab && window.switchTab('pagamentos')"><span class="nav-icon">€</span><span>Pagamentos</span></button>
+        <button type="button" class="nav-btn" data-tab="relatorios" onclick="window.switchTab && window.switchTab('relatorios')"><span class="nav-icon">▣</span><span>Relatórios</span></button>
+        <button type="button" class="nav-btn" data-tab="configuracoes" onclick="window.switchTab && window.switchTab('configuracoes')"><span class="nav-icon">⚙</span><span>Configurações</span></button>
       </nav>
 
       <div class="sidebar-footer">
@@ -2784,13 +2790,13 @@ td.acoes-col, .acoes-col{
           </div>
       </section>
   <nav class="bottom-nav">
-    <button class="bottom-btn active" data-tab="dashboard">Dashboard</button>
-    <button class="bottom-btn" data-tab="adicionar">Adicionar</button>
-    <button class="bottom-btn" data-tab="trabalhos">Histórico</button>
-    <button class="bottom-btn" data-tab="clientes">Clientes</button>
-    <button class="bottom-btn" data-tab="pagamentos">Pagamentos</button>
-    <button class="bottom-btn" data-tab="relatorios">Relatórios</button>
-    <button class="bottom-btn" data-tab="configuracoes">Configurações</button>
+    <button type="button" class="bottom-btn active" data-tab="dashboard" onclick="window.switchTab && window.switchTab('dashboard')">Dashboard</button>
+    <button type="button" class="bottom-btn" data-tab="adicionar" onclick="window.switchTab && window.switchTab('adicionar')">Adicionar</button>
+    <button type="button" class="bottom-btn" data-tab="trabalhos" onclick="window.switchTab && window.switchTab('trabalhos')">Histórico</button>
+    <button type="button" class="bottom-btn" data-tab="clientes" onclick="window.switchTab && window.switchTab('clientes')">Clientes</button>
+    <button type="button" class="bottom-btn" data-tab="pagamentos" onclick="window.switchTab && window.switchTab('pagamentos')">Pagamentos</button>
+    <button type="button" class="bottom-btn" data-tab="relatorios" onclick="window.switchTab && window.switchTab('relatorios')">Relatórios</button>
+    <button type="button" class="bottom-btn" data-tab="configuracoes" onclick="window.switchTab && window.switchTab('configuracoes')">Configurações</button>
   </nav>
 
   <script>
@@ -3559,7 +3565,13 @@ function buildProfessionalReportHtml(){
 }
 
 </style>
-    </head>
+    
+<style id="sidebar-click-fix">
+.sidebar{position:relative;z-index:1600;}
+.nav,.nav-btn,.sidebar-footer{position:relative;z-index:1601;pointer-events:auto;}
+.main{position:relative;z-index:1;}
+</style>
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
@@ -4350,6 +4362,8 @@ document.addEventListener('click', (event)=>{
   switchTab(tab);
 });
 
+
+window.switchTab = switchTab;
 
 function forceAppRefresh(){
   try{
@@ -5561,7 +5575,13 @@ td.acoes-col, .acoes-col{
   display:none !important;
 }
 
-</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</style>
+<style id="sidebar-click-fix">
+.sidebar{position:relative;z-index:1600;}
+.nav,.nav-btn,.sidebar-footer{position:relative;z-index:1601;pointer-events:auto;}
+.main{position:relative;z-index:1;}
+</style>
+</head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -6943,7 +6963,13 @@ function buildProfessionalReportHtml(){
 }
 
 </style>
-    </head>
+    
+<style id="sidebar-click-fix">
+.sidebar{position:relative;z-index:1600;}
+.nav,.nav-btn,.sidebar-footer{position:relative;z-index:1601;pointer-events:auto;}
+.main{position:relative;z-index:1;}
+</style>
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
