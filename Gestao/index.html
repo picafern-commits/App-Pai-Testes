@@ -2457,17 +2457,17 @@ td.acoes-col, .acoes-col{
           <h1>Entrar</h1>
         </div>
 
-			<form id="loginForm" class="login-form" novalidate>
-				<div class="field">
-					<label for="loginEmail">Email</label>
-					<input id="loginEmail" name="loginEmail" type="email" placeholder="pica.fern@gmail.com" autocomplete="username" />
-				</div>
-				<div class="field">
-					<label for="loginPassword">Palavra-passe</label>
-					<input id="loginPassword" name="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
-				</div>
-				<button id="loginBtn" type="submit" class="btn btn-primary full">Entrar</button>
-			</form>
+        <form id="loginForm" class="login-form">
+          <div class="field">
+            <label>Email</label>
+            <input id="loginEmail" type="email" placeholder="pica.fern@gmail.com" required autocomplete="username" />
+          </div>
+          <div class="field">
+            <label>Palavra-passe</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="btn btn-primary full">Entrar</button>
+        </form>
         <div id="loginError" class="login-error"></div>
       </div>
     </div>
@@ -2715,7 +2715,7 @@ td.acoes-col, .acoes-col{
                   <div class="field"><label>Nome</label><input id="managedUsername" type="text" required /></div>
                   <div class="field"><label>Email Firebase</label><input id="managedEmail" type="email" placeholder="nome@empresa.pt" required /></div>
                   <div class="field"><label>Tipo</label><select id="managedRole"><option value="consulta">Consulta</option><option value="operador">Operador</option><option value="financeiro">Financeiro</option><option value="gestor">Gestor</option><option value="admin">Admin</option><option value="master_admin">Master Admin</option></select></div>
-                  <div class="field"><label>Palavra-passe de referência</label><input id="managedPassword" type="text" placeholder="Só para referência interna" required /></div>
+                  <div class="field"><label>Observação interna (opcional)</label><input id="managedPassword" type="text" placeholder="Opcional" /></div>
                   <div class="field field-span-2">
                     <div class="inline-actions">
                       <button type="submit" class="btn btn-primary">Guardar utilizador</button>
@@ -2807,9 +2807,9 @@ const ROLE_DEFINITIONS = {
 };
 
 const DEFAULT_USERS = [
-  { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
-  { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'financeiro' },
-  { username: 'pica.fern', email: 'pica.fern@gmail.com', password: 'master_local_reference', role: 'master_admin' }
+  { username: 'jorge', email: 'jorge@empresa.pt', role: 'admin', note: '' },
+  { username: 'fatima', email: 'fatima@empresa.pt', role: 'financeiro', note: '' },
+  { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin', note: '' }
 ];
 
 function getRoleDefinition(role='user'){
@@ -2843,13 +2843,15 @@ function roleGuard(permission, deniedMessage='Sem permissão para esta ação.')
 function normalizeUsers(users){
   const validRoles = new Set(Object.keys(ROLE_DEFINITIONS));
   const list = (Array.isArray(users) ? users.slice() : []).map(u => ({
-    ...u,
-    role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta'
+    username: String(u?.username || '').trim(),
+    email: normalizeEmail(u?.email || ''),
+    role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta',
+    note: String(u?.note || u?.managedNote || '').trim()
   }));
-  const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: (list[idx]?.password || 'master_local_reference'), role: 'master_admin' };
-  if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
-  else list.push(ricardo);
+  const idx = list.findIndex(u => normalizeEmail(u.email) === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
+  const principal = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin', note: '' };
+  if(idx >= 0) list[idx] = { ...list[idx], ...principal };
+  else list.push(principal);
   return list;
 }
 
@@ -2917,44 +2919,22 @@ function bootFromSession(){
 loginForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const emailInput = document.getElementById('loginEmail');
-  const passwordInput = document.getElementById('loginPassword');
-  const errorEl = document.getElementById('loginError');
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
 
-  const email = (emailInput?.value || '').trim().toLowerCase();
-  const password = passwordInput?.value || '';
-
-  if (errorEl) errorEl.textContent = '';
-
-  if (!email) {
-    if (errorEl) errorEl.textContent = 'Preenche o email.';
-    emailInput?.focus();
-    return;
-  }
-
-  if (!password) {
-    if (errorEl) errorEl.textContent = 'Preenche a palavra-passe.';
-    passwordInput?.focus();
-    return;
-  }
-
-  try {
-    if (typeof window.performLogin !== 'function') {
+  try{
+    if(typeof window.performLogin !== 'function'){
       throw new Error('Sistema de autenticação ainda não ficou pronto.');
     }
-
     const session = await window.performLogin(email, password);
     saveSession(session.role, session.username, session.email || email, session.uid || '');
-
-    if (errorEl) errorEl.textContent = '';
+    document.getElementById('loginError').textContent = '';
     showApp();
-
-    if (window.startApp) {
+    if(window.startApp){
       window.startApp(session);
     }
-  } catch (err) {
-    console.error('Erro login:', err);
-    if (errorEl) errorEl.textContent = err?.message || 'Credenciais inválidas.';
+  }catch(err){
+    document.getElementById('loginError').textContent = err?.message || 'Credenciais inválidas.';
   }
 });
 
@@ -4161,34 +4141,15 @@ function fillClientContactFromSelection(){
 
 
 function normalizeManagedUsers(users){
-  const list = Array.isArray(users) ? users.slice() : [];
-  const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: (list[idx]?.password || 'master_local_reference'), role: 'master_admin' };
-  if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
-  else list.push(ricardo);
-  return list;
+  return normalizeUsers(users);
 }
 
 function getManagedUsers(){
-  try{
-    const stored = JSON.parse(localStorage.getItem('app_users') || 'null');
-    if(Array.isArray(stored) && stored.length){
-      const fixed = normalizeManagedUsers(stored);
-      localStorage.setItem('app_users', JSON.stringify(fixed));
-      return fixed;
-    }
-  }catch{}
-  const fixedDefaults = normalizeManagedUsers([
-    { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
-    { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'admin' },
-	{ username: 'pica.fern', email: 'pica.fern@gmail.com', password: 'master_local_reference', role: 'master_admin' }
-  ]);
-  localStorage.setItem('app_users', JSON.stringify(fixedDefaults));
-  return fixedDefaults;
+  return getUsers();
 }
 
 function saveManagedUsers(users){
-  localStorage.setItem('app_users', JSON.stringify(users));
+  localStorage.setItem('app_users', JSON.stringify(normalizeUsers(users)));
 }
 
 function renderManagedUsers(){
@@ -4218,7 +4179,7 @@ window.editManagedUser = function(index){
   $('managedUserIndex').value = String(index);
   $('managedUsername').value = u.username || '';
   $('managedEmail').value = u.email || '';
-  $('managedPassword').value = u.password || '';
+  $('managedPassword').value = u.note || '';
   $('managedRole').value = u.role || 'user';
   switchTab('configuracoes');
 };
@@ -4286,119 +4247,12 @@ function setRoleUI(){
   try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 }
-<script>
 function switchTab(tab){
-  try{
-    if(!tab) return;
-
-    const targetPage = document.getElementById(`${tab}-page`);
-    if(!targetPage){
-      console.warn('Página não encontrada para tab:', tab);
-      return;
-    }
-
-    if(typeof canAccessTab === 'function' && !canAccessTab(tab)){
-      const fallback = (typeof getAllowedTabsForRole === 'function'
-        ? (getAllowedTabsForRole(currentRole)[0] || 'dashboard')
-        : 'dashboard');
-
-      if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
-      tab = fallback;
-    }
-
-    try{
-      sessionStorage.setItem('gestao:lastTab', tab);
-    }catch(e){}
-
-    document.querySelectorAll('.nav-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.tab === tab);
-    });
-
-    document.querySelectorAll('.bottom-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.tab === tab);
-    });
-
-    document.querySelectorAll('.page').forEach(p => {
-      p.classList.remove('active');
-      p.style.display = 'none';
-    });
-
-    targetPage.classList.add('active');
-    targetPage.style.display = 'block';
-
-    const btn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
-    const titleEl = document.getElementById('pageTitle');
-    if(titleEl){
-      titleEl.textContent = btn
-        ? btn.textContent.trim()
-        : tab.charAt(0).toUpperCase() + tab.slice(1);
-    }
-
-    if(tab === 'dashboard' && typeof renderDashboard === 'function'){
-      renderDashboard();
-      if(typeof renderAlerts === 'function') renderAlerts();
-    }
-    if(tab === 'trabalhos' && typeof renderTrabalhos === 'function') renderTrabalhos();
-    if(tab === 'clientes' && typeof renderClientes === 'function') renderClientes();
-    if(tab === 'pagamentos' && typeof renderPagamentos === 'function') renderPagamentos();
-    if(tab === 'relatorios' && typeof renderRelatorios === 'function') renderRelatorios();
-    if(tab === 'configuracoes'){
-      if(typeof bindUiScaleSelector === 'function') bindUiScaleSelector();
-      if(typeof renderManagedUsers === 'function') renderManagedUsers();
-    }
-
-    if(typeof updatePresencePage === 'function'){
-      updatePresencePage(titleEl?.textContent?.trim() || tab);
-    }
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }catch(err){
-    console.error('Erro no switchTab:', err);
+  if(!canAccessTab(tab)){
+    const fallback = getAllowedTabsForRole(currentRole)[0] || 'dashboard';
+    if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
+    tab = fallback;
   }
-}
-
-window.switchTab = switchTab;
-
-function bindSidebarNavigation(){
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.onclick = function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      switchTab(this.dataset.tab);
-    };
-  });
-
-  document.querySelectorAll('.bottom-btn').forEach(btn => {
-    btn.onclick = function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      switchTab(this.dataset.tab);
-    };
-  });
-
-  document.querySelectorAll('[data-go]').forEach(btn => {
-    btn.onclick = function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      switchTab(this.dataset.go);
-    };
-  });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  bindSidebarNavigation();
-
-  let restoreTab = 'dashboard';
-  try{
-    restoreTab = sessionStorage.getItem('gestao:lastTab') || 'dashboard';
-  }catch(e){}
-
-  setTimeout(() => {
-    switchTab(restoreTab);
-  }, 0);
-});
-</script>
-
   try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(e){}
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   bottomButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -6250,19 +6104,21 @@ autoBackupInvisible();
 initFirebaseSync();
 
 window.performLogin = async function(email, password){
+  await initFirebaseSync();
   await ensureAuthReady();
-  const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
+  const userCredential = await signInWithEmailAndPassword(firebaseAuth, String(email || '').trim(), String(password || ''));
   const authUser = userCredential.user;
   const profile = getRoleProfileByEmail(authUser.email || email);
   const username = profile?.username || (String(authUser.email || email).split('@')[0] || 'user');
-  const role = profile?.role || 'consulta';
+  const role = profile?.role || 'master_admin';
   currentUserUid = authUser.uid || null;
-  currentUserEmail = authUser.email || email;
+  currentUserEmail = authUser.email || String(email || '').trim();
   return { role, username, email: currentUserEmail, uid: currentUserUid };
 };
 
 window.performLogout = async function(){
   try{ await stopPresenceTracking(); }catch(err){ console.warn(err); }
+  try{ await ensureAuthReady(); }catch(err){ console.warn(err); }
   try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
   currentUserUid = null;
   currentUserEmail = null;
@@ -6507,16 +6363,16 @@ $('userManagerForm')?.addEventListener('submit', (e) => {
   const indexRaw = $('managedUserIndex').value;
   const username = $('managedUsername').value.trim();
   const email = normalizeEmail($('managedEmail').value);
-  const password = $('managedPassword').value.trim();
+  const note = $('managedPassword').value.trim();
   const role = $('managedRole').value;
 
-  if(!username || !email || !password){
-    alert('Preenche nome, email e palavra-passe de referência.');
+  if(!username || !email){
+    alert('Preenche nome e email.');
     return;
   }
 
   const users = getManagedUsers();
-  const item = { username, email, password, role };
+  const item = { username, email, note, role };
 
   if(indexRaw !== ''){
     users[Number(indexRaw)] = item;
