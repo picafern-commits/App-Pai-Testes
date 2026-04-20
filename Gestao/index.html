@@ -5633,6 +5633,7 @@ window.deleteTrabalho = async function(id){
     await removeRemote('trabalhos', id);
     trabalhos = trabalhos.filter(x => x.id !== id);
     saveLocal();
+    renderAll();
     refreshVisibleUi();
     setSyncMessage('Trabalho apagado na Firebase', 'ok');
   }catch(err){
@@ -5659,6 +5660,7 @@ window.deleteCliente = async function(id){
     clientes = clientes.filter(x => x.id !== id);
     saveLocal();
     renderAll();
+    refreshVisibleUi();
     setSyncMessage('Cliente apagado na Firebase', 'ok');
   }catch(err){
     console.error(err);
@@ -5892,9 +5894,15 @@ window.marcarComoPagoComValor = function(id){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
   pendingPaymentWorkId = id;
+  const hiddenId = $('paymentWorkId');
+  const methodInput = $('paymentMethodInput');
+  const valueInput = $('paymentValueInput');
+  if(hiddenId) hiddenId.value = id;
+  if(methodInput) methodInput.value = '';
+  if(valueInput) valueInput.value = String(t.valorPago ?? t.valor ?? '').replace('.', ',');
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
   $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
-  if($('paymentDateInput')) { $('paymentDateInput').value = todayLocalDate(); $('paymentDateInput').removeAttribute('readonly'); $('paymentDateInput').disabled = false; setTimeout(() => { const el = $('paymentDateInput'); if(el && !el.value) el.value = todayLocalDate(); }, 0); }
+  if($('paymentDateInput')) { $('paymentDateInput').value = t.dataPagamento || todayLocalDate(); $('paymentDateInput').removeAttribute('readonly'); $('paymentDateInput').disabled = false; setTimeout(() => { const el = $('paymentDateInput'); if(el && !el.value) el.value = todayLocalDate(); }, 0); }
   $('paymentMethodModal').classList.remove('hidden');
   $('paymentMethodModal').classList.add('show');
   $('paymentMethodModal').style.display = 'flex';
@@ -5925,24 +5933,25 @@ $('paymentMethodModal')?.addEventListener('click', (e)=>{
     refreshVisibleUi();
   }
 });
-document.querySelectorAll('.pay-method-btn').forEach(btn=>{
-  btn.addEventListener('click', async ()=>{
-    if(!pendingPaymentWorkId) return;
-    const method = btn.dataset.method || 'Manual';
-    const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
-    const selectedPaymentValue = $('paymentValueInput')?.value || '';
-    const numericValue = Number(String(selectedPaymentValue).trim().replace(',', '.'));
-    if(!selectedPaymentValue || Number.isNaN(numericValue)){
-      alert('Introduz um valor de pagamento válido.');
-      return;
-    }
-    const workId = pendingPaymentWorkId;
-    const ok = await window.markAsPaid(workId, method, selectedPaymentDate, numericValue);
-    if(ok){
-      hardClosePaymentMethodModal();
-      refreshVisibleUi();
-    }
-  });
+document.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('.pay-method-btn');
+  if(!btn) return;
+  if(!pendingPaymentWorkId) return;
+  const method = btn.dataset.method || 'Manual';
+  const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
+  const selectedPaymentValue = $('paymentValueInput')?.value || '';
+  const numericValue = Number(String(selectedPaymentValue).trim().replace(',', '.'));
+  if(!selectedPaymentValue || Number.isNaN(numericValue)){
+    alert('Introduz um valor de pagamento válido.');
+    return;
+  }
+  const workId = pendingPaymentWorkId;
+  const ok = await window.markAsPaid(workId, method, selectedPaymentDate, numericValue);
+  if(ok){
+    hardClosePaymentMethodModal();
+    renderAll();
+    refreshVisibleUi();
+  }
 });
 
 $('cliente')?.addEventListener('change', fillClientContactFromSelection);
@@ -6121,9 +6130,13 @@ async function confirmPaymentMethod(method){
   }
 
   closePaymentMethodModal();
+  if(typeof renderAll === 'function') renderAll();
   if(typeof refreshVisibleUi === 'function') refreshVisibleUi();
   return true;
 }
+window.openPaymentMethodModal = openPaymentMethodModal;
+window.closePaymentMethodModal = closePaymentMethodModal;
+window.confirmPaymentMethod = confirmPaymentMethod;
 
 
 document.addEventListener("DOMContentLoaded", function(){
