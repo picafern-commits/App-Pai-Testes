@@ -4296,6 +4296,7 @@ function setRoleUI(){
   updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
+  try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(e){}
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   bottomButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   pages.forEach(p => p.classList.toggle('active', p.id===`${tab}-page`));
@@ -4322,6 +4323,23 @@ function switchTab(tab){
 navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
+
+function forceAppRefresh(){
+  try{
+    const activePage = document.querySelector('.page.active');
+    const activeTab = activePage ? activePage.id.replace(/-page$/, '') : (sessionStorage.getItem('gestao:lastTab') || 'dashboard');
+    sessionStorage.setItem('gestao:lastTab', activeTab);
+  }catch(e){}
+  setTimeout(()=>{
+    try{ window.location.reload(); }catch(e){ location.reload(); }
+  }, 120);
+}
+try{
+  const restoreTab = sessionStorage.getItem('gestao:lastTab');
+  if(restoreTab){
+    setTimeout(()=>{ try{ switchTab(restoreTab); }catch(e){} }, 0);
+  }
+}catch(e){}
 
 let firebaseSyncInitPromise = null;
 async function waitForFirebaseSyncReady(timeoutMs = 12000){
@@ -6028,6 +6046,8 @@ window.deleteTrabalho = async function(id){
     trabalhos = trabalhos.filter(x=>x.id!==id);
     saveLocal();
     renderAll();
+    forceAppRefresh();
+    forceAppRefresh();
   }catch(err){
     console.error(err);
     setSyncMessage('Erro a apagar no Firebase', 'bad');
@@ -6214,6 +6234,7 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
     saveLocal();
     renderAll();
     setTimeout(()=>{ try{ renderAll(); }catch(e){} }, 200);
+    forceAppRefresh();
     return true;
   } catch(err){
     console.error(err);
@@ -6231,6 +6252,7 @@ window.deletePagamento = async function(id){
     pagamentos = pagamentos.filter(x => x.id !== id);
     saveLocal();
     renderAll();
+    forceAppRefresh();
   }catch(err){
     console.error(err);
     setSyncMessage('Erro a apagar no Firebase', 'bad');
