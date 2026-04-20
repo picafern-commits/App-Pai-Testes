@@ -2414,18 +2414,6 @@ td.acoes-col, .acoes-col{
   display:none !important;
 }
 
-
-.payment-method-grid .pay-method-btn.is-selected{
-  outline: 2px solid rgba(96,165,250,.7);
-  box-shadow: 0 0 0 2px rgba(96,165,250,.15) inset;
-}
-.payment-modal-actions{
-  display:flex;
-  gap:10px;
-  justify-content:flex-end;
-  margin-top:14px;
-}
-
 </style>
 </head>
 <body>
@@ -2822,8 +2810,6 @@ function openPaymentMethodModal(id){
   const t = trabalhosLista.find(x => String(x.id) === String(id));
   if(!t) return;
 
-  pendingPaymentWorkId = id;
-
   const modal = document.getElementById('paymentMethodModal');
   if(!modal) return;
 
@@ -2831,20 +2817,12 @@ function openPaymentMethodModal(id){
   const valueInput = document.getElementById('paymentValueInput');
   const hiddenId = document.getElementById('paymentWorkId');
   const methodInput = document.getElementById('paymentMethodInput');
-  const selectedMethodInput = document.getElementById('selectedPaymentMethod');
 
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
-  if(selectedMethodInput) selectedMethodInput.value = '';
-  document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('is-selected'));
-
-  if($('paymentJobName')) $('paymentJobName').textContent = t.tipoTrabalho || t.workCode || '-';
-  if($('paymentJobClient')) $('paymentJobClient').textContent = t.cliente || '';
-
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
-  if(valueInput) valueInput.value = String(t.valorPago ?? t.valor ?? '').replace('.', ',');
+  if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
-  modal.classList.remove('hidden');
   modal.style.display = 'flex';
   modal.classList.add('show');
 }
@@ -2852,15 +2830,11 @@ function openPaymentMethodModal(id){
 function closePaymentMethodModal(){
   const modal = document.getElementById('paymentMethodModal');
   if(!modal) return;
-  modal.classList.add('hidden');
-  modal.classList.remove('show');
   modal.style.display = 'none';
-  if($('selectedPaymentMethod')) $('selectedPaymentMethod').value = '';
-  document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('is-selected'));
-  pendingPaymentWorkId = null;
+  modal.classList.remove('show');
 }
 
-function confirmPaymentMethod(method){
+async function confirmPaymentMethod(method){
   const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
   const hiddenId = document.getElementById('paymentWorkId');
   const dateInput = document.getElementById('paymentDateInput');
@@ -2871,10 +2845,8 @@ function confirmPaymentMethod(method){
   const t = trabalhosLista.find(x => String(x.id) === String(id));
   if(!t) return;
 
-  const finalMethod = method || (methodInput ? methodInput.value : '') || 'Outro';
   const dataPagamento = dateInput && dateInput.value ? dateInput.value : getTodayLocalDateStr();
   const valorRaw = valueInput ? String(valueInput.value || '').trim().replace(',', '.') : '';
-
   if(!valorRaw){
     alert('Introduz o valor do pagamento.');
     return;
@@ -2885,51 +2857,21 @@ function confirmPaymentMethod(method){
     return;
   }
 
-  t.paymentStatus = 'Pago';
-  t.paymentMethod = finalMethod;
-  t.metodoPagamento = finalMethod;
-  t.dataPagamento = dataPagamento;
-  t.valorPago = valorNum;
-  t.estado = 'Pago';
-  t.dataEstado = new Date().toISOString();
-  t.dataFim = dataPagamento;
-  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
-  t.historicoEstados.push({ estado: 'Pago', data: new Date().toISOString() });
+  const finalMethod = method || (methodInput ? methodInput.value : '') || 'Outro';
+  const ok = typeof window.markAsPaid === 'function'
+    ? await window.markAsPaid(id, finalMethod, dataPagamento, valorNum)
+    : false;
 
-  let pagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
-  const pagamentoData = {
-    id: pagamento?.id || genId('pay'),
-    cliente: t.cliente || '',
-    referencia: t.workCode || t.tipoTrabalho || '',
-    workDate: t.dataInicio || '',
-    data: dataPagamento,
-    valor: valorNum,
-    metodo: finalMethod,
-    invoiceType: t.invoiceType || 'Com Fatura',
-    sourceWorkId: t.id,
-    workCode: t.workCode || ''
-  };
-  if(pagamento){
-    Object.assign(pagamento, pagamentoData);
-  }else{
-    pagamentos.push(pagamentoData);
-    pagamento = pagamentoData;
+  if(!ok){
+    alert('Não foi possível guardar o pagamento na Firebase.');
+    return;
   }
 
-  try{
-    saveLocal();
-  }catch(e){
-    try{
-      localStorage.setItem(STORAGE_KEYS.trabalhos, JSON.stringify(trabalhos));
-      localStorage.setItem(STORAGE_KEYS.pagamentos, JSON.stringify(pagamentos));
-    }catch(err){}
-  }
+  if(typeof window.renderTrabalhos === 'function') window.renderTrabalhos();
+  else if(typeof renderTrabalhos === 'function') renderTrabalhos();
 
-  closePaymentMethodModal();
-
-  try{ renderAll(); }catch(e){}
-  try{ upsertRemote('trabalhos', t).catch(err => console.error(err)); }catch(e){}
-  try{ upsertRemote('pagamentos', pagamento).catch(err => console.error(err)); }catch(e){}
+  try { if(typeof window.renderPagamentos === 'function') window.renderPagamentos(); else if(typeof renderPagamentos === 'function') renderPagamentos(); } catch(e) {}
+  try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
 }
 
 
@@ -3420,18 +3362,6 @@ function buildProfessionalReportHtml(){
 /* CAMPOS AVANÇADOS DO TRABALHO */
 .field-hidden-by-role{
   display:none !important;
-}
-
-
-.payment-method-grid .pay-method-btn.is-selected{
-  outline: 2px solid rgba(96,165,250,.7);
-  box-shadow: 0 0 0 2px rgba(96,165,250,.15) inset;
-}
-.payment-modal-actions{
-  display:flex;
-  gap:10px;
-  justify-content:flex-end;
-  margin-top:14px;
 }
 
 </style>
@@ -5204,18 +5134,6 @@ td.acoes-col, .acoes-col{
   display:none !important;
 }
 
-
-.payment-method-grid .pay-method-btn.is-selected{
-  outline: 2px solid rgba(96,165,250,.7);
-  box-shadow: 0 0 0 2px rgba(96,165,250,.15) inset;
-}
-.payment-modal-actions{
-  display:flex;
-  gap:10px;
-  justify-content:flex-end;
-  margin-top:14px;
-}
-
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
@@ -5779,10 +5697,12 @@ function todayLocalDate(){
 function getAgendaSmartDate(t){
   return t.dataInicio || t.dataFim || t.dataPagamento || '';
 }
-window.markAsPaid = function(id, metodo='Manual', dataPagamento=''){
+window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorOverride=null){
   const t = trabalhos.find(x => x.id === id);
-  if(!t) return;
+  if(!t) return false;
   const finalPaymentDate = dataPagamento || todayLocalDate();
+  const finalValor = Number(valorOverride ?? t.valorPago ?? t.valor ?? 0);
+
   t.estado = 'Pago';
   t.dataEstado = new Date().toISOString();
   t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
@@ -5793,6 +5713,8 @@ window.markAsPaid = function(id, metodo='Manual', dataPagamento=''){
   t.paymentStatus = 'Pago';
   t.dataPagamento = finalPaymentDate;
   t.metodoPagamento = metodo;
+  t.paymentMethod = metodo;
+  t.valorPago = finalValor;
   t.dataFim = finalPaymentDate;
 
   const existingPagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
@@ -5802,7 +5724,7 @@ window.markAsPaid = function(id, metodo='Manual', dataPagamento=''){
     referencia: t.workCode || t.tipoTrabalho || '',
     workDate: t.dataInicio || '',
     data: finalPaymentDate,
-    valor: Number(t.valor || 0),
+    valor: finalValor,
     metodo,
     invoiceType: t.invoiceType || 'Com Fatura',
     sourceWorkId: t.id,
@@ -5816,8 +5738,17 @@ window.markAsPaid = function(id, metodo='Manual', dataPagamento=''){
 
   saveLocal();
   renderAll();
-  upsertRemote('trabalhos', t).catch(err => console.error(err));
-  upsertRemote('pagamentos', pagamento).catch(err => console.error(err));
+
+  try {
+    await upsertRemote('trabalhos', { ...t });
+    await upsertRemote('pagamentos', { ...pagamento });
+    saveLocal();
+    return true;
+  } catch(err) {
+    console.error('Erro ao guardar pagamento no Firebase:', err);
+    setSyncMessage('Erro ao guardar pagamento no Firebase', 'bad');
+    return false;
+  }
 }
 
 
@@ -5841,7 +5772,6 @@ window.showDesc = function(id){
 };
 
 $('closeDescModal')?.addEventListener('click', ()=> $('descModal').classList.add('hidden'));
-$('closePaymentMethodModal')?.addEventListener('click', closePaymentMethodModal);
 $('descModal')?.addEventListener('click', (e)=>{ if(e.target.id === 'descModal') $('descModal').classList.add('hidden'); });
 
 let pendingPaymentWorkId = null;
@@ -5868,35 +5798,13 @@ $('paymentMethodModal')?.addEventListener('click', (e)=>{
 });
 document.querySelectorAll('.pay-method-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.pay-method-btn').forEach(b=>b.classList.remove('is-selected'));
-    btn.classList.add('is-selected');
-    if($('selectedPaymentMethod')) $('selectedPaymentMethod').value = btn.dataset.method || 'Manual';
-    if($('paymentMethodInput')) $('paymentMethodInput').value = btn.dataset.method || 'Manual';
+    if(!pendingPaymentWorkId) return;
+    const method = btn.dataset.method || 'Manual';
+    const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
+    window.markAsPaid(pendingPaymentWorkId, method, selectedPaymentDate);
+    pendingPaymentWorkId = null;
+    $('paymentMethodModal').classList.add('hidden');
   });
-});
-
-$('confirmPaymentMethodBtn')?.addEventListener('click', ()=>{
-  const method = $('selectedPaymentMethod')?.value || $('paymentMethodInput')?.value || '';
-  if(!method){
-    alert('Escolhe o método de pagamento.');
-    return;
-  }
-  confirmPaymentMethod(method);
-});
-
-$('confirmPaymentMethodBtn')?.addEventListener('click', async ()=>{
-  if(!pendingPaymentWorkId) return;
-  const method = $('selectedPaymentMethod')?.value || $('paymentMethodInput')?.value || '';
-  if(!method){
-    alert('Escolhe o método de pagamento.');
-    return;
-  }
-  const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
-  await window.markAsPaid(pendingPaymentWorkId, method, selectedPaymentDate);
-  pendingPaymentWorkId = null;
-  if($('selectedPaymentMethod')) $('selectedPaymentMethod').value = '';
-  document.querySelectorAll('.pay-method-btn').forEach(b=>b.classList.remove('is-selected'));
-  const pm = $('paymentMethodModal'); if(pm){ pm.classList.add('hidden'); pm.style.display='none'; }
 });
 
 $('cliente')?.addEventListener('change', fillClientContactFromSelection);
@@ -6039,8 +5947,6 @@ function openPaymentMethodModal(id){
 
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
-  if($('selectedPaymentMethod')) $('selectedPaymentMethod').value = '';
-  document.querySelectorAll('.pay-method-btn').forEach(b=>b.classList.remove('is-selected'));
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
   if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
@@ -6418,18 +6324,6 @@ function buildProfessionalReportHtml(){
   display:none !important;
 }
 
-
-.payment-method-grid .pay-method-btn.is-selected{
-  outline: 2px solid rgba(96,165,250,.7);
-  box-shadow: 0 0 0 2px rgba(96,165,250,.15) inset;
-}
-.payment-modal-actions{
-  display:flex;
-  gap:10px;
-  justify-content:flex-end;
-  margin-top:14px;
-}
-
 </style>
     </head>
     <body>
@@ -6528,7 +6422,6 @@ function printProfessionalReport(){
         </div>
         <div class="payment-date-box"><label for="paymentDateInput">Data de pagamento</label><input type="hidden" id="paymentWorkId">
 <input type="hidden" id="paymentMethodInput">
-<input type="hidden" id="selectedPaymentMethod">
 <input id="paymentDateInput" type="date" />
 <div class="field-group payment-value-group"><label for="paymentValueInput">Valor</label><input type="number" step="0.01" id="paymentValueInput" placeholder="0,00"></div></div>
         <div class="payment-method-grid">
@@ -6536,9 +6429,6 @@ function printProfessionalReport(){
           <button class="pay-method-btn" data-method="MB Way">MB Way</button>
           <button class="pay-method-btn" data-method="Transferência">Transferência</button>
           <button class="pay-method-btn" data-method="Multibanco">Multibanco</button>
-        </div>
-        <div class="payment-modal-actions">
-          <button id="confirmPaymentMethodBtn" class="btn btn-primary">Confirmar</button>
         </div>
       </div>
     </div>
