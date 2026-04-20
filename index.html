@@ -472,7 +472,7 @@ body.ui-laptop .main{padding:12px}
 }
 @media (min-width: 1100px){
   .main{
-    padding-right:340px !important;
+    padding-right:22px !important;
   }
   .topbar{
     padding-right:0 !important;
@@ -3916,36 +3916,68 @@ function updatePresencePage(pageName){
 }
 
 function renderOnlineCompactWidget(activeRows){
-  const host = $('onlineCompactList');
-  const counter = $('onlineCompactCounter');
-  const updatedAt = $('onlineCompactUpdatedAt');
+  const host = $('onlineUsersCompact');
   if(!host) return;
-
   const rows = Array.isArray(activeRows) ? activeRows.slice(0,4) : [];
-  if(counter) counter.textContent = String(activeRows?.length || 0);
-  if(updatedAt) updatedAt.textContent = `Atualizado: ${new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' })}`;
+  const updated = new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' });
+  const collapsed = localStorage.getItem('online_widget_collapsed') === '1';
+  host.classList.toggle('is-collapsed', collapsed);
 
   if(!rows.length){
-    host.innerHTML = '<div class="online-compact-empty">Sem sessões online.</div>';
-    return;
-  }
-
-  host.innerHTML = rows.map(row => {
-    const stateClass = row._presenceStatus === 'online' ? 'online' : (row._presenceStatus === 'idle' ? 'idle' : '');
-    const name = escapeHtml(row.nome || row.userId || 'Utilizador');
-    const meta = escapeHtml(`${row.role || '-'} · ${row.device || '-'}`);
-    const page = escapeHtml(row.pagina || 'Dashboard');
-    return `
-      <div class="online-compact-row">
-        <span class="online-compact-state ${stateClass}"></span>
-        <div class="online-compact-user">
-          <strong>${name}</strong>
-          <span>${meta}</span>
+    host.innerHTML = `
+      <div class="online-compact-head">
+        <div>
+          <div class="online-compact-title"><span class="online-compact-dot"></span><span>Equipa online</span></div>
+          <div class="online-compact-meta">Atualizado: ${updated}</div>
         </div>
-        <div class="online-compact-badge">${page}</div>
+        <div class="online-compact-actions">
+          <div class="online-compact-count">0</div>
+          <button type="button" class="online-compact-toggle" id="onlineCompactToggle">${collapsed ? '+' : '−'}</button>
+        </div>
+      </div>
+      <div class="online-compact-empty">Sem utilizadores online</div>
+    `;
+  } else {
+    host.innerHTML = `
+      <div class="online-compact-head">
+        <div>
+          <div class="online-compact-title"><span class="online-compact-dot"></span><span>Equipa online</span></div>
+          <div class="online-compact-meta">Atualizado: ${updated}</div>
+        </div>
+        <div class="online-compact-actions">
+          <div class="online-compact-count">${rows.length}</div>
+          <button type="button" class="online-compact-toggle" id="onlineCompactToggle">${collapsed ? '+' : '−'}</button>
+        </div>
+      </div>
+      <div class="online-compact-list">
+        ${rows.map(row => {
+          const status = row._presenceStatus === 'online' ? 'online' : (row._presenceStatus === 'idle' ? 'idle' : '');
+          const name = escapeHtml(row.nome || row.userId || 'Utilizador');
+          const meta = escapeHtml((row.role || '-') + ' · ' + (row.device || '-'));
+          const page = escapeHtml(row.pagina || 'Dashboard');
+          return `
+            <div class="online-compact-row">
+              <span class="online-compact-state ${status}"></span>
+              <div class="online-compact-user">
+                <strong>${name}</strong>
+                <span>${meta}</span>
+              </div>
+              <div class="online-compact-badge">${page}</div>
+            </div>
+          `;
+        }).join('')}
       </div>
     `;
-  }).join('');
+  }
+
+  const btn = $('onlineCompactToggle');
+  if(btn){
+    btn.onclick = () => {
+      const next = !(localStorage.getItem('online_widget_collapsed') === '1');
+      localStorage.setItem('online_widget_collapsed', next ? '1' : '0');
+      renderOnlineCompactWidget(activeRows);
+    };
+  }
 }
 
 function renderOnlineUsersList(){
