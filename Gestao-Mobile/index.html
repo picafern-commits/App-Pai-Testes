@@ -4039,26 +4039,14 @@ async function deleteTrabalho(id){
     }
   }
 
-  const idx = lista.findIndex(x => String(x.id) === String(id));
-  if(idx === -1){
-    try{
-      if(Array.isArray(window.trabalhos)){
-        const idx2 = window.trabalhos.findIndex(x => String(x.id) === String(id));
-        if(idx2 !== -1){
-          window.trabalhos.splice(idx2, 1);
-          localStorage.setItem('trabalhos', JSON.stringify(window.trabalhos));
-        }
-      }
-    }catch(e){}
-  }else{
-    lista.splice(idx, 1);
-    try{
-      localStorage.setItem('trabalhos', JSON.stringify(lista));
-    }catch(e){}
-    try{
-      window.trabalhos = lista;
-      if(typeof trabalhos !== 'undefined'){ trabalhos = lista; }
-    }catch(e){}
+  const novaLista = (Array.isArray(lista) ? lista : []).filter(x => String(x.id) !== String(id));
+
+  try{
+    localStorage.setItem('trabalhos', JSON.stringify(novaLista));
+    window.trabalhos = novaLista;
+    if(typeof trabalhos !== 'undefined'){ trabalhos = novaLista; }
+  }catch(e){
+    console.error('Erro ao guardar lista após apagar:', e);
   }
 
   try{
@@ -4073,10 +4061,13 @@ async function deleteTrabalho(id){
     console.error('Erro a apagar no Firebase:', e);
   }
 
+  try{ if(typeof renderAll === 'function') renderAll(); }catch(e){}
   try{ if(typeof renderTrabalhos === 'function') renderTrabalhos(); }catch(e){}
   try{ if(typeof renderDashboard === 'function') renderDashboard(); }catch(e){}
   try{ if(typeof renderPagamentos === 'function') renderPagamentos(); }catch(e){}
   try{ if(typeof renderRelatorios === 'function') renderRelatorios(); }catch(e){}
+  try{ if(typeof setRoleUI === 'function') setRoleUI(); }catch(e){}
+  try{ if(typeof applyRoleUiRestrictions === 'function') applyRoleUiRestrictions(); }catch(e){}
 }
 
 </script>
