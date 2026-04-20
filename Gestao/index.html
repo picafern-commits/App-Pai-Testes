@@ -3771,7 +3771,10 @@ document.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'visible') writePresence(true, { pagina: currentPresencePage || 'Dashboard' });
 });
 
-
+let currentRole = 'master_admin';
+let currentUsername = '';
+let currentUserEmail = '';
+let currentUserUid = '';
 const $ = (id) => document.getElementById(id);
 initUiScale();
 const navButtons = document.querySelectorAll('.nav-btn');
@@ -6125,19 +6128,17 @@ window.performLogout = async function(){
 };
 
 
-window.startApp = function(sessionOrRole, maybeUsername){
-  const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
-  currentRole = session.role;
-  currentUsername = session.username;
-  currentUserEmail = session.email || currentUserEmail || null;
-  currentUserUid = session.uid || currentUserUid || null;
-  loadLocal();
-  setRoleUI();
+window.startApp = function(session){
+
+  currentRole = session.role || 'master_admin';
+  currentUsername = session.username || 'user';
+  currentUserEmail = session.email || '';
+  currentUserUid = session.uid || '';
+
+  document.getElementById('appUserName').textContent = currentUsername;
+
   renderAll();
-  initFirebaseSync()
-    .then(() => startPresenceTracking())
-    .catch(err => console.error(err));
-};
+}
 
 
 function todayLocalDate(){
