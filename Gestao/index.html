@@ -3604,7 +3604,95 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script id="final-sidebar-nav-fix">
+(function(){
+  function safeRender(tab){
+    try{
+      if(tab==='dashboard' && typeof window.renderDashboard==='function') window.renderDashboard();
+      if(tab==='dashboard' && typeof window.renderAlerts==='function') window.renderAlerts();
+      if(tab==='trabalhos' && typeof window.renderTrabalhos==='function') window.renderTrabalhos();
+      if(tab==='clientes' && typeof window.renderClientes==='function') window.renderClientes();
+      if(tab==='pagamentos' && typeof window.renderPagamentos==='function') window.renderPagamentos();
+      if(tab==='relatorios' && typeof window.renderRelatorios==='function') window.renderRelatorios();
+      if(tab==='configuracoes' && typeof window.bindUiScaleSelector==='function') window.bindUiScaleSelector();
+      if(tab==='configuracoes' && typeof window.renderManagedUsers==='function') window.renderManagedUsers();
+      if(tab==='configuracoes' && typeof renderManagedUsers==='function') renderManagedUsers();
+    }catch(err){ console.warn('Erro ao renderizar tab', tab, err); }
+  }
+  function updateTitle(tab){
+    var titleMap = {
+      dashboard:'Dashboard',
+      adicionar:'Adicionar Trabalho',
+      trabalhos:'Histórico Trabalhos',
+      clientes:'Clientes',
+      pagamentos:'Pagamentos',
+      relatorios:'Relatórios',
+      configuracoes:'Configurações'
+    };
+    var titleEl = document.getElementById('pageTitle');
+    if(titleEl) titleEl.textContent = titleMap[tab] || 'Dashboard';
+  }
+  function closeSidebar(){
+    try{
+      var appRoot = document.getElementById('appRoot');
+      var overlay = document.getElementById('sidebarOverlay');
+      var toggle = document.getElementById('sidebarToggle');
+      if(window.matchMedia('(max-width: 900px)').matches){
+        if(appRoot) appRoot.classList.remove('sidebar-open');
+        if(overlay) overlay.classList.remove('open');
+        if(toggle) toggle.setAttribute('aria-expanded','false');
+      }
+    }catch(err){}
+  }
+  window.switchTab = function(tab){
+    try{
+      document.querySelectorAll('.nav-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.tab===tab);
+      });
+      document.querySelectorAll('.bottom-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.tab===tab);
+      });
+      document.querySelectorAll('.page').forEach(function(p){
+        p.classList.toggle('active', p.id === tab + '-page');
+      });
+      try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(err){}
+      updateTitle(tab);
+      safeRender(tab);
+      if(typeof window.updatePresencePage==='function'){
+        try{ window.updatePresencePage((document.getElementById('pageTitle')||{}).textContent || tab); }catch(err){}
+      }
+      closeSidebar();
+      window.scrollTo({top:0, behavior:'smooth'});
+      return false;
+    }catch(err){
+      console.error('Falha no switchTab final', err);
+      return false;
+    }
+  };
+  function bindButtons(){
+    document.querySelectorAll('.nav-btn,.bottom-btn,[data-go]').forEach(function(btn){
+      if(btn.dataset.sidebarBound==='1') return;
+      btn.dataset.sidebarBound='1';
+      btn.addEventListener('click', function(ev){
+        var tab = btn.dataset.tab || btn.dataset.go;
+        if(!tab) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.switchTab(tab);
+      }, true);
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bindButtons);
+  } else {
+    bindButtons();
+  }
+  window.addEventListener('load', bindButtons);
+})();
+</script>
+
+</body>
   </html>`;
 }
 
@@ -5581,7 +5669,95 @@ td.acoes-col, .acoes-col{
 .nav,.nav-btn,.sidebar-footer{position:relative;z-index:1601;pointer-events:auto;}
 .main{position:relative;z-index:1;}
 </style>
-</head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</head><body>${bodyHtml}
+<script id="final-sidebar-nav-fix">
+(function(){
+  function safeRender(tab){
+    try{
+      if(tab==='dashboard' && typeof window.renderDashboard==='function') window.renderDashboard();
+      if(tab==='dashboard' && typeof window.renderAlerts==='function') window.renderAlerts();
+      if(tab==='trabalhos' && typeof window.renderTrabalhos==='function') window.renderTrabalhos();
+      if(tab==='clientes' && typeof window.renderClientes==='function') window.renderClientes();
+      if(tab==='pagamentos' && typeof window.renderPagamentos==='function') window.renderPagamentos();
+      if(tab==='relatorios' && typeof window.renderRelatorios==='function') window.renderRelatorios();
+      if(tab==='configuracoes' && typeof window.bindUiScaleSelector==='function') window.bindUiScaleSelector();
+      if(tab==='configuracoes' && typeof window.renderManagedUsers==='function') window.renderManagedUsers();
+      if(tab==='configuracoes' && typeof renderManagedUsers==='function') renderManagedUsers();
+    }catch(err){ console.warn('Erro ao renderizar tab', tab, err); }
+  }
+  function updateTitle(tab){
+    var titleMap = {
+      dashboard:'Dashboard',
+      adicionar:'Adicionar Trabalho',
+      trabalhos:'Histórico Trabalhos',
+      clientes:'Clientes',
+      pagamentos:'Pagamentos',
+      relatorios:'Relatórios',
+      configuracoes:'Configurações'
+    };
+    var titleEl = document.getElementById('pageTitle');
+    if(titleEl) titleEl.textContent = titleMap[tab] || 'Dashboard';
+  }
+  function closeSidebar(){
+    try{
+      var appRoot = document.getElementById('appRoot');
+      var overlay = document.getElementById('sidebarOverlay');
+      var toggle = document.getElementById('sidebarToggle');
+      if(window.matchMedia('(max-width: 900px)').matches){
+        if(appRoot) appRoot.classList.remove('sidebar-open');
+        if(overlay) overlay.classList.remove('open');
+        if(toggle) toggle.setAttribute('aria-expanded','false');
+      }
+    }catch(err){}
+  }
+  window.switchTab = function(tab){
+    try{
+      document.querySelectorAll('.nav-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.tab===tab);
+      });
+      document.querySelectorAll('.bottom-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.tab===tab);
+      });
+      document.querySelectorAll('.page').forEach(function(p){
+        p.classList.toggle('active', p.id === tab + '-page');
+      });
+      try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(err){}
+      updateTitle(tab);
+      safeRender(tab);
+      if(typeof window.updatePresencePage==='function'){
+        try{ window.updatePresencePage((document.getElementById('pageTitle')||{}).textContent || tab); }catch(err){}
+      }
+      closeSidebar();
+      window.scrollTo({top:0, behavior:'smooth'});
+      return false;
+    }catch(err){
+      console.error('Falha no switchTab final', err);
+      return false;
+    }
+  };
+  function bindButtons(){
+    document.querySelectorAll('.nav-btn,.bottom-btn,[data-go]').forEach(function(btn){
+      if(btn.dataset.sidebarBound==='1') return;
+      btn.dataset.sidebarBound='1';
+      btn.addEventListener('click', function(ev){
+        var tab = btn.dataset.tab || btn.dataset.go;
+        if(!tab) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.switchTab(tab);
+      }, true);
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bindButtons);
+  } else {
+    bindButtons();
+  }
+  window.addEventListener('load', bindButtons);
+})();
+</script>
+
+</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -7002,7 +7178,95 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script id="final-sidebar-nav-fix">
+(function(){
+  function safeRender(tab){
+    try{
+      if(tab==='dashboard' && typeof window.renderDashboard==='function') window.renderDashboard();
+      if(tab==='dashboard' && typeof window.renderAlerts==='function') window.renderAlerts();
+      if(tab==='trabalhos' && typeof window.renderTrabalhos==='function') window.renderTrabalhos();
+      if(tab==='clientes' && typeof window.renderClientes==='function') window.renderClientes();
+      if(tab==='pagamentos' && typeof window.renderPagamentos==='function') window.renderPagamentos();
+      if(tab==='relatorios' && typeof window.renderRelatorios==='function') window.renderRelatorios();
+      if(tab==='configuracoes' && typeof window.bindUiScaleSelector==='function') window.bindUiScaleSelector();
+      if(tab==='configuracoes' && typeof window.renderManagedUsers==='function') window.renderManagedUsers();
+      if(tab==='configuracoes' && typeof renderManagedUsers==='function') renderManagedUsers();
+    }catch(err){ console.warn('Erro ao renderizar tab', tab, err); }
+  }
+  function updateTitle(tab){
+    var titleMap = {
+      dashboard:'Dashboard',
+      adicionar:'Adicionar Trabalho',
+      trabalhos:'Histórico Trabalhos',
+      clientes:'Clientes',
+      pagamentos:'Pagamentos',
+      relatorios:'Relatórios',
+      configuracoes:'Configurações'
+    };
+    var titleEl = document.getElementById('pageTitle');
+    if(titleEl) titleEl.textContent = titleMap[tab] || 'Dashboard';
+  }
+  function closeSidebar(){
+    try{
+      var appRoot = document.getElementById('appRoot');
+      var overlay = document.getElementById('sidebarOverlay');
+      var toggle = document.getElementById('sidebarToggle');
+      if(window.matchMedia('(max-width: 900px)').matches){
+        if(appRoot) appRoot.classList.remove('sidebar-open');
+        if(overlay) overlay.classList.remove('open');
+        if(toggle) toggle.setAttribute('aria-expanded','false');
+      }
+    }catch(err){}
+  }
+  window.switchTab = function(tab){
+    try{
+      document.querySelectorAll('.nav-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.tab===tab);
+      });
+      document.querySelectorAll('.bottom-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.tab===tab);
+      });
+      document.querySelectorAll('.page').forEach(function(p){
+        p.classList.toggle('active', p.id === tab + '-page');
+      });
+      try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(err){}
+      updateTitle(tab);
+      safeRender(tab);
+      if(typeof window.updatePresencePage==='function'){
+        try{ window.updatePresencePage((document.getElementById('pageTitle')||{}).textContent || tab); }catch(err){}
+      }
+      closeSidebar();
+      window.scrollTo({top:0, behavior:'smooth'});
+      return false;
+    }catch(err){
+      console.error('Falha no switchTab final', err);
+      return false;
+    }
+  };
+  function bindButtons(){
+    document.querySelectorAll('.nav-btn,.bottom-btn,[data-go]').forEach(function(btn){
+      if(btn.dataset.sidebarBound==='1') return;
+      btn.dataset.sidebarBound='1';
+      btn.addEventListener('click', function(ev){
+        var tab = btn.dataset.tab || btn.dataset.go;
+        if(!tab) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.switchTab(tab);
+      }, true);
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bindButtons);
+  } else {
+    bindButtons();
+  }
+  window.addEventListener('load', bindButtons);
+})();
+</script>
+
+</body>
   </html>`;
 }
 
@@ -7088,6 +7352,94 @@ function printProfessionalReport(){
   .sidebar-toggle{display:none!important}
 }
 </style>
+
+
+<script id="final-sidebar-nav-fix">
+(function(){
+  function safeRender(tab){
+    try{
+      if(tab==='dashboard' && typeof window.renderDashboard==='function') window.renderDashboard();
+      if(tab==='dashboard' && typeof window.renderAlerts==='function') window.renderAlerts();
+      if(tab==='trabalhos' && typeof window.renderTrabalhos==='function') window.renderTrabalhos();
+      if(tab==='clientes' && typeof window.renderClientes==='function') window.renderClientes();
+      if(tab==='pagamentos' && typeof window.renderPagamentos==='function') window.renderPagamentos();
+      if(tab==='relatorios' && typeof window.renderRelatorios==='function') window.renderRelatorios();
+      if(tab==='configuracoes' && typeof window.bindUiScaleSelector==='function') window.bindUiScaleSelector();
+      if(tab==='configuracoes' && typeof window.renderManagedUsers==='function') window.renderManagedUsers();
+      if(tab==='configuracoes' && typeof renderManagedUsers==='function') renderManagedUsers();
+    }catch(err){ console.warn('Erro ao renderizar tab', tab, err); }
+  }
+  function updateTitle(tab){
+    var titleMap = {
+      dashboard:'Dashboard',
+      adicionar:'Adicionar Trabalho',
+      trabalhos:'Histórico Trabalhos',
+      clientes:'Clientes',
+      pagamentos:'Pagamentos',
+      relatorios:'Relatórios',
+      configuracoes:'Configurações'
+    };
+    var titleEl = document.getElementById('pageTitle');
+    if(titleEl) titleEl.textContent = titleMap[tab] || 'Dashboard';
+  }
+  function closeSidebar(){
+    try{
+      var appRoot = document.getElementById('appRoot');
+      var overlay = document.getElementById('sidebarOverlay');
+      var toggle = document.getElementById('sidebarToggle');
+      if(window.matchMedia('(max-width: 900px)').matches){
+        if(appRoot) appRoot.classList.remove('sidebar-open');
+        if(overlay) overlay.classList.remove('open');
+        if(toggle) toggle.setAttribute('aria-expanded','false');
+      }
+    }catch(err){}
+  }
+  window.switchTab = function(tab){
+    try{
+      document.querySelectorAll('.nav-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.tab===tab);
+      });
+      document.querySelectorAll('.bottom-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.tab===tab);
+      });
+      document.querySelectorAll('.page').forEach(function(p){
+        p.classList.toggle('active', p.id === tab + '-page');
+      });
+      try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(err){}
+      updateTitle(tab);
+      safeRender(tab);
+      if(typeof window.updatePresencePage==='function'){
+        try{ window.updatePresencePage((document.getElementById('pageTitle')||{}).textContent || tab); }catch(err){}
+      }
+      closeSidebar();
+      window.scrollTo({top:0, behavior:'smooth'});
+      return false;
+    }catch(err){
+      console.error('Falha no switchTab final', err);
+      return false;
+    }
+  };
+  function bindButtons(){
+    document.querySelectorAll('.nav-btn,.bottom-btn,[data-go]').forEach(function(btn){
+      if(btn.dataset.sidebarBound==='1') return;
+      btn.dataset.sidebarBound='1';
+      btn.addEventListener('click', function(ev){
+        var tab = btn.dataset.tab || btn.dataset.go;
+        if(!tab) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.switchTab(tab);
+      }, true);
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bindButtons);
+  } else {
+    bindButtons();
+  }
+  window.addEventListener('load', bindButtons);
+})();
+</script>
 
 </body>
 </html>
