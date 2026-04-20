@@ -2824,12 +2824,6 @@ function getAllowedTabsForRole(role='user'){
   return getRoleDefinition(role).tabs || ['dashboard'];
 }
 
-
-if (typeof globalThis.currentRole === 'undefined') globalThis.currentRole = '';
-if (typeof globalThis.currentUsername === 'undefined') globalThis.currentUsername = '';
-if (typeof globalThis.currentUserEmail === 'undefined') globalThis.currentUserEmail = '';
-if (typeof globalThis.currentUserUid === 'undefined') globalThis.currentUserUid = '';
-
 function hasRolePermission(permission, role=globalThis.currentRole){
   if(!permission) return true;
   const def = getRoleDefinition(role);
@@ -2916,7 +2910,7 @@ function bootFromSession(){
   if(!session || !window.startApp) return false;
 
   showApp();
-  window.startApp(session);
+  window.startApp(session.role, session.username);
   return true;
 }
 
@@ -3613,7 +3607,7 @@ import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'ht
 const APP_VERSION = '1.0.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
 
-let currentRole = globalThis.currentRole || null, currentUsername = globalThis.currentUsername || null, currentUserEmail = globalThis.currentUserEmail || null, currentUserUid = globalThis.currentUserUid || null;
+let currentRole = null, currentUsername = null, currentUserEmail = null, currentUserUid = null;
 let trabalhos = [], clientes = [], pagamentos = [];
 let lastTrabId = 0;
 
@@ -3823,7 +3817,7 @@ function initUiScale(){
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const isMasterAdmin = () => globalThis.currentRole === 'master_admin';
+const isMasterAdmin = () => currentRole === 'master_admin';
 const isAdminLike = () => hasRolePermission('manage_work_orders') || hasRolePermission('manage_clients') || hasRolePermission('manage_payments') || isMasterAdmin();
 
 
@@ -4249,14 +4243,14 @@ function setSyncMessage(msg, level='warn'){
   }
 }
 function setRoleUI(){
-  if(!globalThis.currentRole) return;
-  const roleLabel = globalThis.currentRole === 'master_admin' ? 'Admin Mestre' : (globalThis.currentRole === 'admin' ? 'Admin' : 'User');
-  document.body.classList.toggle('role-view-user', globalThis.currentRole === 'user');
-  document.body.classList.toggle('role-view-admin', globalThis.currentRole === 'admin');
+  if(!currentRole) return;
+  const roleLabel = currentRole === 'master_admin' ? 'Admin Mestre' : (currentRole === 'admin' ? 'Admin' : 'User');
+  document.body.classList.toggle('role-view-user', currentRole === 'user');
+  document.body.classList.toggle('role-view-admin', currentRole === 'admin');
   $('roleBadge').textContent = roleLabel;
   $('roleLine').textContent = `Role: ${roleLabel}`;
   $('versionBadge').textContent = APP_VERSION;
-  $('currentUserName').textContent = globalThis.currentUsername || 'Utilizador';
+  $('currentUserName').textContent = currentUsername || 'Utilizador';
   const usersSection = $('usersSection');
   if(usersSection) usersSection.style.display = isMasterAdmin() ? 'block' : 'none';
   const workCodeField = $('workCodeDisplay');
@@ -4271,9 +4265,8 @@ function setRoleUI(){
   updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
-  if (!globalThis.currentRole) globalThis.currentRole = 'master_admin';
-  if(!canAccessTab(tab, globalThis.currentRole)){
-    const fallback = getAllowedTabsForRole(globalThis.currentRole)[0] || 'dashboard';
+  if(!canAccessTab(tab)){
+    const fallback = getAllowedTabsForRole(currentRole)[0] || 'dashboard';
     if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
     tab = fallback;
   }
@@ -4304,15 +4297,25 @@ navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
 
+let realtimeRenderTimer = null;
+
+function scheduleRealtimeRender(){
+  clearTimeout(realtimeRenderTimer);
+  realtimeRenderTimer = setTimeout(() => {
+    try{
+      const activePage = document.querySelector('.page.active');
+      const activeTab = activePage ? activePage.id.replace(/-page$/, '') : (sessionStorage.getItem('gestao:lastTab') || 'dashboard');
+      sessionStorage.setItem('gestao:lastTab', activeTab);
+      renderAll();
+      try{ switchTab(activeTab); }catch(e){}
+    }catch(e){
+      console.error('Erro no realtime render:', e);
+    }
+  }, 80);
+}
+
 function forceAppRefresh(){
-  try{
-    const activePage = document.querySelector('.page.active');
-    const activeTab = activePage ? activePage.id.replace(/-page$/, '') : (sessionStorage.getItem('gestao:lastTab') || 'dashboard');
-    sessionStorage.setItem('gestao:lastTab', activeTab);
-  }catch(e){}
-  setTimeout(()=>{
-    try{ window.location.reload(); }catch(e){ location.reload(); }
-  }, 120);
+  scheduleRealtimeRender();
 }
 try{
   const restoreTab = sessionStorage.getItem('gestao:lastTab');
@@ -4358,7 +4361,7 @@ async function initFirebaseSync(){
         setSyncMessage(user ? 'Firebase Sync' : 'Firebase pronto', user ? 'ok' : 'warn');
         clearRealtimeListeners();
         attachRealtimeListeners();
-        if (currentRole) renderAll();
+        if (globalThis.currentRole) scheduleRealtimeRender();
       });
 
       await waitForFirebaseSyncReady();
@@ -4390,7 +4393,7 @@ function attachRealtimeListeners(){
       const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setter(rows);
       saveLocal();
-      if (currentRole) renderAll();
+      if (globalThis.currentRole) scheduleRealtimeRender();
     }, err => {
       console.error(`Snapshot ${name} failed:`, err);
       setSyncMessage('Erro de sync, uso local', 'bad');
@@ -5877,8 +5880,7 @@ function renderRelatorios() {
         .join('')
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
-function renderDashboardAgenda(){ return; }
-function renderAll(){ if(!(globalThis.currentRole || currentRole)) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){}
   renderManagedUsers();
   updateWorkCodePreview();
@@ -6137,8 +6139,6 @@ window.performLogin = async function(email, password){
   const role = profile?.role || 'consulta';
   currentUserUid = authUser.uid || null;
   currentUserEmail = authUser.email || email;
-  globalThis.currentUserUid = currentUserUid;
-  globalThis.currentUserEmail = currentUserEmail;
   return { role, username, email: currentUserEmail, uid: currentUserUid };
 };
 
@@ -6147,21 +6147,15 @@ window.performLogout = async function(){
   try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
   currentUserUid = null;
   currentUserEmail = null;
-  globalThis.currentUserUid = null;
-  globalThis.currentUserEmail = null;
 };
 
 
 window.startApp = function(sessionOrRole, maybeUsername){
   const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
-  currentRole = session.role || 'master_admin';
-  currentUsername = session.username || 'user';
+  currentRole = session.role;
+  currentUsername = session.username;
   currentUserEmail = session.email || currentUserEmail || null;
   currentUserUid = session.uid || currentUserUid || null;
-  globalThis.currentRole = currentRole;
-  globalThis.currentUsername = currentUsername;
-  globalThis.currentUserEmail = currentUserEmail;
-  globalThis.currentUserUid = currentUserUid;
   loadLocal();
   setRoleUI();
   renderAll();
