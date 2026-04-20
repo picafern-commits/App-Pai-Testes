@@ -3694,54 +3694,42 @@ function printProfessionalReport(){
 
 async function deleteTrabalho(id){
   try{
-    const ok = confirm('Apagar este trabalho?');
-    if(!ok) return;
+    if(!confirm('Apagar este trabalho?')) return;
   }catch(e){}
 
-  let lista = [];
-  try{
-    lista = JSON.parse(localStorage.getItem('trabalhos') || '[]');
-  }catch(e){
-    lista = [];
-  }
-
-  if(!Array.isArray(lista) || !lista.length){
-    try{
-      lista = Array.isArray(window.trabalhos) ? [...window.trabalhos] : [];
-    }catch(e){
-      lista = [];
-    }
-  }
-
-  const novaLista = (Array.isArray(lista) ? lista : []).filter(x => String(x.id) !== String(id));
+  // usar sempre a lista em memória da app
+  let lista = Array.isArray(trabalhos) ? [...trabalhos] : [];
+  const novaLista = lista.filter(x => String(x.id) !== String(id));
 
   try{
-    localStorage.setItem('trabalhos', JSON.stringify(novaLista));
+    trabalhos = novaLista;
     window.trabalhos = novaLista;
-    if(typeof trabalhos !== 'undefined'){ trabalhos = novaLista; }
+    if(typeof saveLocal === 'function'){
+      saveLocal();
+    }else if(typeof saveData === 'function'){
+      saveData();
+    }else{
+      localStorage.setItem(STORAGE_KEYS.trabalhos, JSON.stringify(novaLista));
+    }
   }catch(e){
     console.error('Erro ao guardar lista após apagar:', e);
   }
 
   try{
-    if(typeof deleteRemote === 'function'){
-      await deleteRemote('trabalhos', id);
-    }else if(typeof removeRemote === 'function'){
+    if(typeof removeRemote === 'function'){
       await removeRemote('trabalhos', id);
-    }else if(typeof deleteDocSafe === 'function'){
-      await deleteDocSafe('trabalhos', id);
+    }else if(typeof deleteRemote === 'function'){
+      await deleteRemote('trabalhos', id);
     }
   }catch(e){
     console.error('Erro a apagar no Firebase:', e);
   }
 
-  try{ if(typeof renderAll === 'function') renderAll(); }catch(e){}
   try{ if(typeof renderTrabalhos === 'function') renderTrabalhos(); }catch(e){}
   try{ if(typeof renderDashboard === 'function') renderDashboard(); }catch(e){}
   try{ if(typeof renderPagamentos === 'function') renderPagamentos(); }catch(e){}
   try{ if(typeof renderRelatorios === 'function') renderRelatorios(); }catch(e){}
-  try{ if(typeof setRoleUI === 'function') setRoleUI(); }catch(e){}
-  try{ if(typeof applyRoleUiRestrictions === 'function') applyRoleUiRestrictions(); }catch(e){}
+  try{ if(typeof renderMobileCards === 'function') renderMobileCards(); }catch(e){}
 }
 
 </script>
