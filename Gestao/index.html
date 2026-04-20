@@ -5889,11 +5889,41 @@ $('closeDescModal')?.addEventListener('click', ()=> $('descModal').classList.add
 $('descModal')?.addEventListener('click', (e)=>{ if(e.target.id === 'descModal') $('descModal').classList.add('hidden'); });
 
 let pendingPaymentWorkId = null;
+let paymentActionInFlight = false;
+
+function setPaymentButtonsDisabled(disabled){
+  document.querySelectorAll('.pay-method-btn').forEach(btn => {
+    btn.disabled = !!disabled;
+    btn.dataset.busy = disabled ? '1' : '0';
+  });
+  const closeBtn = $('closePaymentMethodModal');
+  const cancelBtn = $('cancelPaymentMethodAction');
+  if(closeBtn) closeBtn.disabled = !!disabled;
+  if(cancelBtn) cancelBtn.disabled = !!disabled;
+}
+
+function resetPaymentMethodModalState(){
+  const hiddenId = $('paymentWorkId');
+  const methodInput = $('paymentMethodInput');
+  const valueInput = $('paymentValueInput');
+  const dateInput = $('paymentDateInput');
+  const jobName = $('paymentJobName');
+  const jobClient = $('paymentJobClient');
+  if(hiddenId) hiddenId.value = '';
+  if(methodInput) methodInput.value = '';
+  if(valueInput) valueInput.value = '';
+  if(dateInput) dateInput.value = todayLocalDate();
+  if(jobName) jobName.textContent = '-';
+  if(jobClient) jobClient.textContent = '';
+  paymentActionInFlight = false;
+  setPaymentButtonsDisabled(false);
+}
 
 window.marcarComoPagoComValor = function(id){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
   pendingPaymentWorkId = id;
+  paymentActionInFlight = false;
   const hiddenId = $('paymentWorkId');
   const methodInput = $('paymentMethodInput');
   const valueInput = $('paymentValueInput');
@@ -5902,28 +5932,37 @@ window.marcarComoPagoComValor = function(id){
   if(valueInput) valueInput.value = String(t.valorPago ?? t.valor ?? '').replace('.', ',');
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
   $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
-  if($('paymentDateInput')) { $('paymentDateInput').value = t.dataPagamento || todayLocalDate(); $('paymentDateInput').removeAttribute('readonly'); $('paymentDateInput').disabled = false; setTimeout(() => { const el = $('paymentDateInput'); if(el && !el.value) el.value = todayLocalDate(); }, 0); }
+  if($('paymentDateInput')) {
+    $('paymentDateInput').value = t.dataPagamento || todayLocalDate();
+    $('paymentDateInput').removeAttribute('readonly');
+    $('paymentDateInput').disabled = false;
+    setTimeout(() => {
+      const el = $('paymentDateInput');
+      if(el && !el.value) el.value = todayLocalDate();
+    }, 0);
+  }
+  setPaymentButtonsDisabled(false);
   $('paymentMethodModal').classList.remove('hidden');
   $('paymentMethodModal').classList.add('show');
   $('paymentMethodModal').style.display = 'flex';
 };
 
-function hardClosePaymentMethodModal(){
+function hardClosePaymentMethodModal(force=false){
   const modal = $('paymentMethodModal');
   if(!modal) return;
+  if(paymentActionInFlight && !force) return;
   pendingPaymentWorkId = null;
   modal.classList.add('hidden');
   modal.classList.remove('show');
   modal.style.display = 'none';
-  const hiddenId = $('paymentWorkId');
-  const methodInput = $('paymentMethodInput');
-  const valueInput = $('paymentValueInput');
-  if(hiddenId) hiddenId.value = '';
-  if(methodInput) methodInput.value = '';
-  if(valueInput) valueInput.value = '';
+  resetPaymentMethodModalState();
 }
 
 $('closePaymentMethodModal')?.addEventListener('click', ()=>{
+  hardClosePaymentMethodModal();
+  refreshVisibleUi();
+});
+$('cancelPaymentMethodAction')?.addEventListener('click', ()=>{
   hardClosePaymentMethodModal();
   refreshVisibleUi();
 });
@@ -5933,24 +5972,35 @@ $('paymentMethodModal')?.addEventListener('click', (e)=>{
     refreshVisibleUi();
   }
 });
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && $('paymentMethodModal') && !$('paymentMethodModal').classList.contains('hidden')){
+    hardClosePaymentMethodModal();
+    refreshVisibleUi();
+  }
+});
 document.addEventListener('click', async (e)=>{
   const btn = e.target.closest('.pay-method-btn');
   if(!btn) return;
-  if(!pendingPaymentWorkId) return;
+  if(!pendingPaymentWorkId || paymentActionInFlight) return;
   const method = btn.dataset.method || 'Manual';
   const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
   const selectedPaymentValue = $('paymentValueInput')?.value || '';
   const numericValue = Number(String(selectedPaymentValue).trim().replace(',', '.'));
-  if(!selectedPaymentValue || Number.isNaN(numericValue)){
+  if(!selectedPaymentValue || Number.isNaN(numericValue) || numericValue <= 0){
     alert('Introduz um valor de pagamento válido.');
     return;
   }
+  paymentActionInFlight = true;
+  setPaymentButtonsDisabled(true);
   const workId = pendingPaymentWorkId;
   const ok = await window.markAsPaid(workId, method, selectedPaymentDate, numericValue);
   if(ok){
-    hardClosePaymentMethodModal();
+    hardClosePaymentMethodModal(true);
     renderAll();
     refreshVisibleUi();
+  } else {
+    paymentActionInFlight = false;
+    setPaymentButtonsDisabled(false);
   }
 });
 
@@ -6550,10 +6600,13 @@ function printProfessionalReport(){
 <input id="paymentDateInput" type="date" />
 <div class="field-group payment-value-group"><label for="paymentValueInput">Valor</label><input type="number" step="0.01" id="paymentValueInput" placeholder="0,00"></div></div>
         <div class="payment-method-grid">
-          <button class="pay-method-btn" data-method="Dinheiro">Dinheiro</button>
-          <button class="pay-method-btn" data-method="MB Way">MB Way</button>
-          <button class="pay-method-btn" data-method="Transferência">Transferência</button>
-          <button class="pay-method-btn" data-method="Multibanco">Multibanco</button>
+          <button class="pay-method-btn" type="button" data-method="Dinheiro">Dinheiro</button>
+          <button class="pay-method-btn" type="button" data-method="MB Way">MB Way</button>
+          <button class="pay-method-btn" type="button" data-method="Transferência">Transferência</button>
+          <button class="pay-method-btn" type="button" data-method="Multibanco">Multibanco</button>
+        </div>
+        <div class="row-actions" style="justify-content:flex-end; margin-top:10px;">
+          <button id="cancelPaymentMethodAction" type="button" class="btn btn-secondary">Cancelar</button>
         </div>
       </div>
     </div>
