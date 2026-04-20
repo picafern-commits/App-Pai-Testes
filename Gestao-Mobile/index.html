@@ -3050,7 +3050,7 @@ td.acoes-col, .acoes-col{
                   <input type="hidden" id="managedUserIndex" />
                   <div class="field"><label>Nome</label><input id="managedUsername" type="text" required /></div>
                   <div class="field"><label>Email Firebase</label><input id="managedEmail" type="email" placeholder="nome@empresa.pt" required /></div>
-                  <div class="field"><label>Tipo</label><select id="managedRole"><option value="user">User</option><option value="admin">Admin</option><option value="master_admin">Master Admin</option></select></div>
+                  <div class="field"><label>Tipo</label><select id="managedRole"><option value="consulta">Consulta</option><option value="operador">Operador</option><option value="financeiro">Financeiro</option><option value="gestor">Gestor</option><option value="admin">Admin</option><option value="master_admin">Master Admin</option></select></div>
                   <div class="field"><label>Palavra-passe de referência</label><input id="managedPassword" type="text" placeholder="Só para referência interna" required /></div>
                   <div class="field field-span-2">
                     <div class="inline-actions">
@@ -3059,6 +3059,22 @@ td.acoes-col, .acoes-col{
                     </div>
                   </div>
                 </form>
+              </section>
+              <section class="panel wide-panel history-panel">
+                <div class="panel-head"><h3>Matriz de roles</h3></div>
+                <div class="table-wrap">
+                  <table>
+                    <thead><tr><th>Role</th><th>Acesso</th><th>Permissões principais</th></tr></thead>
+                    <tbody>
+                      <tr><td>Consulta</td><td>Dashboard, Trabalhos, Clientes, Relatórios</td><td>Leitura geral</td></tr>
+                      <tr><td>Operador</td><td>Dashboard, Adicionar, Trabalhos, Clientes</td><td>Criar/editar trabalhos</td></tr>
+                      <tr><td>Financeiro</td><td>Dashboard, Trabalhos, Clientes, Pagamentos, Relatórios</td><td>Fechar e apagar pagamentos</td></tr>
+                      <tr><td>Gestor</td><td>Dashboard, Adicionar, Trabalhos, Clientes, Relatórios</td><td>Gere trabalhos e clientes</td></tr>
+                      <tr><td>Admin</td><td>Todas exceto gestão avançada de utilizadores</td><td>Operação completa</td></tr>
+                      <tr><td>Master Admin</td><td>Tudo</td><td>Utilizadores, app e permissões</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </section>
               <section class="panel wide-panel history-panel">
                 <div class="panel-head"><h3>Lista de utilizadores</h3></div>
@@ -3077,14 +3093,85 @@ td.acoes-col, .acoes-col{
       </section>
 <script>
 
+const ROLE_DEFINITIONS = {
+  consulta: {
+    label: 'Consulta',
+    description: 'Acesso de leitura para consulta e acompanhamento.',
+    tabs: ['dashboard', 'trabalhos', 'clientes', 'relatorios'],
+    permissions: ['view_dashboard', 'view_work_orders', 'view_clients', 'view_reports', 'view_payments']
+  },
+  operador: {
+    label: 'Operador',
+    description: 'Executa e acompanha trabalhos do dia a dia.',
+    tabs: ['dashboard', 'adicionar', 'trabalhos', 'clientes'],
+    permissions: ['view_dashboard', 'view_work_orders', 'manage_work_orders', 'view_clients']
+  },
+  financeiro: {
+    label: 'Financeiro',
+    description: 'Controla pagamentos, relatórios e fechos.',
+    tabs: ['dashboard', 'trabalhos', 'clientes', 'pagamentos', 'relatorios'],
+    permissions: ['view_dashboard', 'view_work_orders', 'view_clients', 'view_payments', 'manage_payments', 'view_reports']
+  },
+  gestor: {
+    label: 'Gestor',
+    description: 'Gere operação, clientes e acompanhamento.',
+    tabs: ['dashboard', 'adicionar', 'trabalhos', 'clientes', 'relatorios'],
+    permissions: ['view_dashboard', 'view_work_orders', 'manage_work_orders', 'view_clients', 'manage_clients', 'view_reports']
+  },
+  admin: {
+    label: 'Admin',
+    description: 'Administração operacional sem gestão total do sistema.',
+    tabs: ['dashboard', 'adicionar', 'trabalhos', 'clientes', 'pagamentos', 'relatorios', 'configuracoes'],
+    permissions: ['view_dashboard', 'view_work_orders', 'manage_work_orders', 'view_clients', 'manage_clients', 'view_payments', 'manage_payments', 'view_reports', 'view_settings']
+  },
+  master_admin: {
+    label: 'Admin Mestre',
+    description: 'Controlo total da app, utilizadores e configurações.',
+    tabs: ['dashboard', 'adicionar', 'trabalhos', 'clientes', 'pagamentos', 'relatorios', 'configuracoes'],
+    permissions: ['view_dashboard', 'view_work_orders', 'manage_work_orders', 'view_clients', 'manage_clients', 'view_payments', 'manage_payments', 'view_reports', 'view_settings', 'manage_users', 'manage_app']
+  }
+};
+
 const DEFAULT_USERS = [
   { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
-  { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'user' },
+  { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'financeiro' },
   { username: 'ricardo', email: 'ricardo@empresa.pt', password: '2297', role: 'master_admin' }
 ];
 
+function getRoleDefinition(role='user'){
+  return ROLE_DEFINITIONS[role] || ROLE_DEFINITIONS.consulta;
+}
+
+function getRoleLabel(role='user'){
+  return getRoleDefinition(role).label;
+}
+
+function getAllowedTabsForRole(role='user'){
+  return getRoleDefinition(role).tabs || ['dashboard'];
+}
+
+function hasRolePermission(permission, role=currentRole){
+  if(!permission) return true;
+  const def = getRoleDefinition(role);
+  return Array.isArray(def.permissions) && def.permissions.includes(permission);
+}
+
+function canAccessTab(tab, role=currentRole){
+  return getAllowedTabsForRole(role).includes(tab);
+}
+
+function roleGuard(permission, deniedMessage='Sem permissão para esta ação.'){
+  if(hasRolePermission(permission)) return true;
+  alert(deniedMessage);
+  return false;
+}
+
 function normalizeUsers(users){
-  const list = Array.isArray(users) ? users.slice() : [];
+  const validRoles = new Set(Object.keys(ROLE_DEFINITIONS));
+  const list = (Array.isArray(users) ? users.slice() : []).map(u => ({
+    ...u,
+    role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta'
+  }));
   const idx = list.findIndex(u => String(u.username || '').toLowerCase() === 'ricardo');
   const ricardo = { username: 'ricardo', email: 'ricardo@empresa.pt', password: '2297', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
@@ -4067,7 +4154,7 @@ const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', cu
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const isMasterAdmin = () => currentRole === 'master_admin';
-const isAdminLike = () => currentRole === 'admin' || currentRole === 'master_admin';
+const isAdminLike = () => hasRolePermission('manage_work_orders') || hasRolePermission('manage_clients') || hasRolePermission('manage_payments') || isMasterAdmin();
 
 
 function updateTrabalhoAdvancedFields(){
@@ -4438,7 +4525,7 @@ function renderManagedUsers(){
 }
 
 window.editManagedUser = function(index){
-  if(!isMasterAdmin()) return;
+  if(!hasRolePermission('manage_users')) return;
   const users = getManagedUsers();
   const u = users[index];
   if(!u) return;
@@ -4451,7 +4538,7 @@ window.editManagedUser = function(index){
 };
 
 window.deleteManagedUser = function(index){
-  if(!isMasterAdmin()) return;
+  if(!hasRolePermission('manage_users')) return;
   const users = getManagedUsers();
   const u = users[index];
   if(!u) return;
@@ -4514,6 +4601,11 @@ function setRoleUI(){
   updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
+  if(!canAccessTab(tab)){
+    const fallback = getAllowedTabsForRole(currentRole)[0] || 'dashboard';
+    if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
+    tab = fallback;
+  }
   try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(e){}
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   bottomButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -4660,7 +4752,7 @@ async function removeRemote(collectionName, id){
 }
 
 
-function adminGuard(){ if(!isAdminLike()){ alert('Só o Admin pode fazer alterações.'); return false; } return true; }
+function adminGuard(permission='manage_work_orders', deniedMessage='Sem permissão para esta ação.'){ return roleGuard(permission, deniedMessage); }
 function printHtml(title, bodyHtml){ const win=window.open('', '_blank'); if(!win) return; win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${title}</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#111}h1,h2{margin:0 0 10px}.meta{color:#555;margin-bottom:20px}.card{border:1px solid #ddd;border-radius:12px;padding:18px;margin:12px 0}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border-bottom:1px solid #ddd;padding:10px;text-align:left}
 /* ===== MOBILE PREMIUM OVERRIDES 1.0.6 ===== */
 @media (max-width: 900px){
@@ -5930,7 +6022,7 @@ function renderCalendario(){
                 ${(t.descricao || '').trim() ? `<div class="calendar-meta">${escapeHtml(t.descricao)}</div>` : ''}
               </div>
               <div class="row-actions">
-                <button class="small-btn" onclick="editTrabalho('${t.id}')">Editar</button>
+                ${hasRolePermission('manage_work_orders') ? `<button class="small-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : ''}
                 <button class="small-btn info" onclick="window.showDesc('${t.id}')">Descrição</button>
               </div>
             </div>
@@ -6007,8 +6099,8 @@ function renderAlerts(){
 
 function trabalhoActions(t){
   const showInvoice = (t.invoiceType || 'Com Fatura') === 'Com Fatura';
-  const canEdit = isAdminLike();
-  const canDelete = isAdminLike();
+  const canEdit = hasRolePermission('manage_work_orders');
+  const canDelete = hasRolePermission('manage_work_orders');
   const hasDesc = ((t.descricao || t.descrição || t.description || t.desc || '')).trim().length > 0;
   const flowButtons = buildFlowButtons(t);
   const descButton = hasDesc
@@ -6029,11 +6121,11 @@ function trabalhoActions(t){
 function clienteActions(c){
   const history=`<button class="small-btn" onclick="openClientHistory('${c.id}')">Histórico</button>`;
   const pdf=`<button class="small-btn" onclick="pdfCliente('${c.id}')">PDF</button>`;
-  return !isAdminLike() ? `${history}${pdf}` : `${history}${pdf}<button class="small-btn" onclick="editCliente('${c.id}')">Editar</button><button class="small-btn danger" onclick="deleteCliente('${c.id}')">Apagar</button>`;
+  return !hasRolePermission('manage_clients') ? `${history}${pdf}` : `${history}${pdf}<button class="small-btn" onclick="editCliente('${c.id}')">Editar</button><button class="small-btn danger" onclick="deleteCliente('${c.id}')">Apagar</button>`;
 }
 function pagamentoActions(p){
   const pdf=`<button class="small-btn" onclick="pdfPagamento('${p.id}')">PDF</button>`;
-  return !isAdminLike() ? pdf : `${pdf}<button class="small-btn" onclick="editPagamento('${p.id}')">Editar</button><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button>`;
+  return !hasRolePermission('manage_payments') ? pdf : `${pdf}<button class="small-btn" onclick="editPagamento('${p.id}')">Editar</button><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button>`;
 }
 function renderTrabalhos(){
   const term=$('searchTrabalhos').value.trim().toLowerCase();
@@ -6127,7 +6219,7 @@ function renderPagamentos() {
         <td>${euro(p.valor || 0)}</td>
         <td>${escapeHtml(p.metodo || 'Manual')}</td>
         <td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td>
-        <td><div class="row-actions">${isAdminLike() ? `<button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button>` : ''}</div></td>
+        <td><div class="row-actions">${hasRolePermission('manage_payments') ? `<button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button>` : ''}</div></td>
       </tr>`;
     }).join('')
     : '<tr><td colspan="7">Sem pagamentos registados.</td></tr>';
@@ -6213,7 +6305,7 @@ $('clearClienteBtn')?.addEventListener('click', ()=>{
 
 $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
-  if(!adminGuard()) return;
+  if(!adminGuard('manage_work_orders', 'Sem permissão para gerir trabalhos.')) return;
 
   const existingId = $('trabalhoId').value;
   const manualWorkCode = ($('workCodeDisplay')?.value || '').trim();
@@ -6267,7 +6359,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
 
 $('clienteForm')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
-  if(!adminGuard()) return;
+  if(!adminGuard('manage_work_orders', 'Sem permissão para gerir trabalhos.')) return;
   const item={
     id:$('clienteId').value || genId('cli'),
     nome:$('clienteNome').value.trim(),
@@ -6289,7 +6381,7 @@ $('clienteForm')?.addEventListener('submit', async (e)=>{
 
 
 window.editTrabalho = function(id){
-  if(!adminGuard()) return;
+  if(!adminGuard('manage_work_orders', 'Sem permissão para gerir trabalhos.')) return;
   const t=trabalhos.find(x=>x.id===id);
   if(!t) return;
   $('trabalhoId').value=t.id;
@@ -6307,7 +6399,7 @@ window.editTrabalho = function(id){
   switchTab('adicionar');
 };
 window.deleteTrabalho = async function(id){
-  if(!adminGuard()) return;
+  if(!adminGuard('manage_work_orders', 'Sem permissão para gerir trabalhos.')) return;
   if(!confirm('Apagar este trabalho?')) return;
   try{
     await removeRemote('trabalhos', id);
@@ -6323,13 +6415,13 @@ window.deleteTrabalho = async function(id){
   }
 };
 window.editCliente = function(id){
-  if(!adminGuard()) return;
+  if(!adminGuard('manage_work_orders', 'Sem permissão para gerir trabalhos.')) return;
   const c=clientes.find(x=>x.id===id); if(!c) return;
   $('clienteId').value=c.id; $('clienteNome').value=c.nome||''; $('clienteTelefone').value=c.telefone||''; $('clienteEmail').value=c.email||''; $('clienteNif').value=c.nif||''; $('clienteMorada').value=c.morada||'';
   switchTab('clientes');
 };
 window.deleteCliente = async function(id){
-  if(!adminGuard()) return;
+  if(!adminGuard('manage_work_orders', 'Sem permissão para gerir trabalhos.')) return;
   if(!confirm('Apagar este cliente?')) return;
   try{
     await removeRemote('clientes', id);
@@ -6438,7 +6530,7 @@ window.performLogin = async function(email, password){
   const authUser = userCredential.user;
   const profile = getRoleProfileByEmail(authUser.email || email);
   const username = profile?.username || (String(authUser.email || email).split('@')[0] || 'user');
-  const role = profile?.role || 'user';
+  const role = profile?.role || 'consulta';
   currentUserUid = authUser.uid || null;
   currentUserEmail = authUser.email || email;
   return { role, username, email: currentUserEmail, uid: currentUserUid };
@@ -6476,6 +6568,7 @@ function getAgendaSmartDate(t){
   return t.dataInicio || t.dataFim || t.dataPagamento || '';
 }
 window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorPersonalizado=null){
+  if(!adminGuard('manage_payments', 'Sem permissão para registar pagamentos.')) return false;
   const t = trabalhos.find(x => x.id === id);
   if(!t) return false;
   const finalPaymentDate = dataPagamento || todayLocalDate();
@@ -6537,7 +6630,7 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
 
 
 window.deletePagamento = async function(id){
-  if(!adminGuard()) return;
+  if(!adminGuard('manage_work_orders', 'Sem permissão para gerir trabalhos.')) return;
   if(!confirm('Apagar este registo de pagamento?')) return;
   try{
     await removeRemote('pagamentos', id);
@@ -6594,6 +6687,7 @@ function showPaymentModal(){
 }
 
 window.marcarComoPagoComValor = function(id){
+  if(!hasRolePermission('manage_payments')){ alert('Sem permissão para abrir o fluxo de pagamento.'); return; }
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
   pendingPaymentWorkId = id;
@@ -6683,7 +6777,7 @@ $('cliente')?.addEventListener('change', fillClientContactFromSelection);
 
 $('userManagerForm')?.addEventListener('submit', (e) => {
   e.preventDefault();
-  if(!isMasterAdmin()) return;
+  if(!hasRolePermission('manage_users')) return;
 
   const indexRaw = $('managedUserIndex').value;
   const username = $('managedUsername').value.trim();
@@ -6714,7 +6808,7 @@ $('userManagerForm')?.addEventListener('submit', (e) => {
   $('userManagerForm').reset();
   $('managedUserIndex').value = '';
   if($('managedEmail')) $('managedEmail').value = '';
-  $('managedRole').value = 'user';
+  $('managedRole').value = 'consulta';
   renderManagedUsers();
   updateWorkCodePreview();
   updateWorkCodePreview();
@@ -6725,7 +6819,7 @@ $('clearManagedUserBtn')?.addEventListener('click', ()=>{
   $('userManagerForm')?.reset();
   $('managedUserIndex').value = '';
   if($('managedEmail')) $('managedEmail').value = '';
-  $('managedRole').value = 'user';
+  $('managedRole').value = 'consulta';
 });
 
 
@@ -6774,7 +6868,7 @@ function renderMobileCards(){
           <div class="mobile-card-item"><span>Método</span><strong>${escapeHtml(p.metodo || 'Manual')}</strong></div>
           <div class="mobile-card-item"><span>Faturação</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
-        ${isAdminLike() ? `<div class="row-actions"><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button></div>` : ''}
+        ${hasRolePermission('manage_payments') ? `<div class="row-actions"><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button></div>` : ''}
       </article>`;
     }).join('') : '<div class="mobile-card"><div class="mobile-card-title">Sem pagamentos registados</div></div>';
   }
