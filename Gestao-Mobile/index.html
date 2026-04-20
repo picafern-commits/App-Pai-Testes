@@ -2743,53 +2743,21 @@ td.acoes-col, .acoes-col{
 }
 
 
-/* ===== MODO EMPRESA EXTREMO ROLES ===== */
-.role-badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-height:28px;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:.04em;
-  text-transform:uppercase;
-  border:1px solid rgba(255,255,255,.10);
-  white-space:nowrap;
+/* CAMPOS AVANÇADOS DO TRABALHO */
+.field-hidden-by-role{
+  display:none !important;
 }
-.role-badge.master{background:linear-gradient(180deg, rgba(245,158,11,.24), rgba(217,119,6,.16)); border-color:rgba(252,211,77,.34); color:#fde68a;}
-.role-badge.admin{background:linear-gradient(180deg, rgba(37,99,235,.24), rgba(29,78,216,.16)); border-color:rgba(96,165,250,.34); color:#dbeafe;}
-.role-badge.user{background:linear-gradient(180deg, rgba(148,163,184,.16), rgba(100,116,139,.10)); border-color:rgba(148,163,184,.22); color:#cbd5e1;}
-.role-mode-banner{
+
+
+.payment-method-grid .pay-method-btn.is-selected{
+  outline: 2px solid rgba(96,165,250,.7);
+  box-shadow: 0 0 0 2px rgba(96,165,250,.15) inset;
+}
+.payment-modal-actions{
   display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin:12px 0 16px 0;
-  padding:12px 14px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.10);
-  background:linear-gradient(180deg, rgba(15,23,42,.92), rgba(30,41,59,.88));
-  box-shadow:0 10px 20px rgba(0,0,0,.12);
-}
-.role-mode-banner .title{
-  color:#fff;
-  font-size:13px;
-  font-weight:800;
-}
-.role-mode-banner .sub{
-  color:#cbd5e1;
-  font-size:12px;
-  margin-top:4px;
-}
-.role-mode-banner.is-readonly{
-  border-color:rgba(248,113,113,.22);
-  background:linear-gradient(180deg, rgba(69,10,10,.52), rgba(30,41,59,.90));
-}
-.role-mode-banner.is-edit{
-  border-color:rgba(96,165,250,.22);
-  background:linear-gradient(180deg, rgba(30,64,175,.18), rgba(30,41,59,.90));
+  gap:10px;
+  justify-content:flex-end;
+  margin-top:14px;
 }
 
 </style>
@@ -2940,10 +2908,10 @@ td.acoes-col, .acoes-col{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field master-edit-only"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
-              <div class="field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
-              <div class="field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
-              <div class="field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
+              <div class="field advanced-work-field master-edit-only"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
+              <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
+              <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
+              <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
               <div class="field"><label>Faturação</label><select id="trabalhoInvoiceType"><option>Com Fatura</option><option>Sem Fatura</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
@@ -3072,172 +3040,6 @@ td.acoes-col, .acoes-col{
       </section>
 <script>
 
-/* ===== MODO EMPRESA EXTREMO ROLES ===== */
-const ROLE_MATRIX = {
-  master_admin: {
-    label: 'Admin Mestre',
-    className: 'master',
-    canEdit: true,
-    canDelete: true,
-    canChangeState: true,
-    canManagePayments: true,
-    canSeeAdvancedFields: true,
-    canUseSettings: true,
-    canImportBackup: true
-  },
-  admin: {
-    label: 'Admin',
-    className: 'admin',
-    canEdit: true,
-    canDelete: true,
-    canChangeState: true,
-    canManagePayments: true,
-    canSeeAdvancedFields: true,
-    canUseSettings: true,
-    canImportBackup: false
-  },
-  user: {
-    label: 'Consulta',
-    className: 'user',
-    canEdit: false,
-    canDelete: false,
-    canChangeState: false,
-    canManagePayments: false,
-    canSeeAdvancedFields: false,
-    canUseSettings: false,
-    canImportBackup: false
-  },
-  mobile_user: {
-    label: 'Consulta Mobile',
-    className: 'user',
-    canEdit: false,
-    canDelete: false,
-    canChangeState: false,
-    canManagePayments: false,
-    canSeeAdvancedFields: false,
-    canUseSettings: false,
-    canImportBackup: false
-  }
-};
-
-function getRoleKey(){
-  const raw = String(window.currentRole || (typeof currentRole !== 'undefined' ? currentRole : '') || '').toLowerCase();
-  return ROLE_MATRIX[raw] ? raw : 'user';
-}
-function getRoleMeta(){
-  return ROLE_MATRIX[getRoleKey()] || ROLE_MATRIX.user;
-}
-function canEdit(){ return !!getRoleMeta().canEdit; }
-function canDelete(){ return !!getRoleMeta().canDelete; }
-function canChangeState(){ return !!getRoleMeta().canChangeState; }
-function canManagePayments(){ return !!getRoleMeta().canManagePayments; }
-function canUseSettings(){ return !!getRoleMeta().canUseSettings; }
-function canImportBackup(){ return !!getRoleMeta().canImportBackup; }
-function canSeeAdvancedFields(){ return !!getRoleMeta().canSeeAdvancedFields; }
-function isViewOnly(){ return !canEdit(); }
-
-function ensureRoleBanner(){
-  const page = document.getElementById('dashboard-page') || document.querySelector('.page.active') || document.body;
-  if(!page) return;
-  let wrap = document.getElementById('roleModeBanner');
-  const role = getRoleMeta();
-
-  if(!wrap){
-    wrap = document.createElement('div');
-    wrap.id = 'roleModeBanner';
-    wrap.className = 'role-mode-banner';
-    const anchor = page.querySelector('.page-title, h1, h2, .dashboard-grid, .section-title') || page.firstElementChild;
-    if(anchor && anchor.parentNode){
-      anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
-    } else {
-      page.prepend(wrap);
-    }
-  }
-
-  wrap.className = 'role-mode-banner ' + (role.canEdit ? 'is-edit' : 'is-readonly');
-  wrap.innerHTML = `
-    <div>
-      <div class="title">${role.canEdit ? 'Modo Gestão Ativo' : 'Modo Consulta Ativo'}</div>
-      <div class="sub">${role.canEdit ? 'Este perfil pode editar registos e gerir estados.' : 'Este perfil só pode consultar dados, sem editar.'}</div>
-    </div>
-    <span class="role-badge ${role.className}">${role.label}</span>
-  `;
-}
-
-function applyRoleUiRestrictions(){
-  const role = getRoleMeta();
-
-  document.querySelectorAll('[data-role-hide="readonly"]').forEach(el => {
-    el.style.display = role.canEdit ? '' : 'none';
-  });
-
-  document.querySelectorAll('[data-role-hide="no-settings"]').forEach(el => {
-    el.style.display = role.canUseSettings ? '' : 'none';
-  });
-
-  document.querySelectorAll('[data-role-hide="no-import-backup"]').forEach(el => {
-    el.style.display = role.canImportBackup ? '' : 'none';
-  });
-
-  // backups import input/button
-  const importBtnLabel = document.querySelector('label[for="backupImportInput"], label[for="backupImportInputPremium"]');
-  if(importBtnLabel) importBtnLabel.style.display = role.canImportBackup ? '' : 'none';
-  const importInput = document.getElementById('backupImportInput') || document.getElementById('backupImportInputPremium');
-  if(importInput) importInput.style.display = role.canImportBackup ? '' : 'none';
-
-  // configs page lock visual only for non-admin
-  const configPage = document.getElementById('configuracoes-page');
-  if(configPage){
-    configPage.style.opacity = role.canUseSettings ? '' : '0.92';
-  }
-
-  try{ if(typeof updateTrabalhoFieldVisibility === 'function') updateTrabalhoFieldVisibility(); }catch(e){}
-  try{ ensureRoleBanner(); }catch(e){}
-}
-
-function updateTrabalhoFieldVisibility(){
-  const showAdvanced = canSeeAdvancedFields() || (function(){
-    try{
-      const idEl = document.getElementById('trabalhoId');
-      return !!(idEl && String(idEl.value || '').trim());
-    }catch(e){ return false; }
-  })();
-  document.querySelectorAll('.advanced-work-field').forEach(el => {
-    el.classList.toggle('field-hidden-by-role', !showAdvanced);
-  });
-}
-
-/* ===== ROLES SISTEMA ===== */
-function getRole(){
-  return String(window.currentRole || (typeof currentRole!=='undefined'?currentRole:'') || '').toLowerCase();
-}
-
-function isMaster(){
-  return getRole() === 'master_admin';
-}
-
-function isAdmin(){
-  return getRole() === 'admin' || isMaster();
-}
-
-function canEdit(){
-  return isAdmin();
-}
-
-function isViewOnly(){
-  return getRole() === 'user' || getRole() === 'mobile_user';
-}
-
-function isMasterAdmin(){
-  try{
-    const r = String(window.currentRole || (typeof currentRole!=='undefined'?currentRole:'') || '').toLowerCase();
-    return r === 'master_admin';
-  }catch(e){ return false; }
-}
-function podeEditar(){
-  return isMasterAdmin();
-}
-
 const DEFAULT_USERS = [
   { username: 'jorge', password: 'jfernandes', role: 'admin' },
   { username: 'fatima', password: 'ffernandes', role: 'user' },
@@ -3356,6 +3158,8 @@ function openPaymentMethodModal(id){
 
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
+  if($('selectedPaymentMethod')) $('selectedPaymentMethod').value = '';
+  document.querySelectorAll('.pay-method-btn').forEach(b=>b.classList.remove('is-selected'));
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
   if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
@@ -3545,7 +3349,6 @@ function runWeeklyAutomaticBackupSilently(){
     const diffDays = (now - new Date(lastDateIso)) / (1000 * 60 * 60 * 24);
     if(diffDays < 7){
       refreshBackupStatusUi();
-  try{ applyRoleUiRestrictions(); }catch(e){}
   try{ updateBackupWeekIndicator(); }catch(e){}
   try{fazerBackupSexta();}catch(e){}
       return;
@@ -3561,7 +3364,6 @@ function runWeeklyAutomaticBackupSilently(){
   localStorage.setItem('weeklyAutoBackups', JSON.stringify(backups));
   localStorage.setItem('weeklyAutoBackupLastDate', snapshot.dataBackup);
   refreshBackupStatusUi();
-  try{ applyRoleUiRestrictions(); }catch(e){}
   try{ updateBackupWeekIndicator(); }catch(e){}
   try{fazerBackupSexta();}catch(e){}
 }
@@ -3620,7 +3422,7 @@ document.addEventListener("DOMContentLoaded", function(){
       <div class="backups-premium-actions">
         <button class="backups-premium-btn export" onclick="exportBackupManual()">Exportar Backup</button>
         <button class="backups-premium-btn download" onclick="downloadLatestWeeklyBackup()">Download Último</button>
-        <label for="backupImportInputPremium" data-role-hide="no-import-backup">Importar Backup</label>
+        <label for="backupImportInputPremium">Importar Backup</label>
         <input id="backupImportInputPremium" class="backups-hidden-input" type="file" accept=".json,application/json" onchange="importBackupFile(event)">
       </div>
     </div>
@@ -3629,7 +3431,6 @@ document.addEventListener("DOMContentLoaded", function(){
   page.appendChild(div);
 
   try{refreshBackupStatusUi();
-  try{ applyRoleUiRestrictions(); }catch(e){}
   try{ updateBackupWeekIndicator(); }catch(e){}
   try{fazerBackupSexta();}catch(e){}}catch(e){}
 
@@ -3910,53 +3711,21 @@ function buildProfessionalReportHtml(){
 }
 
 
-/* ===== MODO EMPRESA EXTREMO ROLES ===== */
-.role-badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-height:28px;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:.04em;
-  text-transform:uppercase;
-  border:1px solid rgba(255,255,255,.10);
-  white-space:nowrap;
+/* CAMPOS AVANÇADOS DO TRABALHO */
+.field-hidden-by-role{
+  display:none !important;
 }
-.role-badge.master{background:linear-gradient(180deg, rgba(245,158,11,.24), rgba(217,119,6,.16)); border-color:rgba(252,211,77,.34); color:#fde68a;}
-.role-badge.admin{background:linear-gradient(180deg, rgba(37,99,235,.24), rgba(29,78,216,.16)); border-color:rgba(96,165,250,.34); color:#dbeafe;}
-.role-badge.user{background:linear-gradient(180deg, rgba(148,163,184,.16), rgba(100,116,139,.10)); border-color:rgba(148,163,184,.22); color:#cbd5e1;}
-.role-mode-banner{
+
+
+.payment-method-grid .pay-method-btn.is-selected{
+  outline: 2px solid rgba(96,165,250,.7);
+  box-shadow: 0 0 0 2px rgba(96,165,250,.15) inset;
+}
+.payment-modal-actions{
   display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin:12px 0 16px 0;
-  padding:12px 14px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.10);
-  background:linear-gradient(180deg, rgba(15,23,42,.92), rgba(30,41,59,.88));
-  box-shadow:0 10px 20px rgba(0,0,0,.12);
-}
-.role-mode-banner .title{
-  color:#fff;
-  font-size:13px;
-  font-weight:800;
-}
-.role-mode-banner .sub{
-  color:#cbd5e1;
-  font-size:12px;
-  margin-top:4px;
-}
-.role-mode-banner.is-readonly{
-  border-color:rgba(248,113,113,.22);
-  background:linear-gradient(180deg, rgba(69,10,10,.52), rgba(30,41,59,.90));
-}
-.role-mode-banner.is-edit{
-  border-color:rgba(96,165,250,.22);
-  background:linear-gradient(180deg, rgba(30,64,175,.18), rgba(30,41,59,.90));
+  gap:10px;
+  justify-content:flex-end;
+  margin-top:14px;
 }
 
 </style>
@@ -4015,47 +3784,6 @@ function exportProfessionalReportPdf(){
 
 function printProfessionalReport(){
   openProfessionalReportWindow(true);
-}
-
-
-async function deleteTrabalho(id){
-  try{
-    if(!confirm('Apagar este trabalho?')) return;
-  }catch(e){}
-
-  // usar sempre a lista em memória da app
-  let lista = Array.isArray(trabalhos) ? [...trabalhos] : [];
-  const novaLista = lista.filter(x => String(x.id) !== String(id));
-
-  try{
-    trabalhos = novaLista;
-    window.trabalhos = novaLista;
-    if(typeof saveLocal === 'function'){
-      saveLocal();
-    }else if(typeof saveData === 'function'){
-      saveData();
-    }else{
-      localStorage.setItem(STORAGE_KEYS.trabalhos, JSON.stringify(novaLista));
-    }
-  }catch(e){
-    console.error('Erro ao guardar lista após apagar:', e);
-  }
-
-  try{
-    if(typeof removeRemote === 'function'){
-      await removeRemote('trabalhos', id);
-    }else if(typeof deleteRemote === 'function'){
-      await deleteRemote('trabalhos', id);
-    }
-  }catch(e){
-    console.error('Erro a apagar no Firebase:', e);
-  }
-
-  try{ if(typeof renderTrabalhos === 'function') renderTrabalhos(); }catch(e){}
-  try{ if(typeof renderDashboard === 'function') renderDashboard(); }catch(e){}
-  try{ if(typeof renderPagamentos === 'function') renderPagamentos(); }catch(e){}
-  try{ if(typeof renderRelatorios === 'function') renderRelatorios(); }catch(e){}
-  try{ if(typeof renderMobileCards === 'function') renderMobileCards(); }catch(e){}
 }
 
 </script>
@@ -4251,6 +3979,33 @@ function getNextFlowEstado(value=''){
   return idx >= 0 && idx < ESTADOS_FLUXO.length - 1 ? ESTADOS_FLUXO[idx + 1] : null;
 }
 
+
+function isMasterAdminUser(){
+  try{
+    const role = String(window.currentRole || (typeof currentRole !== 'undefined' ? currentRole : '') || '').toLowerCase();
+    return role === 'master_admin';
+  }catch(e){
+    return false;
+  }
+}
+
+function isEditingTrabalho(){
+  try{
+    const idEl = document.getElementById('trabalhoId');
+    return !!(idEl && String(idEl.value || '').trim());
+  }catch(e){
+    return false;
+  }
+}
+
+function updateTrabalhoFieldVisibility(){
+  const showAdvanced = isMasterAdminUser() || isEditingTrabalho();
+  document.querySelectorAll('.advanced-work-field').forEach(el => {
+    el.classList.toggle('field-hidden-by-role', !showAdvanced);
+  });
+}
+
+
 function getTodayLocalDateStr(){
   const now = new Date();
   const y = now.getFullYear();
@@ -4330,7 +4085,7 @@ function buildFlowButtons(t){
   }
 
   if(atual === 'Entregue' || !nextEstado){
-    return `<button class="stage-step stage-control-btn pay-warning" onclick="window.marcarComoPagoComValor('${t.id}')" data-role-hide="readonly">Por pagar</button>`;
+    return `<button class="stage-step stage-control-btn pay-warning" onclick="window.marcarComoPagoComValor('${t.id}')">Por pagar</button>`;
   }
 
   return `<button class="stage-step stage-control-btn next" onclick="setWorkEstadoById('${t.id}','${nextEstado}')">${escapeHtml(nextEstado)}</button>`;
@@ -4480,8 +4235,8 @@ function renderManagedUsers(){
       <td>${escapeHtml(u.role || 'user')}</td>
       <td>
         <div class="row-actions">
-          <button class="small-btn" onclick="window.editManagedUser(${idx})" data-role-hide="readonly">Editar</button>
-          <button class="small-btn danger" onclick="window.deleteManagedUser(${idx})" data-role-hide="readonly">Apagar</button>
+          <button class="small-btn" onclick="window.editManagedUser(${idx})">Editar</button>
+          <button class="small-btn danger" onclick="window.deleteManagedUser(${idx})">Apagar</button>
         </div>
       </td>
     </tr>
@@ -4560,6 +4315,7 @@ function setRoleUI(){
     }
   }
   setSyncMessage(syncReady ? 'Firebase Sync' : syncMessage, syncReady ? 'ok' : 'warn');
+  try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
@@ -4615,7 +4371,6 @@ async function initFirebaseSync(){
         setSyncMessage('Sem sessão Firebase', 'bad');
       }
       if (currentRole) renderAll();
-try{ applyRoleUiRestrictions(); }catch(e){}
     });
   }catch(err){
     console.error('Firebase sync error:', err);
@@ -5817,53 +5572,21 @@ td.acoes-col, .acoes-col{
 }
 
 
-/* ===== MODO EMPRESA EXTREMO ROLES ===== */
-.role-badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-height:28px;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:.04em;
-  text-transform:uppercase;
-  border:1px solid rgba(255,255,255,.10);
-  white-space:nowrap;
+/* CAMPOS AVANÇADOS DO TRABALHO */
+.field-hidden-by-role{
+  display:none !important;
 }
-.role-badge.master{background:linear-gradient(180deg, rgba(245,158,11,.24), rgba(217,119,6,.16)); border-color:rgba(252,211,77,.34); color:#fde68a;}
-.role-badge.admin{background:linear-gradient(180deg, rgba(37,99,235,.24), rgba(29,78,216,.16)); border-color:rgba(96,165,250,.34); color:#dbeafe;}
-.role-badge.user{background:linear-gradient(180deg, rgba(148,163,184,.16), rgba(100,116,139,.10)); border-color:rgba(148,163,184,.22); color:#cbd5e1;}
-.role-mode-banner{
+
+
+.payment-method-grid .pay-method-btn.is-selected{
+  outline: 2px solid rgba(96,165,250,.7);
+  box-shadow: 0 0 0 2px rgba(96,165,250,.15) inset;
+}
+.payment-modal-actions{
   display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin:12px 0 16px 0;
-  padding:12px 14px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.10);
-  background:linear-gradient(180deg, rgba(15,23,42,.92), rgba(30,41,59,.88));
-  box-shadow:0 10px 20px rgba(0,0,0,.12);
-}
-.role-mode-banner .title{
-  color:#fff;
-  font-size:13px;
-  font-weight:800;
-}
-.role-mode-banner .sub{
-  color:#cbd5e1;
-  font-size:12px;
-  margin-top:4px;
-}
-.role-mode-banner.is-readonly{
-  border-color:rgba(248,113,113,.22);
-  background:linear-gradient(180deg, rgba(69,10,10,.52), rgba(30,41,59,.90));
-}
-.role-mode-banner.is-edit{
-  border-color:rgba(96,165,250,.22);
-  background:linear-gradient(180deg, rgba(30,64,175,.18), rgba(30,41,59,.90));
+  gap:10px;
+  justify-content:flex-end;
+  margin-top:14px;
 }
 
 </style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
@@ -5977,7 +5700,7 @@ function renderCalendario(){
                 ${(t.descricao || '').trim() ? `<div class="calendar-meta">${escapeHtml(t.descricao)}</div>` : ''}
               </div>
               <div class="row-actions">
-                <button class="small-btn" onclick="editTrabalho('${t.id}')" data-role-hide="readonly">Editar</button>
+                <button class="small-btn" onclick="editTrabalho('${t.id}')">Editar</button>
                 <button class="small-btn info" onclick="window.showDesc('${t.id}')">Descrição</button>
               </div>
             </div>
@@ -6065,9 +5788,9 @@ function trabalhoActions(t){
   return `
     <div class="enterprise-actions">
       ${descButton}
-      ${showInvoice ? `<button class="pipeline-like-btn fatura-btn" onclick="generateInvoice('${t.id}')" data-role-hide="readonly">Fatura</button>` : `<span class="pipeline-like-btn fatura-disabled">Fatura</span>`}
-      ${canEdit ? `<button class="pipeline-like-btn edit-btn" onclick="editTrabalho('${t.id}')" data-role-hide="readonly">Editar</button>` : '<span></span>'}
-      ${canDelete ? `<button class="pipeline-like-btn delete-btn" onclick="deleteTrabalho('${t.id}')" data-role-hide="readonly">Apagar</button>` : '<span></span>'}
+      ${showInvoice ? `<button class="pipeline-like-btn fatura-btn" onclick="generateInvoice('${t.id}')">Fatura</button>` : `<span class="pipeline-like-btn fatura-disabled">Fatura</span>`}
+      ${canEdit ? `<button class="pipeline-like-btn edit-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : '<span></span>'}
+      ${canDelete ? `<button class="pipeline-like-btn delete-btn" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : '<span></span>'}
       <div class="stage-flow">${flowButtons}</div>
     </div>
   `;
@@ -6076,11 +5799,11 @@ function trabalhoActions(t){
 function clienteActions(c){
   const history=`<button class="small-btn" onclick="openClientHistory('${c.id}')">Histórico</button>`;
   const pdf=`<button class="small-btn" onclick="pdfCliente('${c.id}')">PDF</button>`;
-  return !isAdminLike() ? `${history}${pdf}` : `${history}${pdf}<button class="small-btn" onclick="editCliente('${c.id}')" data-role-hide="readonly">Editar</button><button class="small-btn danger" onclick="deleteCliente('${c.id}')" data-role-hide="readonly">Apagar</button>`;
+  return !isAdminLike() ? `${history}${pdf}` : `${history}${pdf}<button class="small-btn" onclick="editCliente('${c.id}')">Editar</button><button class="small-btn danger" onclick="deleteCliente('${c.id}')">Apagar</button>`;
 }
 function pagamentoActions(p){
   const pdf=`<button class="small-btn" onclick="pdfPagamento('${p.id}')">PDF</button>`;
-  return !isAdminLike() ? pdf : `${pdf}<button class="small-btn" onclick="editPagamento('${p.id}')" data-role-hide="readonly">Editar</button><button class="small-btn danger" onclick="deletePagamento('${p.id}')" data-role-hide="readonly">Apagar</button>`;
+  return !isAdminLike() ? pdf : `${pdf}<button class="small-btn" onclick="editPagamento('${p.id}')">Editar</button><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button>`;
 }
 function renderTrabalhos(){
   const term=$('searchTrabalhos').value.trim().toLowerCase();
@@ -6121,7 +5844,7 @@ function renderPagamentos() {
         <td>${euro(p.valor || 0)}</td>
         <td>${escapeHtml(p.metodo || 'Manual')}</td>
         <td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td>
-        <td><div class="row-actions">${isAdminLike() ? `<button class="small-btn danger" onclick="deletePagamento('${p.id}')" data-role-hide="readonly">Apagar</button>` : ''}</div></td>
+        <td><div class="row-actions">${isAdminLike() ? `<button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button>` : ''}</div></td>
       </tr>`;
     }).join('')
     : '<tr><td colspan="7">Sem pagamentos registados.</td></tr>';
@@ -6176,8 +5899,7 @@ function renderRelatorios() {
         .join('')
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
-function renderAll(){ if(!currentRole) return; setRoleUI();
-try{ applyRoleUiRestrictions(); }catch(e){} populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){}
   renderManagedUsers();
   updateWorkCodePreview();
@@ -6197,6 +5919,7 @@ $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
+  try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 });
 $('clearClienteBtn')?.addEventListener('click', ()=>{
@@ -6252,6 +5975,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
+  try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 
   renderAll();
@@ -6517,12 +6241,25 @@ $('paymentMethodModal')?.addEventListener('click', (e)=>{
 document.querySelectorAll('.pay-method-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     if(!pendingPaymentWorkId) return;
-    const method = btn.dataset.method || 'Manual';
-    const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
-    window.markAsPaid(pendingPaymentWorkId, method, selectedPaymentDate);
-    pendingPaymentWorkId = null;
-    $('paymentMethodModal').classList.add('hidden');
+    document.querySelectorAll('.pay-method-btn').forEach(b=>b.classList.remove('is-selected'));
+    btn.classList.add('is-selected');
+    if($('selectedPaymentMethod')) $('selectedPaymentMethod').value = btn.dataset.method || 'Manual';
   });
+});
+
+$('confirmPaymentMethodBtn')?.addEventListener('click', ()=>{
+  if(!pendingPaymentWorkId) return;
+  const method = $('selectedPaymentMethod')?.value || $('paymentMethodInput')?.value || '';
+  if(!method){
+    alert('Escolhe o método de pagamento.');
+    return;
+  }
+  const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
+  window.markAsPaid(pendingPaymentWorkId, method, selectedPaymentDate);
+  pendingPaymentWorkId = null;
+  if($('selectedPaymentMethod')) $('selectedPaymentMethod').value = '';
+  document.querySelectorAll('.pay-method-btn').forEach(b=>b.classList.remove('is-selected'));
+  $('paymentMethodModal')?.classList.add('hidden');
 });
 
 $('cliente')?.addEventListener('change', fillClientContactFromSelection);
@@ -6618,7 +6355,7 @@ function renderMobileCards(){
           <div class="mobile-card-item"><span>Método</span><strong>${escapeHtml(p.metodo || 'Manual')}</strong></div>
           <div class="mobile-card-item"><span>Faturação</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
-        ${isAdminLike() ? `<div class="row-actions"><button class="small-btn danger" onclick="deletePagamento('${p.id}')" data-role-hide="readonly">Apagar</button></div>` : ''}
+        ${isAdminLike() ? `<div class="row-actions"><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button></div>` : ''}
       </article>`;
     }).join('') : '<div class="mobile-card"><div class="mobile-card-title">Sem pagamentos registados</div></div>';
   }
@@ -6665,6 +6402,8 @@ function openPaymentMethodModal(id){
 
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
+  if($('selectedPaymentMethod')) $('selectedPaymentMethod').value = '';
+  document.querySelectorAll('.pay-method-btn').forEach(b=>b.classList.remove('is-selected'));
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
   if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
@@ -6757,7 +6496,6 @@ document.addEventListener("DOMContentLoaded", function(){
   page.appendChild(div);
 
   try{refreshBackupStatusUi();
-  try{ applyRoleUiRestrictions(); }catch(e){}
   try{ updateBackupWeekIndicator(); }catch(e){}
   try{fazerBackupSexta();}catch(e){}}catch(e){}
 
@@ -7038,53 +6776,21 @@ function buildProfessionalReportHtml(){
 }
 
 
-/* ===== MODO EMPRESA EXTREMO ROLES ===== */
-.role-badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-height:28px;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:.04em;
-  text-transform:uppercase;
-  border:1px solid rgba(255,255,255,.10);
-  white-space:nowrap;
+/* CAMPOS AVANÇADOS DO TRABALHO */
+.field-hidden-by-role{
+  display:none !important;
 }
-.role-badge.master{background:linear-gradient(180deg, rgba(245,158,11,.24), rgba(217,119,6,.16)); border-color:rgba(252,211,77,.34); color:#fde68a;}
-.role-badge.admin{background:linear-gradient(180deg, rgba(37,99,235,.24), rgba(29,78,216,.16)); border-color:rgba(96,165,250,.34); color:#dbeafe;}
-.role-badge.user{background:linear-gradient(180deg, rgba(148,163,184,.16), rgba(100,116,139,.10)); border-color:rgba(148,163,184,.22); color:#cbd5e1;}
-.role-mode-banner{
+
+
+.payment-method-grid .pay-method-btn.is-selected{
+  outline: 2px solid rgba(96,165,250,.7);
+  box-shadow: 0 0 0 2px rgba(96,165,250,.15) inset;
+}
+.payment-modal-actions{
   display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin:12px 0 16px 0;
-  padding:12px 14px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.10);
-  background:linear-gradient(180deg, rgba(15,23,42,.92), rgba(30,41,59,.88));
-  box-shadow:0 10px 20px rgba(0,0,0,.12);
-}
-.role-mode-banner .title{
-  color:#fff;
-  font-size:13px;
-  font-weight:800;
-}
-.role-mode-banner .sub{
-  color:#cbd5e1;
-  font-size:12px;
-  margin-top:4px;
-}
-.role-mode-banner.is-readonly{
-  border-color:rgba(248,113,113,.22);
-  background:linear-gradient(180deg, rgba(69,10,10,.52), rgba(30,41,59,.90));
-}
-.role-mode-banner.is-edit{
-  border-color:rgba(96,165,250,.22);
-  background:linear-gradient(180deg, rgba(30,64,175,.18), rgba(30,41,59,.90));
+  gap:10px;
+  justify-content:flex-end;
+  margin-top:14px;
 }
 
 </style>
@@ -7185,6 +6891,7 @@ function printProfessionalReport(){
         </div>
         <div class="payment-date-box"><label for="paymentDateInput">Data de pagamento</label><input type="hidden" id="paymentWorkId">
 <input type="hidden" id="paymentMethodInput">
+<input type="hidden" id="selectedPaymentMethod">
 <input id="paymentDateInput" type="date" />
 <div class="field-group payment-value-group"><label for="paymentValueInput">Valor</label><input type="number" step="0.01" id="paymentValueInput" placeholder="0,00"></div></div>
         <div class="payment-method-grid">
@@ -7192,6 +6899,9 @@ function printProfessionalReport(){
           <button class="pay-method-btn" data-method="MB Way">MB Way</button>
           <button class="pay-method-btn" data-method="Transferência">Transferência</button>
           <button class="pay-method-btn" data-method="Multibanco">Multibanco</button>
+        </div>
+        <div class="payment-modal-actions">
+          <button id="confirmPaymentMethodBtn" class="btn btn-primary">Confirmar</button>
         </div>
       </div>
     </div>
