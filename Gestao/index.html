@@ -213,15 +213,7 @@ textarea{resize:vertical}
   justify-content:space-between;
   gap:16px;
   margin-bottom:18px;
-  padding-right:0;
 }
-.topbar-left{
-  min-width:0;
-}
-.hero-copy h3{
-  letter-spacing:-.02em;
-}
-
 .topbar h2{margin:0;font-size:34px}
 .subline{
   display:flex;
@@ -329,31 +321,46 @@ body.ui-laptop .main{padding:12px}
 .settings-card{background:rgba(255,255,255,.04);border:1px solid var(--line2);margin-bottom:var(--ui-space,14px)}
 
 
-/* ===== ONLINE WIDGET PREMIUM ===== */
+
 .online-compact-widget{
   position:fixed;
   top:18px;
   right:18px;
-  z-index:9999;
-  width:min(320px, calc(100vw - 36px));
+  z-index:320;
+  width:min(310px, calc(100vw - 36px));
   display:block !important;
   opacity:1 !important;
   visibility:visible !important;
   pointer-events:auto;
   border-radius:20px;
-  padding:12px;
+  padding:12px 12px 10px;
   background:
-    radial-gradient(circle at top right, rgba(56,189,248,.14), transparent 32%),
-    radial-gradient(circle at bottom left, rgba(168,85,247,.14), transparent 30%),
+    radial-gradient(circle at top right, rgba(56,189,248,.16), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(168,85,247,.16), transparent 30%),
     linear-gradient(180deg, rgba(10,14,25,.96), rgba(18,24,40,.94));
-  border:1px solid rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 18px 46px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.04);
   backdrop-filter:blur(18px);
-  box-shadow:0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  overflow:hidden;
+}
+.online-compact-widget::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,.05), transparent 40%);
+  pointer-events:none;
+}
+.online-compact-widget:hover{
+  transform:translateY(-1px);
+  border-color:rgba(125,211,252,.20);
+  box-shadow:0 24px 56px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.05);
 }
 .online-compact-head{
+  position:relative;
   display:flex;
-  justify-content:space-between;
   align-items:flex-start;
+  justify-content:space-between;
   gap:10px;
   margin-bottom:10px;
 }
@@ -388,6 +395,7 @@ body.ui-laptop .main{padding:12px}
   font-size:12px;
   font-weight:900;
   color:#f5f3ff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
 }
 .online-compact-meta{
   margin-top:4px;
@@ -395,6 +403,7 @@ body.ui-laptop .main{padding:12px}
   color:#9fb0d8;
 }
 .online-compact-list{
+  position:relative;
   display:grid;
   gap:8px;
 }
@@ -413,6 +422,7 @@ body.ui-laptop .main{padding:12px}
   height:10px;
   border-radius:999px;
   background:#6b7280;
+  flex:0 0 auto;
 }
 .online-compact-state.online{
   background:#22c55e;
@@ -460,12 +470,15 @@ body.ui-laptop .main{padding:12px}
   color:#93a4c8;
   padding:8px 4px 2px;
 }
-@media (min-width:1100px){
+@media (min-width: 1100px){
   .main{
-    padding-right:350px !important;
+    padding-right:22px !important;
+  }
+  .topbar{
+    padding-right:0 !important;
   }
 }
-@media (max-width:900px){
+@media (max-width: 900px){
   .online-compact-widget{
     top:10px;
     right:10px;
@@ -473,10 +486,14 @@ body.ui-laptop .main{padding:12px}
     padding:10px 10px 9px;
     border-radius:18px;
   }
-  .online-compact-user strong{font-size:12px}
+  .online-compact-user strong{
+    font-size:12px;
+  }
   .online-compact-user span,
   .online-compact-meta,
-  .online-compact-badge{font-size:10px}
+  .online-compact-badge{
+    font-size:10px;
+  }
 }
 
 
@@ -2603,8 +2620,6 @@ td.acoes-col, .acoes-col{
 </style>
 </head>
 <body>
-
-  <div id="onlineUsersCompact" class="online-compact-widget"></div>
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
       <div class="login-brand">
@@ -2619,17 +2634,17 @@ td.acoes-col, .acoes-col{
           <h1>Entrar</h1>
         </div>
 
-        <form id="loginForm" class="login-form">
-          <div class="field">
-            <label>Email</label>
-            <input id="loginEmail" type="email" placeholder="pica.fern@gmail.com" required autocomplete="username" />
-          </div>
-          <div class="field">
-            <label>Palavra-passe</label>
-            <input id="loginPassword" type="password" placeholder="••••••••" required autocomplete="current-password" />
-          </div>
-          <button type="submit" class="btn btn-primary full">Entrar</button>
-        </form>
+			<form id="loginForm" class="login-form" novalidate>
+				<div class="field">
+					<label for="loginEmail">Email</label>
+					<input id="loginEmail" name="loginEmail" type="email" placeholder="pica.fern@gmail.com" autocomplete="username" />
+				</div>
+				<div class="field">
+					<label for="loginPassword">Palavra-passe</label>
+					<input id="loginPassword" name="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+				</div>
+				<button id="loginBtn" type="submit" class="btn btn-primary full">Entrar</button>
+			</form>
         <div id="loginError" class="login-error"></div>
       </div>
     </div>
@@ -2669,6 +2684,18 @@ td.acoes-col, .acoes-col{
     </aside>
 
     <main class="main">
+      <section class="online-compact-widget" id="onlineCompactWidget">
+        <div class="online-compact-head">
+          <div>
+            <div class="online-compact-title"><span class="online-compact-dot"></span> Equipa online</div>
+            <div class="online-compact-meta" id="onlineCompactUpdatedAt">À espera de atividade…</div>
+          </div>
+          <div class="online-compact-count" id="onlineCompactCounter">0</div>
+        </div>
+        <div class="online-compact-list" id="onlineCompactList">
+          <div class="online-compact-empty">Sem sessões online.</div>
+        </div>
+      </section>
       <header class="topbar">
         <div class="topbar-left">
           <div>
@@ -2857,7 +2884,7 @@ td.acoes-col, .acoes-col{
 
           <section class="panel online-users-panel">
             <div class="panel-head">
-              <h3>Utilizadores online</h3>
+              <h3>Equipa online</h3>
               <div class="online-summary">
                 <span class="badge-soft"><span id="onlineUsersCounter">0</span> sessão(ões) ativa(s)</span>
                 <small id="onlineUsersUpdatedAt" class="online-user-meta">À espera de atividade…</small>
@@ -2986,19 +3013,13 @@ function getAllowedTabsForRole(role='user'){
   return getRoleDefinition(role).tabs || ['dashboard'];
 }
 
-
-if (typeof globalThis.currentRole === 'undefined') globalThis.currentRole = '';
-if (typeof globalThis.currentUsername === 'undefined') globalThis.currentUsername = '';
-if (typeof globalThis.currentUserEmail === 'undefined') globalThis.currentUserEmail = '';
-if (typeof globalThis.currentUserUid === 'undefined') globalThis.currentUserUid = '';
-
-function hasRolePermission(permission, role=globalThis.currentRole){
+function hasRolePermission(permission, role=currentRole){
   if(!permission) return true;
   const def = getRoleDefinition(role);
   return Array.isArray(def.permissions) && def.permissions.includes(permission);
 }
 
-function canAccessTab(tab, role=globalThis.currentRole){
+function canAccessTab(tab, role=currentRole){
   return getAllowedTabsForRole(role).includes(tab);
 }
 
@@ -3015,7 +3036,7 @@ function normalizeUsers(users){
     role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta'
   }));
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -3078,29 +3099,50 @@ function bootFromSession(){
   if(!session || !window.startApp) return false;
 
   showApp();
-  window.startApp(session);
+  window.startApp(session.role, session.username);
   return true;
 }
 
 loginForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const password = document.getElementById('loginPassword').value;
+  const emailInput = document.getElementById('loginEmail');
+  const passwordInput = document.getElementById('loginPassword');
+  const errorEl = document.getElementById('loginError');
 
-  try{
-    if(typeof window.performLogin !== 'function'){
+  const email = (emailInput?.value || '').trim().toLowerCase();
+  const password = passwordInput?.value || '';
+
+  if (errorEl) errorEl.textContent = '';
+
+  if (!email) {
+    if (errorEl) errorEl.textContent = 'Preenche o email.';
+    emailInput?.focus();
+    return;
+  }
+
+  if (!password) {
+    if (errorEl) errorEl.textContent = 'Preenche a palavra-passe.';
+    passwordInput?.focus();
+    return;
+  }
+
+  try {
+    if (typeof window.performLogin !== 'function') {
       throw new Error('Sistema de autenticação ainda não ficou pronto.');
     }
+
     const session = await window.performLogin(email, password);
     saveSession(session.role, session.username, session.email || email, session.uid || '');
-    document.getElementById('loginError').textContent = '';
+
+    if (errorEl) errorEl.textContent = '';
     showApp();
-    if(window.startApp){
+
+    if (window.startApp) {
       window.startApp(session);
     }
-  }catch(err){
-    document.getElementById('loginError').textContent = err?.message || 'Credenciais inválidas.';
+  } catch (err) {
+    if (errorEl) errorEl.textContent = err?.message || 'Credenciais inválidas.';
   }
 });
 
@@ -3775,7 +3817,7 @@ import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'ht
 const APP_VERSION = '1.0.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
 
-let currentRole = globalThis.currentRole || null, currentUsername = globalThis.currentUsername || null, currentUserEmail = globalThis.currentUserEmail || null, currentUserUid = globalThis.currentUserUid || null;
+let currentRole = null, currentUsername = null, currentUserEmail = null, currentUserUid = null;
 let trabalhos = [], clientes = [], pagamentos = [];
 let lastTrabId = 0;
 
@@ -3878,48 +3920,64 @@ function renderOnlineCompactWidget(activeRows){
   if(!host) return;
   const rows = Array.isArray(activeRows) ? activeRows.slice(0,4) : [];
   const updated = new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' });
+  const collapsed = localStorage.getItem('online_widget_collapsed') === '1';
+  host.classList.toggle('is-collapsed', collapsed);
 
   if(!rows.length){
     host.innerHTML = `
       <div class="online-compact-head">
         <div>
-          <div class="online-compact-title"><span class="online-compact-dot"></span> Equipa online</div>
+          <div class="online-compact-title"><span class="online-compact-dot"></span><span>Equipa online</span></div>
           <div class="online-compact-meta">Atualizado: ${updated}</div>
         </div>
-        <div class="online-compact-count">0</div>
+        <div class="online-compact-actions">
+          <div class="online-compact-count">0</div>
+          <button type="button" class="online-compact-toggle" id="onlineCompactToggle">${collapsed ? '+' : '−'}</button>
+        </div>
       </div>
       <div class="online-compact-empty">Sem utilizadores online</div>
     `;
-    return;
+  } else {
+    host.innerHTML = `
+      <div class="online-compact-head">
+        <div>
+          <div class="online-compact-title"><span class="online-compact-dot"></span><span>Equipa online</span></div>
+          <div class="online-compact-meta">Atualizado: ${updated}</div>
+        </div>
+        <div class="online-compact-actions">
+          <div class="online-compact-count">${rows.length}</div>
+          <button type="button" class="online-compact-toggle" id="onlineCompactToggle">${collapsed ? '+' : '−'}</button>
+        </div>
+      </div>
+      <div class="online-compact-list">
+        ${rows.map(row => {
+          const status = row._presenceStatus === 'online' ? 'online' : (row._presenceStatus === 'idle' ? 'idle' : '');
+          const name = escapeHtml(row.nome || row.userId || 'Utilizador');
+          const meta = escapeHtml((row.role || '-') + ' · ' + (row.device || '-'));
+          const page = escapeHtml(row.pagina || 'Dashboard');
+          return `
+            <div class="online-compact-row">
+              <span class="online-compact-state ${status}"></span>
+              <div class="online-compact-user">
+                <strong>${name}</strong>
+                <span>${meta}</span>
+              </div>
+              <div class="online-compact-badge">${page}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
   }
 
-  host.innerHTML = `
-    <div class="online-compact-head">
-      <div>
-        <div class="online-compact-title"><span class="online-compact-dot"></span> Equipa online</div>
-        <div class="online-compact-meta">Atualizado: ${updated}</div>
-      </div>
-      <div class="online-compact-count">${rows.length}</div>
-    </div>
-    <div class="online-compact-list">
-      ${rows.map(row => {
-        const status = row._presenceStatus === 'online' ? 'online' : (row._presenceStatus === 'idle' ? 'idle' : '');
-        const name = escapeHtml(row.nome || row.userId || 'Utilizador');
-        const meta = escapeHtml((row.role || '-') + ' · ' + (row.device || '-'));
-        const page = escapeHtml(row.pagina || 'Dashboard');
-        return `
-          <div class="online-compact-row">
-            <span class="online-compact-state ${status}"></span>
-            <div class="online-compact-user">
-              <strong>${name}</strong>
-              <span>${meta}</span>
-            </div>
-            <div class="online-compact-badge">${page}</div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
+  const btn = $('onlineCompactToggle');
+  if(btn){
+    btn.onclick = () => {
+      const next = !(localStorage.getItem('online_widget_collapsed') === '1');
+      localStorage.setItem('online_widget_collapsed', next ? '1' : '0');
+      renderOnlineCompactWidget(activeRows);
+    };
+  }
 }
 
 function renderOnlineUsersList(){
@@ -3940,7 +3998,6 @@ function renderOnlineUsersList(){
   renderOnlineCompactWidget(activeRows);
   if(!activeRows.length){
     host.innerHTML = '<div class="online-empty">Sem sessões online de momento.</div>';
-    renderOnlineCompactWidget([]);
     return;
   }
   host.innerHTML = activeRows.map(row => {
@@ -4037,7 +4094,7 @@ function initUiScale(){
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const isMasterAdmin = () => globalThis.currentRole === 'master_admin';
+const isMasterAdmin = () => currentRole === 'master_admin';
 const isAdminLike = () => hasRolePermission('manage_work_orders') || hasRolePermission('manage_clients') || hasRolePermission('manage_payments') || isMasterAdmin();
 
 
@@ -4361,7 +4418,7 @@ function fillClientContactFromSelection(){
 function normalizeManagedUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -4378,8 +4435,8 @@ function getManagedUsers(){
   }catch{}
   const fixedDefaults = normalizeManagedUsers([
     { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
-    { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'user' },
-    { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' }
+    { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'admin' },
+	{ username: 'pica.fern', email: 'pica.fern@gmail.com', password: 'A_TUA_PASSWORD', role: 'master_admin' }
   ]);
   localStorage.setItem('app_users', JSON.stringify(fixedDefaults));
   return fixedDefaults;
@@ -4463,14 +4520,14 @@ function setSyncMessage(msg, level='warn'){
   }
 }
 function setRoleUI(){
-  if(!globalThis.currentRole) return;
-  const roleLabel = globalThis.currentRole === 'master_admin' ? 'Admin Mestre' : (globalThis.currentRole === 'admin' ? 'Admin' : 'User');
-  document.body.classList.toggle('role-view-user', globalThis.currentRole === 'user');
-  document.body.classList.toggle('role-view-admin', globalThis.currentRole === 'admin');
+  if(!currentRole) return;
+  const roleLabel = currentRole === 'master_admin' ? 'Admin Mestre' : (currentRole === 'admin' ? 'Admin' : 'User');
+  document.body.classList.toggle('role-view-user', currentRole === 'user');
+  document.body.classList.toggle('role-view-admin', currentRole === 'admin');
   $('roleBadge').textContent = roleLabel;
   $('roleLine').textContent = `Role: ${roleLabel}`;
   $('versionBadge').textContent = APP_VERSION;
-  $('currentUserName').textContent = globalThis.currentUsername || 'Utilizador';
+  $('currentUserName').textContent = currentUsername || 'Utilizador';
   const usersSection = $('usersSection');
   if(usersSection) usersSection.style.display = isMasterAdmin() ? 'block' : 'none';
   const workCodeField = $('workCodeDisplay');
@@ -4484,13 +4541,119 @@ function setRoleUI(){
   try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 }
+<script>
 function switchTab(tab){
-  if (!globalThis.currentRole) globalThis.currentRole = 'master_admin';
-  if(!canAccessTab(tab, globalThis.currentRole)){
-    const fallback = getAllowedTabsForRole(globalThis.currentRole)[0] || 'dashboard';
-    if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
-    tab = fallback;
+  try{
+    if(!tab) return;
+
+    const targetPage = document.getElementById(`${tab}-page`);
+    if(!targetPage){
+      console.warn('Página não encontrada para tab:', tab);
+      return;
+    }
+
+    if(typeof canAccessTab === 'function' && !canAccessTab(tab)){
+      const fallback = (typeof getAllowedTabsForRole === 'function'
+        ? (getAllowedTabsForRole(currentRole)[0] || 'dashboard')
+        : 'dashboard');
+
+      if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
+      tab = fallback;
+    }
+
+    try{
+      sessionStorage.setItem('gestao:lastTab', tab);
+    }catch(e){}
+
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+
+    document.querySelectorAll('.bottom-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+
+    document.querySelectorAll('.page').forEach(p => {
+      p.classList.remove('active');
+      p.style.display = 'none';
+    });
+
+    targetPage.classList.add('active');
+    targetPage.style.display = 'block';
+
+    const btn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+    const titleEl = document.getElementById('pageTitle');
+    if(titleEl){
+      titleEl.textContent = btn
+        ? btn.textContent.trim()
+        : tab.charAt(0).toUpperCase() + tab.slice(1);
+    }
+
+    if(tab === 'dashboard' && typeof renderDashboard === 'function'){
+      renderDashboard();
+      if(typeof renderAlerts === 'function') renderAlerts();
+    }
+    if(tab === 'trabalhos' && typeof renderTrabalhos === 'function') renderTrabalhos();
+    if(tab === 'clientes' && typeof renderClientes === 'function') renderClientes();
+    if(tab === 'pagamentos' && typeof renderPagamentos === 'function') renderPagamentos();
+    if(tab === 'relatorios' && typeof renderRelatorios === 'function') renderRelatorios();
+    if(tab === 'configuracoes'){
+      if(typeof bindUiScaleSelector === 'function') bindUiScaleSelector();
+      if(typeof renderManagedUsers === 'function') renderManagedUsers();
+    }
+
+    if(typeof updatePresencePage === 'function'){
+      updatePresencePage(titleEl?.textContent?.trim() || tab);
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }catch(err){
+    console.error('Erro no switchTab:', err);
   }
+}
+
+window.switchTab = switchTab;
+
+function bindSidebarNavigation(){
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(this.dataset.tab);
+    };
+  });
+
+  document.querySelectorAll('.bottom-btn').forEach(btn => {
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(this.dataset.tab);
+    };
+  });
+
+  document.querySelectorAll('[data-go]').forEach(btn => {
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(this.dataset.go);
+    };
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  bindSidebarNavigation();
+
+  let restoreTab = 'dashboard';
+  try{
+    restoreTab = sessionStorage.getItem('gestao:lastTab') || 'dashboard';
+  }catch(e){}
+
+  setTimeout(() => {
+    switchTab(restoreTab);
+  }, 0);
+});
+</script>
+
   try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(e){}
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   bottomButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -6091,8 +6254,7 @@ function renderRelatorios() {
         .join('')
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
-function renderDashboardAgenda(){ return; }
-function renderAll(){ if(!(globalThis.currentRole || currentRole)) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){}
   renderManagedUsers();
   updateWorkCodePreview();
@@ -6351,8 +6513,6 @@ window.performLogin = async function(email, password){
   const role = profile?.role || 'consulta';
   currentUserUid = authUser.uid || null;
   currentUserEmail = authUser.email || email;
-  globalThis.currentUserUid = currentUserUid;
-  globalThis.currentUserEmail = currentUserEmail;
   return { role, username, email: currentUserEmail, uid: currentUserUid };
 };
 
@@ -6361,21 +6521,15 @@ window.performLogout = async function(){
   try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
   currentUserUid = null;
   currentUserEmail = null;
-  globalThis.currentUserUid = null;
-  globalThis.currentUserEmail = null;
 };
 
 
 window.startApp = function(sessionOrRole, maybeUsername){
   const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
-  currentRole = session.role || 'master_admin';
-  currentUsername = session.username || 'user';
+  currentRole = session.role;
+  currentUsername = session.username;
   currentUserEmail = session.email || currentUserEmail || null;
   currentUserUid = session.uid || currentUserUid || null;
-  globalThis.currentRole = currentRole;
-  globalThis.currentUsername = currentUsername;
-  globalThis.currentUserEmail = currentUserEmail;
-  globalThis.currentUserUid = currentUserUid;
   loadLocal();
   setRoleUI();
   renderAll();
