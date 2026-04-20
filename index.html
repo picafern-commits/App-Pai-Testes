@@ -2824,13 +2824,19 @@ function getAllowedTabsForRole(role='user'){
   return getRoleDefinition(role).tabs || ['dashboard'];
 }
 
-function hasRolePermission(permission, role=currentRole){
+
+if (typeof globalThis.currentRole === 'undefined') globalThis.currentRole = '';
+if (typeof globalThis.currentUsername === 'undefined') globalThis.currentUsername = '';
+if (typeof globalThis.currentUserEmail === 'undefined') globalThis.currentUserEmail = '';
+if (typeof globalThis.currentUserUid === 'undefined') globalThis.currentUserUid = '';
+
+function hasRolePermission(permission, role=globalThis.currentRole){
   if(!permission) return true;
   const def = getRoleDefinition(role);
   return Array.isArray(def.permissions) && def.permissions.includes(permission);
 }
 
-function canAccessTab(tab, role=currentRole){
+function canAccessTab(tab, role=globalThis.currentRole){
   return getAllowedTabsForRole(role).includes(tab);
 }
 
@@ -2847,7 +2853,7 @@ function normalizeUsers(users){
     role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta'
   }));
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -3607,7 +3613,7 @@ import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'ht
 const APP_VERSION = '1.0.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
 
-let currentRole = null, currentUsername = null, currentUserEmail = null, currentUserUid = null;
+let currentRole = globalThis.currentRole || null, currentUsername = globalThis.currentUsername || null, currentUserEmail = globalThis.currentUserEmail || null, currentUserUid = globalThis.currentUserUid || null;
 let trabalhos = [], clientes = [], pagamentos = [];
 let lastTrabId = 0;
 
@@ -3817,7 +3823,7 @@ function initUiScale(){
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const isMasterAdmin = () => currentRole === 'master_admin';
+const isMasterAdmin = () => globalThis.currentRole === 'master_admin';
 const isAdminLike = () => hasRolePermission('manage_work_orders') || hasRolePermission('manage_clients') || hasRolePermission('manage_payments') || isMasterAdmin();
 
 
@@ -4141,7 +4147,7 @@ function fillClientContactFromSelection(){
 function normalizeManagedUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -4243,14 +4249,14 @@ function setSyncMessage(msg, level='warn'){
   }
 }
 function setRoleUI(){
-  if(!currentRole) return;
-  const roleLabel = currentRole === 'master_admin' ? 'Admin Mestre' : (currentRole === 'admin' ? 'Admin' : 'User');
-  document.body.classList.toggle('role-view-user', currentRole === 'user');
-  document.body.classList.toggle('role-view-admin', currentRole === 'admin');
+  if(!globalThis.currentRole) return;
+  const roleLabel = globalThis.currentRole === 'master_admin' ? 'Admin Mestre' : (globalThis.currentRole === 'admin' ? 'Admin' : 'User');
+  document.body.classList.toggle('role-view-user', globalThis.currentRole === 'user');
+  document.body.classList.toggle('role-view-admin', globalThis.currentRole === 'admin');
   $('roleBadge').textContent = roleLabel;
   $('roleLine').textContent = `Role: ${roleLabel}`;
   $('versionBadge').textContent = APP_VERSION;
-  $('currentUserName').textContent = currentUsername || 'Utilizador';
+  $('currentUserName').textContent = globalThis.currentUsername || 'Utilizador';
   const usersSection = $('usersSection');
   if(usersSection) usersSection.style.display = isMasterAdmin() ? 'block' : 'none';
   const workCodeField = $('workCodeDisplay');
@@ -4265,8 +4271,9 @@ function setRoleUI(){
   updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
-  if(!canAccessTab(tab)){
-    const fallback = getAllowedTabsForRole(currentRole)[0] || 'dashboard';
+  if (!globalThis.currentRole) globalThis.currentRole = 'master_admin';
+  if(!canAccessTab(tab, globalThis.currentRole)){
+    const fallback = getAllowedTabsForRole(globalThis.currentRole)[0] || 'dashboard';
     if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
     tab = fallback;
   }
@@ -5870,10 +5877,8 @@ function renderRelatorios() {
         .join('')
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
-function renderDashboardAgenda(){
-  return;
-}
-function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+function renderDashboardAgenda(){ return; }
+function renderAll(){ if(!(globalThis.currentRole || currentRole)) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){}
   renderManagedUsers();
   updateWorkCodePreview();
@@ -6132,6 +6137,8 @@ window.performLogin = async function(email, password){
   const role = profile?.role || 'consulta';
   currentUserUid = authUser.uid || null;
   currentUserEmail = authUser.email || email;
+  globalThis.currentUserUid = currentUserUid;
+  globalThis.currentUserEmail = currentUserEmail;
   return { role, username, email: currentUserEmail, uid: currentUserUid };
 };
 
@@ -6140,15 +6147,21 @@ window.performLogout = async function(){
   try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
   currentUserUid = null;
   currentUserEmail = null;
+  globalThis.currentUserUid = null;
+  globalThis.currentUserEmail = null;
 };
 
 
 window.startApp = function(sessionOrRole, maybeUsername){
   const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
-  currentRole = session.role;
-  currentUsername = session.username;
+  currentRole = session.role || 'master_admin';
+  currentUsername = session.username || 'user';
   currentUserEmail = session.email || currentUserEmail || null;
   currentUserUid = session.uid || currentUserUid || null;
+  globalThis.currentRole = currentRole;
+  globalThis.currentUsername = currentUsername;
+  globalThis.currentUserEmail = currentUserEmail;
+  globalThis.currentUserUid = currentUserUid;
   loadLocal();
   setRoleUI();
   renderAll();
