@@ -2457,17 +2457,17 @@ td.acoes-col, .acoes-col{
           <h1>Entrar</h1>
         </div>
 
-        <form id="loginForm" class="login-form">
-          <div class="field">
-            <label>Email</label>
-            <input id="loginEmail" type="email" placeholder="pica.fern@gmail.com" required autocomplete="username" />
-          </div>
-          <div class="field">
-            <label>Palavra-passe</label>
-            <input id="loginPassword" type="password" placeholder="••••••••" required autocomplete="current-password" />
-          </div>
-          <button type="submit" class="btn btn-primary full">Entrar</button>
-        </form>
+			<form id="loginForm" class="login-form" novalidate>
+				<div class="field">
+					<label for="loginEmail">Email</label>
+					<input id="loginEmail" name="loginEmail" type="email" placeholder="pica.fern@gmail.com" autocomplete="username" />
+				</div>
+				<div class="field">
+					<label for="loginPassword">Palavra-passe</label>
+					<input id="loginPassword" name="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+				</div>
+				<button id="loginBtn" type="submit" class="btn btn-primary full">Entrar</button>
+			</form>
         <div id="loginError" class="login-error"></div>
       </div>
     </div>
@@ -2917,22 +2917,43 @@ function bootFromSession(){
 loginForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const password = document.getElementById('loginPassword').value;
+  const emailInput = document.getElementById('loginEmail');
+  const passwordInput = document.getElementById('loginPassword');
+  const errorEl = document.getElementById('loginError');
 
-  try{
-    if(typeof window.performLogin !== 'function'){
+  const email = (emailInput?.value || '').trim().toLowerCase();
+  const password = passwordInput?.value || '';
+
+  if (errorEl) errorEl.textContent = '';
+
+  if (!email) {
+    if (errorEl) errorEl.textContent = 'Preenche o email.';
+    emailInput?.focus();
+    return;
+  }
+
+  if (!password) {
+    if (errorEl) errorEl.textContent = 'Preenche a palavra-passe.';
+    passwordInput?.focus();
+    return;
+  }
+
+  try {
+    if (typeof window.performLogin !== 'function') {
       throw new Error('Sistema de autenticação ainda não ficou pronto.');
     }
+
     const session = await window.performLogin(email, password);
     saveSession(session.role, session.username, session.email || email, session.uid || '');
-    document.getElementById('loginError').textContent = '';
+
+    if (errorEl) errorEl.textContent = '';
     showApp();
-    if(window.startApp){
+
+    if (window.startApp) {
       window.startApp(session);
     }
-  }catch(err){
-    document.getElementById('loginError').textContent = err?.message || 'Credenciais inválidas.';
+  } catch (err) {
+    if (errorEl) errorEl.textContent = err?.message || 'Credenciais inválidas.';
   }
 });
 
@@ -4158,8 +4179,8 @@ function getManagedUsers(){
   }catch{}
   const fixedDefaults = normalizeManagedUsers([
     { username: 'jorge', email: 'jorge@empresa.pt', password: 'jfernandes', role: 'admin' },
-    { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'user' },
-    { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' }
+    { username: 'fatima', email: 'fatima@empresa.pt', password: 'ffernandes', role: 'admin' },
+	{ username: 'pica.fern', email: 'pica.fern@gmail.com', password: 'A_TUA_PASSWORD', role: 'master_admin' }
   ]);
   localStorage.setItem('app_users', JSON.stringify(fixedDefaults));
   return fixedDefaults;
