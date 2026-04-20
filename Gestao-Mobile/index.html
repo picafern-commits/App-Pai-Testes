@@ -3111,6 +3111,25 @@ function readSession(){
 
 function clearSession(){
   localStorage.removeItem('app_session');
+  try{ sessionStorage.removeItem('app_session'); }catch(e){}
+}
+
+function hasForcedLogoutFlag(){
+  try{
+    const url = new URL(window.location.href);
+    return url.searchParams.get('logout') === '1';
+  }catch(e){
+    return false;
+  }
+}
+
+function clearForcedLogoutFlag(){
+  try{
+    const url = new URL(window.location.href);
+    if(url.searchParams.get('logout') !== '1') return;
+    url.searchParams.delete('logout');
+    window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + url.hash);
+  }catch(e){}
 }
 
 function markLogoutInProgress(){
@@ -3149,9 +3168,10 @@ function showLogin(){
 }
 
 function bootFromSession(){
-  if(isLogoutInProgress()){
+  if(hasForcedLogoutFlag() || isLogoutInProgress()){
     clearSession();
     clearLogoutInProgress();
+    clearForcedLogoutFlag();
     return false;
   }
 
@@ -3221,8 +3241,16 @@ async function performLogout({reload=true} = {}){
 
   if(reload){
     setTimeout(() => {
-      try{ window.location.replace(window.location.pathname + window.location.search); }
-      catch(e){ window.location.reload(); }
+      try{
+        const url = new URL(window.location.href);
+        url.searchParams.set('logout', '1');
+        window.location.replace(url.pathname + '?' + url.searchParams.toString() + url.hash);
+      }
+      catch(e){
+        showLogin();
+        clearLogoutInProgress();
+        window.__logoutInProgress = false;
+      }
     }, 80);
   } else {
     clearLogoutInProgress();
@@ -6495,11 +6523,11 @@ $('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMen
 loadLocal();
 autoBackupInvisible();
 renderOnlineUsers();
-initFirebaseSync();
 
 
 window.startApp = function(role, username){
   clearLogoutInProgress();
+  clearForcedLogoutFlag();
   window.__logoutInProgress = false;
   currentRole = role;
   currentUsername = username;
