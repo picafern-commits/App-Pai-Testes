@@ -140,6 +140,30 @@ textarea{resize:vertical}
   grid-template-columns:260px minmax(0,1fr);
   min-height:100vh;
 }
+.sidebar-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(2,6,23,.58);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .22s ease;
+  z-index:1200;
+}
+.sidebar-toggle{
+  display:none;
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.05);
+  color:var(--text);
+  cursor:pointer;
+  font-size:20px;
+  align-items:center;
+  justify-content:center;
+  box-shadow:var(--shadow);
+}
+.sidebar-toggle:hover{background:rgba(255,255,255,.08)}
 .sidebar{
   background:rgba(7,10,19,.78);
   border-right:1px solid var(--line);
@@ -519,7 +543,10 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   .clean-brand-copy h1{font-size:40px}
   .login-only-title h1{font-size:44px}
   .app-shell{grid-template-columns:1fr}
-  .sidebar{position:static;height:auto}
+  .sidebar-toggle{display:inline-flex}
+  .sidebar-overlay.open{opacity:1;pointer-events:auto}
+  .sidebar{position:fixed;left:0;top:0;height:100vh;max-width:min(86vw,320px);width:min(86vw,320px);transform:translateX(-104%);transition:transform .25s ease;z-index:1400;overflow:auto}
+  .app-shell.sidebar-open .sidebar{transform:translateX(0)}
   .main{padding:16px 16px 86px}
   .topbar{flex-direction:column;align-items:flex-start}
   .global-search{min-width:100%;max-width:none}
@@ -596,7 +623,6 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   }
 
   .sidebar{
-    width:100%;
     flex:unset;
   }
 
@@ -2474,7 +2500,8 @@ td.acoes-col, .acoes-col{
   </div>
 
   <div id="appRoot" class="app-shell hidden">
-    <aside class="sidebar">
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <aside id="appSidebar" class="sidebar">
       <div class="brand-card">
         <img class="sidebar-logo" src="logo-icon-dark.png" alt="Logo Jorge Torneiro" />
         <div>
@@ -2508,6 +2535,7 @@ td.acoes-col, .acoes-col{
 
     <main class="main">
       <header class="topbar">
+        <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Abrir menu">☰</button>
         <div class="topbar-left">
           <div>
             <h2 id="pageTitle">Dashboard</h2>
@@ -3773,6 +3801,22 @@ document.addEventListener('visibilitychange', () => {
 const $ = (id) => document.getElementById(id);
 initUiScale();
 const navButtons = document.querySelectorAll('.nav-btn');
+const appShell = document.getElementById('appRoot');
+const appSidebar = document.getElementById('appSidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+function setSidebarOpen(open){
+  if(!appShell) return;
+  appShell.classList.toggle('sidebar-open', !!open);
+  if(sidebarOverlay) sidebarOverlay.classList.toggle('open', !!open);
+  if(sidebarToggle) sidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function closeSidebarIfMobile(){
+  if(window.matchMedia('(max-width: 900px)').matches) setSidebarOpen(false);
+}
+if(sidebarToggle) sidebarToggle.addEventListener('click', ()=> setSidebarOpen(!(appShell && appShell.classList.contains('sidebar-open'))));
+if(sidebarOverlay) sidebarOverlay.addEventListener('click', ()=> setSidebarOpen(false));
+window.addEventListener('resize', ()=> { if(window.innerWidth > 900) setSidebarOpen(false); });
 const bottomButtons = document.querySelectorAll('.bottom-btn');
 const pages = document.querySelectorAll('.page');
 
@@ -4291,11 +4335,21 @@ function switchTab(tab){
     renderManagedUsers();
   }
   updatePresencePage(document.getElementById('pageTitle')?.textContent?.trim() || tab);
+  closeSidebarIfMobile();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
+document.addEventListener('click', (event)=>{
+  const btn = event.target.closest('.nav-btn,[data-go],.bottom-btn');
+  if(!btn) return;
+  const tab = btn.dataset.tab || btn.dataset.go;
+  if(!tab) return;
+  event.preventDefault();
+  switchTab(tab);
+});
+
 
 function forceAppRefresh(){
   try{
@@ -7002,5 +7056,13 @@ function printProfessionalReport(){
     </div>
   </div>
 
+<style id="sidebar-desktop-fix">
+@media (min-width:901px){
+  .sidebar-overlay{display:none!important}
+  .sidebar-toggle{display:none!important}
+}
+</style>
+
 </body>
 </html>
+
