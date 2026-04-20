@@ -746,6 +746,9 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 }
 .modal.hidden{display:none !important;}
 .modal-small{width:min(560px,100%)}
+.pay-method-btn.selected{background:linear-gradient(135deg, rgba(56,189,248,.42), rgba(37,99,235,.46));border-color:rgba(125,211,252,.65);box-shadow:0 0 0 1px rgba(125,211,252,.25) inset, 0 10px 24px rgba(14,165,233,.18)}
+#paymentConfirmBtn:hover:not([disabled]){background:linear-gradient(135deg,#22c55e,#16a34a) !important;border-color:rgba(74,222,128,.55) !important;color:#fff}
+#paymentConfirmBtn[disabled]{opacity:.55;cursor:not-allowed}
 .payment-method-grid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
@@ -1491,6 +1494,11 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .stage-chip.locked{opacity:.42;cursor:not-allowed}
 .stage-chip:hover:not(.locked){transform:translateY(-1px)}
 .payment-badge-inline{background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.32);color:#86efac;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:6px}
+.sortable-th-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:0;color:inherit;font:inherit;font-weight:800;padding:0;cursor:pointer}
+.sortable-th-btn .sort-arrow{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:999px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.62);font-size:10px;transition:all .18s ease}
+.sortable-th-btn.active .sort-arrow{background:rgba(59,130,246,.18);color:#7dd3fc}
+.sortable-th-btn:hover .sort-arrow{background:rgba(255,255,255,.12);color:#fff}
+
 .row-actions .action-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .row-actions .action-bottom{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .payment-date-box input{min-height:40px}
@@ -2626,7 +2634,15 @@ td.acoes-col, .acoes-col{
             <div class="panel-head"><h3>Registo de pagamentos</h3></div>
             <div id="pagamentosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
-                <thead><tr><th>Cliente</th><th>Nome do Trabalho</th><th>Data do Trabalho</th><th>Valor</th><th>Método</th><th>Faturação</th><th>Ações</th></tr></thead>
+                <thead><tr>
+                  <th><button class="sortable-th-btn" type="button" onclick="setPagamentosSort('cliente')">Cliente <span class="sort-arrow">↕</span></button></th>
+                  <th><button class="sortable-th-btn" type="button" onclick="setPagamentosSort('referencia')">Nome do Trabalho <span class="sort-arrow">↕</span></button></th>
+                  <th><button class="sortable-th-btn" type="button" onclick="setPagamentosSort('data')">Data do Trabalho <span class="sort-arrow">↕</span></button></th>
+                  <th><button class="sortable-th-btn" type="button" onclick="setPagamentosSort('valor')">Valor <span class="sort-arrow">↕</span></button></th>
+                  <th><button class="sortable-th-btn" type="button" onclick="setPagamentosSort('metodo')">Método <span class="sort-arrow">↕</span></button></th>
+                  <th><button class="sortable-th-btn" type="button" onclick="setPagamentosSort('invoiceType')">Faturação <span class="sort-arrow">↕</span></button></th>
+                  <th>Ações</th>
+                </tr></thead>
                 <tbody id="pagamentosTableBody"></tbody>
               </table>
             </div>
@@ -2805,7 +2821,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-function openPaymentMethodModal(id){
+function legacy_openPaymentMethodModal(id){
   const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
   const t = trabalhosLista.find(x => String(x.id) === String(id));
   if(!t) return;
@@ -2823,18 +2839,18 @@ function openPaymentMethodModal(id){
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
   if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
-  modal.style.display = 'flex';
+  modal.style.display = 'grid';
   modal.classList.add('show');
 }
 
-function closePaymentMethodModal(){
+function legacy_closePaymentMethodModal(){
   const modal = document.getElementById('paymentMethodModal');
   if(!modal) return;
   modal.style.display = 'none';
   modal.classList.remove('show');
 }
 
-function confirmPaymentMethod(method){
+function legacy_confirmPaymentMethod(method){
   const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
   const hiddenId = document.getElementById('paymentWorkId');
   const dateInput = document.getElementById('paymentDateInput');
@@ -3437,12 +3453,12 @@ function printProfessionalReport(){
 </script>
   <script type="module">
 const firebaseConfig = {
-  apiKey: "AIzaSyDbiMRCFhD9WC4Z17fc9M9uXdY8ETUO05Q",
-  authDomain: "app-pai-feb73.firebaseapp.com",
-  projectId: "app-pai-feb73",
-  storageBucket: "app-pai-feb73.appspot.com",
-  messagingSenderId: "594270955224",
-  appId: "1:594270955224:web:85d1d530889704d0f359ad"
+  apiKey: "AIzaSyD2nCoO5TP56H_gm5SBWM6DLf_SZW1UPxI",
+  authDomain: "app-gestao-c932d.firebaseapp.com",
+  projectId: "app-gestao-c932d",
+  storageBucket: "app-gestao-c932d.firebasestorage.app",
+  messagingSenderId: "318015040210",
+  appId: "1:318015040210:web:e3070e6b8f4d74a8799b0b"
 };
 
 
@@ -3957,6 +3973,7 @@ function setRoleUI(){
   updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
+  try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(e){}
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   bottomButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   pages.forEach(p => p.classList.toggle('active', p.id===`${tab}-page`));
@@ -3982,42 +3999,82 @@ navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
 
-async function initFirebaseSync(){
+function forceAppRefresh(){
   try{
-    if (firebaseApp && firebaseAuth && firestoreDb) {
-      if (syncReady) setSyncMessage('Firebase Sync', 'ok');
-      return;
-    }
-
-    firebaseApp = initializeApp(firebaseConfig);
-    firebaseAuth = getAuth(firebaseApp);
-    firestoreDb = getFirestore(firebaseApp);
-    setSyncMessage('A ligar ao Firebase…', 'warn');
-
-    await signInAnonymously(firebaseAuth);
-
-    onAuthStateChanged(firebaseAuth, user => {
-      if (user) {
-        syncReady = true;
-        setSyncMessage('Firebase Sync', 'ok');
-        clearRealtimeListeners();
-        attachRealtimeListeners();
-      } else {
-        syncReady = false;
-        setSyncMessage('Sem sessão Firebase', 'bad');
-      }
-      if (currentRole) renderAll();
-    });
-  }catch(err){
-    console.error('Firebase sync error:', err);
-    syncReady = false;
-    const msg = location.protocol === 'file:'
-      ? 'Abre por servidor/GitHub Pages (não file://)'
-      : err?.code === 'auth/operation-not-allowed'
-        ? 'Ativa Anonymous Auth no Firebase'
-        : 'Local (Firebase indisponível)';
-    setSyncMessage(msg, 'bad');
+    const activePage = document.querySelector('.page.active');
+    const activeTab = activePage ? activePage.id.replace(/-page$/, '') : (sessionStorage.getItem('gestao:lastTab') || 'dashboard');
+    sessionStorage.setItem('gestao:lastTab', activeTab);
+  }catch(e){}
+  setTimeout(()=>{
+    try{ window.location.reload(); }catch(e){ location.reload(); }
+  }, 120);
+}
+try{
+  const restoreTab = sessionStorage.getItem('gestao:lastTab');
+  if(restoreTab){
+    setTimeout(()=>{ try{ switchTab(restoreTab); }catch(e){} }, 0);
   }
+}catch(e){}
+
+let firebaseSyncInitPromise = null;
+async function waitForFirebaseSyncReady(timeoutMs = 12000){
+  const start = Date.now();
+  while(!firestoreDb){
+    if(Date.now() - start > timeoutMs) throw new Error('Firebase não ficou pronto a tempo');
+    await new Promise(resolve => setTimeout(resolve, 150));
+  }
+  return true;
+}
+async function initFirebaseSync(){
+  if(firebaseSyncInitPromise) return firebaseSyncInitPromise;
+  firebaseSyncInitPromise = (async()=>{
+    try{
+      if (!firebaseApp) firebaseApp = initializeApp(firebaseConfig);
+      if (!firebaseAuth) firebaseAuth = getAuth(firebaseApp);
+      if (!firestoreDb) firestoreDb = getFirestore(firebaseApp);
+
+      syncReady = true;
+      setSyncMessage('Firebase Sync', 'ok');
+      clearRealtimeListeners();
+      attachRealtimeListeners();
+
+      if(!firebaseAuth.currentUser){
+        try{
+          await signInAnonymously(firebaseAuth);
+        }catch(authErr){
+          console.warn('Anonymous auth indisponível, continuo com Firestore direto:', authErr);
+          if(authErr?.code === 'auth/operation-not-allowed'){
+            setSyncMessage('Firebase Sync (sem auth anónima)', 'warn');
+          }
+        }
+      }
+
+      onAuthStateChanged(firebaseAuth, user => {
+        if (user) {
+          syncReady = true;
+          setSyncMessage('Firebase Sync', 'ok');
+          clearRealtimeListeners();
+          attachRealtimeListeners();
+        }
+        if (currentRole) renderAll();
+      });
+
+      await waitForFirebaseSyncReady();
+      return true;
+    }catch(err){
+      console.error('Firebase sync error:', err);
+      syncReady = false;
+      firebaseSyncInitPromise = null;
+      const msg = location.protocol === 'file:'
+        ? 'Abre por servidor/GitHub Pages (não file://)'
+        : err?.code === 'auth/operation-not-allowed'
+          ? 'Ativa Anonymous Auth no Firebase'
+          : 'Local (Firebase indisponível)';
+      setSyncMessage(msg, 'bad');
+      throw err;
+    }
+  })();
+  return firebaseSyncInitPromise;
 }
 
 function clearRealtimeListeners(){
@@ -4042,13 +4099,22 @@ function attachRealtimeListeners(){
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
 }
+async function ensureFirebaseReady(timeoutMs = 12000){
+  if (!firestoreDb) {
+    await initFirebaseSync();
+    await waitForFirebaseSyncReady(timeoutMs);
+  }
+  return true;
+}
 async function upsertRemote(collectionName, item){
-  if (!syncReady || !firestoreDb) return false;
+  if (!item?.id) throw new Error(`Documento sem id em ${collectionName}`);
+  await ensureFirebaseReady();
   await setDoc(doc(firestoreDb, collectionName, item.id), item, { merge: true });
   return true;
 }
 async function removeRemote(collectionName, id){
-  if (!syncReady || !firestoreDb || !id) return false;
+  if (!id) throw new Error(`Id inválido para apagar em ${collectionName}`);
+  await ensureFirebaseReady();
   await deleteDoc(doc(firestoreDb, collectionName, id));
   return true;
 }
@@ -5253,7 +5319,7 @@ function renderCalendario(){
                   <span class="badge" data-state="${escapeHtml(t.estado || '-')}">${escapeHtml(t.estado || '-')}</span>
                 </div>
                 <div>${escapeHtml(t.tipoTrabalho || '-')}</div>
-                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: ${euro(t.valor || 0)}</div>
+                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: ${euro(t.valorPago ?? t.valor ?? 0)}</div>
                 ${(t.descricao || '').trim() ? `<div class="calendar-meta">${escapeHtml(t.descricao)}</div>` : ''}
               </div>
               <div class="row-actions">
@@ -5289,7 +5355,7 @@ function renderDashboard(){
         <div class="mini-label badge" data-state="${escapeHtml(t.estado||'Sem estado')}">${escapeHtml(t.estado||'Sem estado')}</div>
         <strong>${escapeHtml(t.cliente||'-')}</strong>
         <div>${escapeHtml(t.tipoTrabalho||'-')}</div>
-        <div class="recent-meta">${euro(t.valor||0)} • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
+        <div class="recent-meta">${euro(t.valorPago ?? t.valor ?? 0)} • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
       </div>`).join('');
 
   const monthMap={};
@@ -5374,7 +5440,7 @@ function renderTrabalhos(){
     const invoiceType = t.invoiceType || 'Com Fatura';
     const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
     const effectiveEstado = t.paymentStatus === 'Pago' ? 'Pago' : (t.estado || '-');
-    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valor||0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(effectiveEstado)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
+    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(effectiveEstado)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
   }).join('') : '<tr><td colspan="9">Sem resultados.</td></tr>';
 }
 function renderClientes(){
@@ -5386,11 +5452,64 @@ function renderClientes(){
   });
   $('clientesTableBody').innerHTML = rows.length ? rows.slice().reverse().map(c=>`<tr><td>${escapeHtml(c.nome||'-')}</td><td>${escapeHtml(c.telefone||'-')}</td><td>${escapeHtml(c.email||'-')}</td><td>${escapeHtml(c.nif||'-')}</td><td><div class="row-actions">${clienteActions(c)}</div></td></tr>`).join('') : '<tr><td colspan="5">Sem clientes registados.</td></tr>';
 }
+let pagamentosSortState = { key: 'data', dir: 'desc' };
+function getPagamentoSortValue(p, key) {
+  switch (key) {
+    case 'cliente': return String(p.cliente || '').toLowerCase();
+    case 'referencia': return String(p.referencia || '').toLowerCase();
+    case 'data': {
+      const raw = p.workDate || p.data || '';
+      const ts = raw ? new Date(raw).getTime() : 0;
+      return Number.isFinite(ts) ? ts : 0;
+    }
+    case 'valor': return Number(p.valor || 0);
+    case 'metodo': return String(p.metodo || 'Manual').toLowerCase();
+    case 'invoiceType': return String(p.invoiceType || 'Com Fatura').toLowerCase();
+    default: return String(p[key] || '').toLowerCase();
+  }
+}
+function updatePagamentosSortUI() {
+  document.querySelectorAll('.sortable-th-btn').forEach((btn)=>{
+    const onclick = btn.getAttribute('onclick') || '';
+    const match = onclick.match(/setPagamentosSort\('([^']+)'\)/);
+    const key = match ? match[1] : '';
+    const arrow = btn.querySelector('.sort-arrow');
+    const active = key === pagamentosSortState.key;
+    btn.classList.toggle('active', active);
+    if (arrow) arrow.textContent = active ? (pagamentosSortState.dir === 'asc' ? '↑' : '↓') : '↕';
+  });
+}
+window.setPagamentosSort = function(key) {
+  if (pagamentosSortState.key === key) {
+    pagamentosSortState.dir = pagamentosSortState.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    pagamentosSortState.key = key;
+    pagamentosSortState.dir = key === 'data' || key === 'valor' ? 'desc' : 'asc';
+  }
+  renderPagamentos();
+};
+
 function renderPagamentos() {
   const tbody = $('pagamentosTableBody');
   if (!tbody) return;
-  tbody.innerHTML = pagamentos.length
-    ? pagamentos.slice().reverse().map((p) => {
+  const rows = pagamentos.slice().sort((a, b) => {
+    const av = getPagamentoSortValue(a, pagamentosSortState.key);
+    const bv = getPagamentoSortValue(b, pagamentosSortState.key);
+    let cmp = 0;
+    if (typeof av === 'number' && typeof bv === 'number') cmp = av - bv;
+    else cmp = String(av).localeCompare(String(bv), 'pt', { numeric: true, sensitivity: 'base' });
+    if (cmp === 0) {
+      const fallbackA = new Date(a.workDate || a.data || 0).getTime() || 0;
+      const fallbackB = new Date(b.workDate || b.data || 0).getTime() || 0;
+      cmp = fallbackA - fallbackB;
+    }
+    return pagamentosSortState.dir === 'asc' ? cmp : -cmp;
+  });
+
+  updatePagamentosSortUI();
+
+  tbody.innerHTML = rows.length
+    ? rows.map((p) => {
       const invoiceType = p.invoiceType || 'Com Fatura';
       const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
       return `
@@ -5583,9 +5702,18 @@ window.editTrabalho = function(id){
 window.deleteTrabalho = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este trabalho?')) return;
-  trabalhos=trabalhos.filter(x=>x.id!==id);
-  saveLocal(); renderAll();
-  try{ await removeRemote('trabalhos', id); }catch(err){ console.error(err); setSyncMessage('Erro a apagar no Firebase', 'bad'); }
+  try{
+    await removeRemote('trabalhos', id);
+    trabalhos = trabalhos.filter(x=>x.id!==id);
+    saveLocal();
+    renderAll();
+    forceAppRefresh();
+    forceAppRefresh();
+  }catch(err){
+    console.error(err);
+    setSyncMessage('Erro a apagar no Firebase', 'bad');
+    alert(`Não foi possível apagar na Firebase. ${err?.code ? '(' + err.code + ')' : ''}`.trim());
+  }
 };
 window.editCliente = function(id){
   if(!adminGuard()) return;
@@ -5596,9 +5724,16 @@ window.editCliente = function(id){
 window.deleteCliente = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este cliente?')) return;
-  clientes=clientes.filter(x=>x.id!==id);
-  saveLocal(); renderAll();
-  try{ await removeRemote('clientes', id); }catch(err){ console.error(err); setSyncMessage('Erro a apagar no Firebase', 'bad'); }
+  try{
+    await removeRemote('clientes', id);
+    clientes = clientes.filter(x=>x.id!==id);
+    saveLocal();
+    renderAll();
+  }catch(err){
+    console.error(err);
+    setSyncMessage('Erro a apagar no Firebase', 'bad');
+    alert(`Não foi possível apagar na Firebase. ${err?.code ? '(' + err.code + ')' : ''}`.trim());
+  }
 };
 
 const clientModal = $('clientModal');
@@ -5641,7 +5776,7 @@ window.openClientHistory = function(id){
         <table>
           <thead><tr><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th></tr></thead>
           <tbody>
-            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valor||0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></td></tr>`).join('') : '<tr><td colspan="5">Sem trabalhos registados.</td></tr>'}
+            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></td></tr>`).join('') : '<tr><td colspan="5">Sem trabalhos registados.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -5661,211 +5796,25 @@ window.openClientHistory = function(id){
   clientModal.classList.remove('hidden');
 };
 
-function buildInvoicePdfHtml(t, invoiceNumber){
-  const issueDate = fmtDate(todayLocalDate());
-  const serviceType = escapeHtml(t.tipoTrabalho || '-');
-  const clientName = escapeHtml(t.cliente || '-');
-  const clientContact = escapeHtml(t.contacto || '-');
-  const startDate = fmtDate(t.dataInicio);
-  const endDate = fmtDate(t.dataFim);
-  const serviceState = escapeHtml(normalizeEstado(t.estado || 'Em curso'));
-  const paymentState = escapeHtml(t.paymentStatus || ((t.estado || '').toLowerCase() === 'pago' ? 'Pago' : 'Pendente'));
-  const description = escapeHtml(t.descricao || '-').replace(/
-/g, '<br>');
-  const totalValue = euro((t.valorPago ?? t.valor) || 0);
-  return `<!DOCTYPE html>
-  <html lang="pt">
-    <head>
-      <meta charset="utf-8" />
-      <title>Fatura ${invoiceNumber}</title>
-      <style>
-        @page { size: A4; margin: 0; }
-        * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; background: #e5e7eb; }
-        body { font-family: Arial, Helvetica, sans-serif; color: #111827; }
-        .sheet {
-          width: 210mm;
-          min-height: 297mm;
-          margin: 0 auto;
-          background: #ffffff;
-          padding: 18mm 16mm 18mm 16mm;
-        }
-        .topbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 24px;
-          margin-bottom: 14mm;
-        }
-        .brand {
-          font-size: 24px;
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          color: #0f172a;
-        }
-        .meta {
-          text-align: right;
-          font-size: 12px;
-          line-height: 1.8;
-          color: #1f2937;
-        }
-        .meta strong { font-weight: 700; }
-        .divider { border: none; border-top: 1px solid #d1d5db; margin: 0 0 10mm 0; }
-        .client-block {
-          display: grid;
-          gap: 5mm;
-          margin-bottom: 10mm;
-          font-size: 12px;
-        }
-        .client-row { display: flex; gap: 6px; align-items: baseline; }
-        .client-row strong { font-size: 12px; min-width: 28mm; }
-        .section-title {
-          font-size: 13px;
-          font-weight: 800;
-          margin: 0 0 6mm 0;
-          color: #111827;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 11px;
-          margin-bottom: 6mm;
-        }
-        thead th {
-          background: #f3f4f6;
-          border: 1px solid #d1d5db;
-          padding: 10px 12px;
-          text-align: left;
-          font-weight: 700;
-        }
-        tbody td {
-          border: 1px solid #d1d5db;
-          padding: 11px 12px;
-          vertical-align: top;
-        }
-        .description-wrap {
-          border-top: 1px solid #d1d5db;
-          border-bottom: 1px solid #d1d5db;
-          padding: 6mm 0 7mm;
-          margin: 7mm 0 11mm;
-        }
-        .description-label {
-          font-size: 12px;
-          font-weight: 800;
-          margin-bottom: 4mm;
-        }
-        .description-text {
-          font-size: 11px;
-          line-height: 1.6;
-          color: #111827;
-          min-height: 16mm;
-        }
-        .total {
-          border-top: 1px solid #d1d5db;
-          padding-top: 7mm;
-          font-size: 14px;
-          font-weight: 800;
-        }
-        .total span { font-weight: 500; }
-        .toolbar {
-          width: 210mm;
-          margin: 12px auto 0;
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-        }
-        .toolbar button {
-          border: none;
-          background: #0f172a;
-          color: #fff;
-          padding: 10px 16px;
-          border-radius: 999px;
-          font-size: 12px;
-          cursor: pointer;
-        }
-        .toolbar button.secondary { background: #475569; }
-        @media print {
-          html, body { background: #ffffff; }
-          .toolbar { display: none; }
-          .sheet { margin: 0; width: auto; min-height: auto; box-shadow: none; }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="toolbar">
-        <button onclick="window.print()">Imprimir / Guardar PDF</button>
-        <button class="secondary" onclick="window.close()">Fechar</button>
-      </div>
-      <main class="sheet">
-        <section class="topbar">
-          <div class="brand">App Braga</div>
-          <div class="meta">
-            <div><strong>Fatura Nº:</strong> ${escapeHtml(invoiceNumber)}</div>
-            <div><strong>Data:</strong> ${escapeHtml(issueDate)}</div>
-          </div>
-        </section>
-
-        <hr class="divider" />
-
-        <section class="client-block">
-          <div class="client-row"><strong>Cliente:</strong><span>${clientName}</span></div>
-          <div class="client-row"><strong>Contacto:</strong><span>${clientContact}</span></div>
-        </section>
-
-        <hr class="divider" />
-
-        <section>
-          <h2 class="section-title">Detalhes do Serviço</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Tipo</th>
-                <th>Início</th>
-                <th>Fim</th>
-                <th>Estado</th>
-                <th>Pagamento</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>${serviceType}</td>
-                <td>${escapeHtml(startDate)}</td>
-                <td>${escapeHtml(endDate)}</td>
-                <td>${serviceState}</td>
-                <td>${paymentState}</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="description-wrap">
-          <div class="description-label">Descrição:</div>
-          <div class="description-text">${description}</div>
-        </section>
-
-        <section class="total">Total: <span>${totalValue}</span></section>
-      </main>
-    </body>
-  </html>`;
-}
-
-function openInvoicePdfWindow(t, invoiceNumber){
-  const win = window.open('', '_blank', 'width=1200,height=900');
-  if(!win) return;
-  win.document.open();
-  win.document.write(buildInvoicePdfHtml(t, invoiceNumber));
-  win.document.close();
-}
-
 window.generateInvoice = function(id){
   const t = trabalhos.find(x=>x.id===id);
   if(!t) return;
   const invoiceNumber = `FT-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
-  openInvoicePdfWindow(t, invoiceNumber);
+  printHtml(`Fatura ${invoiceNumber}`, `
+    <h1>Fatura / Serviço</h1>
+    <div class="meta">Nº ${invoiceNumber}</div>
+    <div class="card"><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div>
+    <div class="card"><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div>
+    <div class="card"><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div>
+    <div class="card"><strong>Data de início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Data de fim:</strong> ${fmtDate(t.dataFim)}</div>
+    <div class="card"><strong>Estado:</strong> ${escapeHtml(t.estado||'-')}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}</div>
+    <div class="card"><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div>
+    <div class="card"><strong>Total:</strong> ${euro(t.valorPago ?? t.valor ?? 0)}</div>
+  `);
 };
 
-window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valor||0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
-window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valor||0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
+window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valorPago ?? t.valor ?? 0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
+window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
 window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
 function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
@@ -5895,55 +5844,81 @@ function todayLocalDate(){
 function getAgendaSmartDate(t){
   return t.dataInicio || t.dataFim || t.dataPagamento || '';
 }
-window.markAsPaid = function(id, metodo='Manual', dataPagamento=''){
+window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorPersonalizado=null){
   const t = trabalhos.find(x => x.id === id);
-  if(!t) return;
+  if(!t) return false;
   const finalPaymentDate = dataPagamento || todayLocalDate();
-  t.estado = 'Pago';
-  t.dataEstado = new Date().toISOString();
-  t.historicoEstados = Array.isArray(t.historicoEstados) ? t.historicoEstados : [];
-  const last = t.historicoEstados[t.historicoEstados.length - 1];
+  const valorFinal = Number(valorPersonalizado ?? t.valorPago ?? t.valor ?? 0);
+  const updatedTrabalho = JSON.parse(JSON.stringify(t));
+  updatedTrabalho.estado = 'Pago';
+  updatedTrabalho.dataEstado = new Date().toISOString();
+  updatedTrabalho.historicoEstados = Array.isArray(updatedTrabalho.historicoEstados) ? updatedTrabalho.historicoEstados : [];
+  const last = updatedTrabalho.historicoEstados[updatedTrabalho.historicoEstados.length - 1];
   if(!last || normalizeEstado(last.estado) !== 'Pago'){
-    t.historicoEstados.push({ estado:'Pago', data:t.dataEstado });
+    updatedTrabalho.historicoEstados.push({ estado:'Pago', data:updatedTrabalho.dataEstado });
   }
-  t.paymentStatus = 'Pago';
-  t.dataPagamento = finalPaymentDate;
-  t.metodoPagamento = metodo;
-  t.dataFim = finalPaymentDate;
+  updatedTrabalho.paymentStatus = 'Pago';
+  updatedTrabalho.paymentMethod = metodo;
+  updatedTrabalho.metodoPagamento = metodo;
+  updatedTrabalho.dataPagamento = finalPaymentDate;
+  updatedTrabalho.dataFim = finalPaymentDate;
+  updatedTrabalho.valorPago = valorFinal;
 
   const existingPagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
   const pagamento = {
+    ...(existingPagamento ? JSON.parse(JSON.stringify(existingPagamento)) : {}),
     id: existingPagamento?.id || genId('pay'),
-    cliente: t.cliente || '',
-    referencia: t.workCode || t.tipoTrabalho || '',
-    workDate: t.dataInicio || '',
+    cliente: updatedTrabalho.cliente || '',
+    referencia: updatedTrabalho.workCode || updatedTrabalho.tipoTrabalho || '',
+    workDate: updatedTrabalho.dataInicio || '',
     data: finalPaymentDate,
-    valor: Number(t.valor || 0),
+    valor: valorFinal,
     metodo,
-    invoiceType: t.invoiceType || 'Com Fatura',
-    sourceWorkId: t.id,
-    workCode: t.workCode || ''
+    invoiceType: updatedTrabalho.invoiceType || 'Com Fatura',
+    sourceWorkId: updatedTrabalho.id,
+    workCode: updatedTrabalho.workCode || ''
   };
-  if(existingPagamento){
-    Object.assign(existingPagamento, pagamento);
-  } else {
-    pagamentos.push(pagamento);
-  }
 
-  saveLocal();
-  renderAll();
-  upsertRemote('trabalhos', t).catch(err => console.error(err));
-  upsertRemote('pagamentos', pagamento).catch(err => console.error(err));
+  try {
+    await ensureFirebaseReady();
+    await Promise.all([
+      upsertRemote('trabalhos', updatedTrabalho),
+      upsertRemote('pagamentos', pagamento)
+    ]);
+
+    Object.assign(t, updatedTrabalho);
+    if(existingPagamento){
+      Object.assign(existingPagamento, pagamento);
+    } else {
+      pagamentos.push(pagamento);
+    }
+    saveLocal();
+    renderAll();
+    setTimeout(()=>{ try{ renderAll(); }catch(e){} }, 200);
+    forceAppRefresh();
+    return true;
+  } catch(err){
+    console.error(err);
+    setSyncMessage('Erro a guardar pagamento no Firebase', 'bad');
+    return false;
+  }
 }
 
 
-window.deletePagamento = function(id){
+window.deletePagamento = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este registo de pagamento?')) return;
-  pagamentos = pagamentos.filter(x => x.id !== id);
-  saveLocal();
-  renderAll();
-  removeRemote('pagamentos', id).catch(err => console.error(err));
+  try{
+    await removeRemote('pagamentos', id);
+    pagamentos = pagamentos.filter(x => x.id !== id);
+    saveLocal();
+    renderAll();
+    forceAppRefresh();
+  }catch(err){
+    console.error(err);
+    setSyncMessage('Erro a apagar no Firebase', 'bad');
+    alert(`Não foi possível apagar o pagamento na Firebase. ${err?.code ? '(' + err.code + ')' : ''}`.trim());
+  }
 };
 
 
@@ -5960,36 +5935,116 @@ $('closeDescModal')?.addEventListener('click', ()=> $('descModal').classList.add
 $('descModal')?.addEventListener('click', (e)=>{ if(e.target.id === 'descModal') $('descModal').classList.add('hidden'); });
 
 let pendingPaymentWorkId = null;
+let selectedPaymentMethod = '';
+let paymentConfirmInFlight = false;
+
+function resetPaymentModalState(){
+  selectedPaymentMethod = '';
+  paymentConfirmInFlight = false;
+  if($('paymentMethodInput')) $('paymentMethodInput').value = '';
+  $('paymentConfirmBtn')?.setAttribute('disabled','disabled');
+  document.querySelectorAll('.pay-method-btn').forEach(btn=>btn.classList.remove('selected'));
+}
+
+function hidePaymentModal(){
+  const modal = $('paymentMethodModal');
+  if(!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('show');
+  modal.style.display = 'none';
+}
+
+function showPaymentModal(){
+  const modal = $('paymentMethodModal');
+  if(!modal) return;
+  modal.classList.remove('hidden');
+  modal.classList.add('show');
+  modal.style.display = 'grid';
+}
 
 window.marcarComoPagoComValor = function(id){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
   pendingPaymentWorkId = id;
+  resetPaymentModalState();
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
-  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
-  if($('paymentDateInput')) { $('paymentDateInput').value = todayLocalDate(); $('paymentDateInput').removeAttribute('readonly'); $('paymentDateInput').disabled = false; setTimeout(() => { const el = $('paymentDateInput'); if(el && !el.value) el.value = todayLocalDate(); }, 0); }
-  $('paymentMethodModal').classList.remove('hidden');
+  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valorPago ?? t.valor ?? 0)}`;
+  if($('paymentDateInput')) {
+    $('paymentDateInput').value = t.dataPagamento || todayLocalDate();
+    $('paymentDateInput').removeAttribute('readonly');
+    $('paymentDateInput').disabled = false;
+  }
+  if($('paymentValueInput')) $('paymentValueInput').value = String(t.valorPago ?? t.valor ?? '').replace('.', ',');
+  showPaymentModal();
 };
 
-$('closePaymentMethodModal')?.addEventListener('click', ()=>{
+function closePaymentFlow(){
   pendingPaymentWorkId = null;
-  $('paymentMethodModal').classList.add('hidden');
-});
+  resetPaymentModalState();
+  hidePaymentModal();
+  const modal = $('paymentMethodModal');
+  if(modal){
+    modal.className = 'modal hidden';
+    modal.setAttribute('aria-hidden','true');
+    modal.style.cssText = 'display:none !important;';
+  }
+  document.body.classList.remove('modal-open');
+}
+
+$('closePaymentMethodModal')?.addEventListener('click', closePaymentFlow);
+$('cancelPaymentMethodModal')?.addEventListener('click', closePaymentFlow);
 $('paymentMethodModal')?.addEventListener('click', (e)=>{
-  if(e.target.id === 'paymentMethodModal'){
-    pendingPaymentWorkId = null;
-    $('paymentMethodModal').classList.add('hidden');
+  if(e.target.id === 'paymentMethodModal' && !paymentConfirmInFlight){
+    closePaymentFlow();
+  }
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && !($('paymentMethodModal')?.classList.contains('hidden')) && !paymentConfirmInFlight){
+    closePaymentFlow();
   }
 });
 document.querySelectorAll('.pay-method-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    if(!pendingPaymentWorkId) return;
-    const method = btn.dataset.method || 'Manual';
-    const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
-    window.markAsPaid(pendingPaymentWorkId, method, selectedPaymentDate);
-    pendingPaymentWorkId = null;
-    $('paymentMethodModal').classList.add('hidden');
+    if(!pendingPaymentWorkId || paymentConfirmInFlight) return;
+    selectedPaymentMethod = btn.dataset.method || 'Manual';
+    if($('paymentMethodInput')) $('paymentMethodInput').value = selectedPaymentMethod;
+    document.querySelectorAll('.pay-method-btn').forEach(b=>b.classList.toggle('selected', b===btn));
+    $('paymentConfirmBtn')?.removeAttribute('disabled');
   });
+});
+$('paymentConfirmBtn')?.addEventListener('click', async ()=>{
+  if(!pendingPaymentWorkId || paymentConfirmInFlight) return;
+  const method = selectedPaymentMethod || $('paymentMethodInput')?.value || '';
+  if(!method){
+    alert('Escolhe um método de pagamento.');
+    return;
+  }
+  const valorRaw = String($('paymentValueInput')?.value || '').trim().replace(',', '.');
+  if(!valorRaw){
+    alert('Introduz o valor do pagamento.');
+    return;
+  }
+  const valorNum = Number(valorRaw);
+  if(Number.isNaN(valorNum)){
+    alert('Valor inválido.');
+    return;
+  }
+  paymentConfirmInFlight = true;
+  const btn = $('paymentConfirmBtn');
+  btn?.setAttribute('disabled','disabled');
+  const currentPaymentId = pendingPaymentWorkId;
+  const currentPaymentMethod = method;
+  const currentPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
+  const currentPaymentValue = valorNum;
+  closePaymentFlow();
+  const ok = await window.markAsPaid(currentPaymentId, currentPaymentMethod, currentPaymentDate, currentPaymentValue);
+  paymentConfirmInFlight = false;
+  if(ok){
+    renderAll();
+    setTimeout(()=>{ try { renderAll(); } catch(e) {} }, 200);
+  } else {
+    alert(`Não foi possível guardar o pagamento na Firebase. ${err?.code ? '(' + err.code + ')' : ''}`.trim());
+  }
 });
 
 $('cliente')?.addEventListener('change', fillClientContactFromSelection);
@@ -6060,7 +6115,7 @@ function renderMobileCards(){
         </div>
         <div class="mobile-card-grid">
           <div class="mobile-card-item"><span>ID</span><strong>${escapeHtml(t.workCode || '-')}</strong></div>
-          <div class="mobile-card-item"><span>Valor</span><strong>${euro(t.valor||0)}</strong></div>
+          <div class="mobile-card-item"><span>Valor</span><strong>${euro(t.valorPago ?? t.valor ?? 0)}</strong></div>
           <div class="mobile-card-item"><span>Estado</span><strong><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></strong></div>
           <div class="mobile-card-item"><span>Faturação</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
@@ -6117,7 +6172,7 @@ function renderMobileCards(){
 
 
 
-function openPaymentMethodModal(id){
+function legacy2_openPaymentMethodModal(id){
   const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
   const t = trabalhosLista.find(x => String(x.id) === String(id));
   if(!t) return;
@@ -6135,18 +6190,18 @@ function openPaymentMethodModal(id){
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
   if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
-  modal.style.display = 'flex';
+  modal.style.display = 'grid';
   modal.classList.add('show');
 }
 
-function closePaymentMethodModal(){
+function legacy2_closePaymentMethodModal(){
   const modal = document.getElementById('paymentMethodModal');
   if(!modal) return;
   modal.style.display = 'none';
   modal.classList.remove('show');
 }
 
-function confirmPaymentMethod(method){
+function legacy2_confirmPaymentMethod(method){
   const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
   const hiddenId = document.getElementById('paymentWorkId');
   const dateInput = document.getElementById('paymentDateInput');
@@ -6614,6 +6669,10 @@ function printProfessionalReport(){
           <button class="pay-method-btn" data-method="MB Way">MB Way</button>
           <button class="pay-method-btn" data-method="Transferência">Transferência</button>
           <button class="pay-method-btn" data-method="Multibanco">Multibanco</button>
+        </div>
+        <div class="panel-head" style="justify-content:flex-end; gap:12px; margin-top:12px;">
+          <button id="cancelPaymentMethodModal" class="btn btn-secondary">Cancelar</button>
+          <button id="paymentConfirmBtn" class="btn" disabled style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:rgba(96,165,250,.45)">Confirmar</button>
         </div>
       </div>
     </div>
