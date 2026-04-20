@@ -3152,7 +3152,7 @@ function legacy_openPaymentMethodModal(id){
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
   if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
-  modal.style.display = 'flex';
+  modal.style.display = 'grid';
   modal.classList.add('show');
 }
 
@@ -4383,13 +4383,25 @@ function attachRealtimeListeners(){
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
 }
+async function ensureFirebaseReady(timeoutMs = 8000){
+  if (syncReady && firestoreDb) return true;
+  try { await initFirebaseSync(); } catch(err) { console.error(err); }
+  const start = Date.now();
+  while(!(syncReady && firestoreDb)){
+    if(Date.now() - start > timeoutMs) throw new Error('Firebase não ficou pronto a tempo');
+    await new Promise(resolve => setTimeout(resolve, 150));
+  }
+  return true;
+}
 async function upsertRemote(collectionName, item){
-  if (!syncReady || !firestoreDb) return false;
+  if (!item?.id) throw new Error(`Documento sem id em ${collectionName}`);
+  await ensureFirebaseReady();
   await setDoc(doc(firestoreDb, collectionName, item.id), item, { merge: true });
   return true;
 }
 async function removeRemote(collectionName, id){
-  if (!syncReady || !firestoreDb || !id) return false;
+  if (!id) throw new Error(`Id inválido para apagar em ${collectionName}`);
+  await ensureFirebaseReady();
   await deleteDoc(doc(firestoreDb, collectionName, id));
   return true;
 }
@@ -6120,6 +6132,9 @@ function getAgendaSmartDate(t){
 window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorPersonalizado=null){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return false;
+  const snapshotTrabalho = JSON.parse(JSON.stringify(t));
+  const existingPagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
+  const existingPagamentoSnapshot = existingPagamento ? JSON.parse(JSON.stringify(existingPagamento)) : null;
   const finalPaymentDate = dataPagamento || todayLocalDate();
   const valorFinal = Number(valorPersonalizado ?? t.valorPago ?? t.valor ?? 0);
   t.estado = 'Pago';
@@ -6136,7 +6151,6 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
   t.dataFim = finalPaymentDate;
   t.valorPago = valorFinal;
 
-  const existingPagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
   const pagamento = {
     id: existingPagamento?.id || genId('pay'),
     cliente: t.cliente || '',
@@ -6162,10 +6176,19 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
       upsertRemote('trabalhos', t),
       upsertRemote('pagamentos', pagamento)
     ]);
+    await new Promise(resolve => setTimeout(resolve, 250));
     renderAll();
     return true;
   } catch(err){
     console.error(err);
+    Object.assign(t, snapshotTrabalho);
+    if(existingPagamento){
+      Object.assign(existingPagamento, existingPagamentoSnapshot || {});
+    } else {
+      pagamentos = pagamentos.filter(p => p.id !== pagamento.id);
+    }
+    saveLocal();
+    renderAll();
     return false;
   }
 }
@@ -6218,7 +6241,7 @@ function showPaymentModal(){
   if(!modal) return;
   modal.classList.remove('hidden');
   modal.classList.add('show');
-  modal.style.display = 'flex';
+  modal.style.display = 'grid';
 }
 
 window.marcarComoPagoComValor = function(id){
@@ -6300,6 +6323,7 @@ $('paymentConfirmBtn')?.addEventListener('click', async ()=>{
   paymentConfirmInFlight = false;
   if(ok){
     renderAll();
+    setTimeout(()=>{ try { renderAll(); } catch(e) {} }, 200);
   } else {
     alert('Não foi possível guardar o pagamento.');
   }
@@ -6448,7 +6472,7 @@ function legacy2_openPaymentMethodModal(id){
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
   if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
-  modal.style.display = 'flex';
+  modal.style.display = 'grid';
   modal.classList.add('show');
 }
 
