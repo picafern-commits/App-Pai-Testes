@@ -780,6 +780,19 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 }
 
 .users-master-panel table{width:100%;}
+.online-users-panel{margin-top:16px}
+.online-users-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.online-users-count{font-size:28px;font-weight:800;color:var(--text)}
+.online-users-sub{font-size:12px;color:var(--muted)}
+.online-users-list{display:grid;gap:10px}
+.online-user-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03)}
+.online-user-left{display:flex;align-items:center;gap:10px;min-width:0}
+.online-dot{width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.16);flex:0 0 auto}
+.online-user-name{font-weight:700;color:var(--text)}
+.online-user-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.online-user-right{text-align:right;font-size:12px;color:var(--muted)}
+.online-users-empty{padding:14px;border:1px dashed rgba(255,255,255,.12);border-radius:14px;color:var(--muted);text-align:center}
+@media (max-width: 720px){.online-user-card{align-items:flex-start;flex-direction:column}.online-user-right{text-align:left}}
 
 
 /* ===== MOBILE ANDROID + IPHONE 1.0.6 ===== */
@@ -2699,7 +2712,18 @@ td.acoes-col, .acoes-col{
                     <tbody id="managedUsersTableBody"></tbody>
                   </table>
                 </div>
-                <div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-actions">
+                <section class="panel wide-panel online-users-panel">
+                <div class="panel-head"><h3>Utilizadores online</h3></div>
+                <div class="online-users-summary">
+                  <div>
+                    <div class="online-users-count" id="onlineUsersCount">0</div>
+                    <div class="online-users-sub">Ligados neste momento</div>
+                  </div>
+                  <div class="settings-help"><small>Atualiza automaticamente. Se alguém fechar a app à força, pode demorar até 1 minuto a desaparecer.</small></div>
+                </div>
+                <div id="onlineUsersList" class="online-users-list"></div>
+              </section>
+              <div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-actions">
                   <button class="btn btn-secondary" id="exportBackupBtn">Backup JSON</button>
                 </div>
               </section>
@@ -2804,9 +2828,12 @@ loginForm?.addEventListener('submit', (e) => {
   }
 });
 
-document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
   e.preventDefault();
+  await removePresence();
   clearSession();
+  currentUsername = null;
+  currentRole = null;
   showLogin();
   loginForm.reset();
 });
@@ -3480,6 +3507,27 @@ let syncReady = false;
 let syncMessage = 'Local';
 let unsubs = [];
 
+let onlineUsers = [];
+let presenceHeartbeatTimer = null;
+let presenceCleanupTimer = null;
+let currentPresenceId = null;
+const PRESENCE_COLLECTION = 'online_users';
+const PRESENCE_STALE_MS = 65000;
+const PRESENCE_HEARTBEAT_MS = 20000;
+const CLIENT_DEVICE_ID = (() => {
+  try{
+    const key = 'gestao_device_id';
+    let value = localStorage.getItem(key);
+    if(!value){
+      value = `device_${Math.random().toString(36).slice(2,10)}${Date.now().toString(36)}`;
+      localStorage.setItem(key, value);
+    }
+    return value;
+  }catch(e){
+    return `device_${Math.random().toString(36).slice(2,10)}${Date.now().toString(36)}`;
+  }
+})();
+
 const $ = (id) => document.getElementById(id);
 initUiScale();
 const navButtons = document.querySelectorAll('.nav-btn');
@@ -3969,6 +4017,7 @@ function setRoleUI(){
     }
   }
   setSyncMessage(syncReady ? 'Firebase Sync' : syncMessage, syncReady ? 'ok' : 'warn');
+  renderOnlineUsers();
   try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 }
@@ -3992,8 +4041,12 @@ function switchTab(tab){
   if(tab === 'configuracoes'){
     bindUiScaleSelector();
     renderManagedUsers();
+    renderOnlineUsers();
   }
   window.scrollTo({top:0,behavior:'smooth'});
+  if(currentUsername && firestoreDb){
+    updatePresence($('pageTitle')?.textContent || '').catch(()=>{});
+  }
 }
 navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
@@ -4035,6 +4088,7 @@ async function initFirebaseSync(){
 
       syncReady = true;
       setSyncMessage('Firebase Sync', 'ok');
+      attachPresenceLifecycle();
       clearRealtimeListeners();
       attachRealtimeListeners();
 
@@ -4055,11 +4109,13 @@ async function initFirebaseSync(){
           setSyncMessage('Firebase Sync', 'ok');
           clearRealtimeListeners();
           attachRealtimeListeners();
+          if(currentUsername) startPresenceHeartbeat();
         }
         if (currentRole) renderAll();
       });
 
       await waitForFirebaseSyncReady();
+      if(currentUsername) startPresenceHeartbeat();
       return true;
     }catch(err){
       console.error('Firebase sync error:', err);
@@ -4075,6 +4131,137 @@ async function initFirebaseSync(){
     }
   })();
   return firebaseSyncInitPromise;
+}
+
+
+function getPresenceId(){
+  if(!currentUsername) return null;
+  return `${String(currentUsername).trim().toLowerCase()}__${CLIENT_DEVICE_ID}`;
+}
+
+function formatRelativeOnlineTime(value){
+  if(!value) return 'agora';
+  const ms = Date.now() - Number(value || 0);
+  const secs = Math.max(0, Math.round(ms / 1000));
+  if(secs < 5) return 'agora';
+  if(secs < 60) return `há ${secs}s`;
+  const mins = Math.round(secs / 60);
+  if(mins < 60) return `há ${mins} min`;
+  const hours = Math.round(mins / 60);
+  return `há ${hours} h`;
+}
+
+function getFilteredOnlineUsers(){
+  const now = Date.now();
+  const map = new Map();
+  (Array.isArray(onlineUsers) ? onlineUsers : []).forEach(user => {
+    const lastSeen = Number(user?.lastSeen || 0);
+    if(!user?.username || !lastSeen) return;
+    if(now - lastSeen > PRESENCE_STALE_MS) return;
+    const existing = map.get(user.username);
+    if(!existing || Number(existing.lastSeen || 0) < lastSeen){
+      map.set(user.username, user);
+    }
+  });
+  return Array.from(map.values()).sort((a,b) => {
+    if((b.username || '').toLowerCase() === String(currentUsername || '').toLowerCase()) return 1;
+    if((a.username || '').toLowerCase() === String(currentUsername || '').toLowerCase()) return -1;
+    return (a.username || '').localeCompare(b.username || '', 'pt');
+  });
+}
+
+function renderOnlineUsers(){
+  const listEl = $('onlineUsersList');
+  const countEl = $('onlineUsersCount');
+  const rows = getFilteredOnlineUsers();
+  if(countEl) countEl.textContent = String(rows.length);
+  if(!listEl) return;
+  if(!rows.length){
+    listEl.innerHTML = '<div class="online-users-empty">Sem utilizadores online neste momento.</div>';
+    return;
+  }
+  listEl.innerHTML = rows.map(user => {
+    const isMe = String(user.username || '').toLowerCase() === String(currentUsername || '').toLowerCase();
+    const roleLabel = user.role === 'master_admin' ? 'Master Admin' : (user.role === 'admin' ? 'Admin' : 'User');
+    const screen = user.screen === 'mobile' ? 'Mobile' : 'PC';
+    return `
+      <div class="online-user-card">
+        <div class="online-user-left">
+          <span class="online-dot"></span>
+          <div>
+            <div class="online-user-name">${escapeHtml(user.username || '-')} ${isMe ? '<span class="badge">Tu</span>' : ''}</div>
+            <div class="online-user-meta">${escapeHtml(roleLabel)} · ${escapeHtml(screen)}</div>
+          </div>
+        </div>
+        <div class="online-user-right">
+          <div>${escapeHtml(user.pageTitle || 'Na app')}</div>
+          <div>${escapeHtml(formatRelativeOnlineTime(user.lastSeen))}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function updatePresence(forcePageTitle=''){
+  if(!currentUsername || !firestoreDb) return;
+  currentPresenceId = getPresenceId();
+  if(!currentPresenceId) return;
+  const activePage = document.querySelector('.page.active');
+  const activeTab = activePage ? activePage.id.replace(/-page$/, '') : (sessionStorage.getItem('gestao:lastTab') || 'dashboard');
+  const navBtn = document.querySelector(`.nav-btn[data-tab="${activeTab}"]`);
+  const pageTitle = forcePageTitle || (navBtn ? navBtn.textContent.trim() : 'Dashboard');
+  await setDoc(doc(firestoreDb, PRESENCE_COLLECTION, currentPresenceId), {
+    id: currentPresenceId,
+    username: currentUsername,
+    role: currentRole || 'user',
+    screen: window.innerWidth <= 900 ? 'mobile' : 'desktop',
+    page: activeTab,
+    pageTitle,
+    lastSeen: Date.now(),
+    updatedAtIso: new Date().toISOString()
+  }, { merge: true });
+}
+
+function startPresenceHeartbeat(){
+  stopPresenceHeartbeat();
+  if(!currentUsername) return;
+  updatePresence().catch(err => console.error('presence update failed', err));
+  presenceHeartbeatTimer = setInterval(() => {
+    updatePresence().catch(err => console.error('presence heartbeat failed', err));
+  }, PRESENCE_HEARTBEAT_MS);
+  presenceCleanupTimer = setInterval(() => {
+    renderOnlineUsers();
+  }, 5000);
+}
+
+function stopPresenceHeartbeat(){
+  if(presenceHeartbeatTimer){ clearInterval(presenceHeartbeatTimer); presenceHeartbeatTimer = null; }
+  if(presenceCleanupTimer){ clearInterval(presenceCleanupTimer); presenceCleanupTimer = null; }
+}
+
+async function removePresence(){
+  stopPresenceHeartbeat();
+  const presenceId = currentPresenceId || getPresenceId();
+  if(!presenceId || !firestoreDb) return;
+  try{
+    await deleteDoc(doc(firestoreDb, PRESENCE_COLLECTION, presenceId));
+  }catch(err){
+    console.warn('presence remove failed', err);
+  }
+}
+
+function attachPresenceLifecycle(){
+  if(window.__presenceLifecycleBound) return;
+  window.__presenceLifecycleBound = true;
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible'){
+      updatePresence().catch(()=>{});
+    }else{
+      updatePresence().catch(()=>{});
+    }
+  });
+  window.addEventListener('beforeunload', () => { removePresence(); });
+  window.addEventListener('pagehide', () => { removePresence(); });
 }
 
 function clearRealtimeListeners(){
@@ -4098,6 +4285,7 @@ function attachRealtimeListeners(){
   bind('trabalhos', rows => { trabalhos = rows.map(r => normalizeTrabalhoStateShape({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); refreshLastTrabIdFromWorks(); });
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
+  bind(PRESENCE_COLLECTION, rows => { onlineUsers = rows; renderOnlineUsers(); });
 }
 async function ensureFirebaseReady(timeoutMs = 12000){
   if (!firestoreDb) {
@@ -5823,6 +6011,7 @@ $('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMen
 
 loadLocal();
 autoBackupInvisible();
+renderOnlineUsers();
 initFirebaseSync();
 
 
@@ -5832,7 +6021,9 @@ window.startApp = function(role, username){
   loadLocal();
   setRoleUI();
   renderAll();
-  initFirebaseSync().catch(err => console.error(err));
+  initFirebaseSync().then(() => {
+    startPresenceHeartbeat();
+  }).catch(err => console.error(err));
 };
 
 
