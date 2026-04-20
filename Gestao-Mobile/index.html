@@ -768,6 +768,23 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
   transform:translateY(-1px);
   background:linear-gradient(135deg, rgba(56,189,248,.18), rgba(34,211,238,.12));
 }
+
+.pay-method-btn.active{
+  background:linear-gradient(135deg, rgba(56,189,248,.24), rgba(34,211,238,.18));
+  border-color:rgba(96,165,250,.55);
+  box-shadow:0 0 0 2px rgba(96,165,250,.18) inset;
+}
+.confirm-payment-btn{
+  min-width:160px;
+  font-weight:800;
+}
+.confirm-payment-btn[disabled]{
+  opacity:.55;
+  cursor:not-allowed;
+}
+#paymentMethodModal.show .modal-card{
+  margin-inline:auto;
+}
 .small-btn.info{
   background:rgba(59,130,246,.14);
   color:#bfdbfe;
@@ -2124,7 +2141,7 @@ td.acoes-col, .acoes-col{
 
 .payment-value-group{margin-top:10px}
 .payment-value-group input{width:100%}
-#paymentMethodModal.show{display:flex}
+#paymentMethodModal.show{display:flex;align-items:center;justify-content:center}
 
 /* Pago NÃO feito (aviso) */
 .stage-control-btn.pay-warning{
@@ -4973,7 +4990,7 @@ td.acoes-col, .acoes-col{
 
 .payment-value-group{margin-top:10px}
 .payment-value-group input{width:100%}
-#paymentMethodModal.show{display:flex}
+#paymentMethodModal.show{display:flex;align-items:center;justify-content:center}
 
 /* Pago NÃO feito (aviso) */
 .stage-control-btn.pay-warning{
@@ -6304,8 +6321,19 @@ function setPaymentButtonsDisabled(disabled){
   });
   const closeBtn = $('closePaymentMethodModal');
   const cancelBtn = $('cancelPaymentMethodAction');
+  const confirmBtn = $('confirmPaymentMethodAction');
   if(closeBtn) closeBtn.disabled = !!disabled;
   if(cancelBtn) cancelBtn.disabled = !!disabled;
+  if(confirmBtn) confirmBtn.disabled = !!disabled || !($('paymentMethodInput')?.value || '').trim();
+}
+
+function updatePaymentConfirmState(){
+  const selectedMethod = ($('paymentMethodInput')?.value || '').trim();
+  document.querySelectorAll('.pay-method-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.method === selectedMethod);
+  });
+  const confirmBtn = $('confirmPaymentMethodAction');
+  if(confirmBtn) confirmBtn.disabled = paymentActionInFlight || !selectedMethod;
 }
 
 function resetPaymentMethodModalState(){
@@ -6323,6 +6351,7 @@ function resetPaymentMethodModalState(){
   if(jobClient) jobClient.textContent = '';
   paymentActionInFlight = false;
   setPaymentButtonsDisabled(false);
+  updatePaymentConfirmState();
 }
 
 window.marcarComoPagoComValor = function(id){
@@ -6336,8 +6365,8 @@ window.marcarComoPagoComValor = function(id){
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
   if(valueInput) valueInput.value = String(t.valorPago ?? t.valor ?? '').replace('.', ',');
-  $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
-  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
+  if($('paymentJobName')) $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
+  if($('paymentJobClient')) $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valor || 0)}`;
   if($('paymentDateInput')) {
     $('paymentDateInput').value = t.dataPagamento || todayLocalDate();
     $('paymentDateInput').removeAttribute('readonly');
@@ -6348,9 +6377,13 @@ window.marcarComoPagoComValor = function(id){
     }, 0);
   }
   setPaymentButtonsDisabled(false);
-  $('paymentMethodModal').classList.remove('hidden');
-  $('paymentMethodModal').classList.add('show');
-  $('paymentMethodModal').style.display = 'flex';
+  updatePaymentConfirmState();
+  const modal = $('paymentMethodModal');
+  if(modal){
+    modal.classList.remove('hidden');
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+  }
 };
 
 function hardClosePaymentMethodModal(force=false){
@@ -6364,6 +6397,36 @@ function hardClosePaymentMethodModal(force=false){
   resetPaymentMethodModalState();
 }
 
+async function confirmPendingPayment(){
+  if(!pendingPaymentWorkId || paymentActionInFlight) return;
+  const method = ($('paymentMethodInput')?.value || '').trim();
+  if(!method){
+    alert('Escolhe um método de pagamento.');
+    return;
+  }
+  const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
+  const selectedPaymentValue = $('paymentValueInput')?.value || '';
+  const numericValue = Number(String(selectedPaymentValue).trim().replace(',', '.'));
+  if(!selectedPaymentValue || Number.isNaN(numericValue) || numericValue <= 0){
+    alert('Introduz um valor de pagamento válido.');
+    return;
+  }
+  paymentActionInFlight = true;
+  setPaymentButtonsDisabled(true);
+  updatePaymentConfirmState();
+  const workId = pendingPaymentWorkId;
+  const ok = await window.markAsPaid(workId, method, selectedPaymentDate, numericValue);
+  if(ok){
+    hardClosePaymentMethodModal(true);
+    renderAll();
+    refreshVisibleUi();
+  } else {
+    paymentActionInFlight = false;
+    setPaymentButtonsDisabled(false);
+    updatePaymentConfirmState();
+  }
+}
+
 $('closePaymentMethodModal')?.addEventListener('click', ()=>{
   hardClosePaymentMethodModal();
   refreshVisibleUi();
@@ -6371,6 +6434,9 @@ $('closePaymentMethodModal')?.addEventListener('click', ()=>{
 $('cancelPaymentMethodAction')?.addEventListener('click', ()=>{
   hardClosePaymentMethodModal();
   refreshVisibleUi();
+});
+$('confirmPaymentMethodAction')?.addEventListener('click', ()=>{
+  confirmPendingPayment();
 });
 $('paymentMethodModal')?.addEventListener('click', (e)=>{
   if(e.target.id === 'paymentMethodModal'){
@@ -6382,32 +6448,23 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape' && $('paymentMethodModal') && !$('paymentMethodModal').classList.contains('hidden')){
     hardClosePaymentMethodModal();
     refreshVisibleUi();
+    return;
+  }
+  if(e.key === 'Enter' && $('paymentMethodModal') && !$('paymentMethodModal').classList.contains('hidden')){
+    const tag = String(document.activeElement?.tagName || '').toLowerCase();
+    if(tag !== 'textarea'){
+      e.preventDefault();
+      confirmPendingPayment();
+    }
   }
 });
-document.addEventListener('click', async (e)=>{
+document.addEventListener('click', (e)=>{
   const btn = e.target.closest('.pay-method-btn');
   if(!btn) return;
   if(!pendingPaymentWorkId || paymentActionInFlight) return;
   const method = btn.dataset.method || 'Manual';
-  const selectedPaymentDate = $('paymentDateInput')?.value || todayLocalDate();
-  const selectedPaymentValue = $('paymentValueInput')?.value || '';
-  const numericValue = Number(String(selectedPaymentValue).trim().replace(',', '.'));
-  if(!selectedPaymentValue || Number.isNaN(numericValue) || numericValue <= 0){
-    alert('Introduz um valor de pagamento válido.');
-    return;
-  }
-  paymentActionInFlight = true;
-  setPaymentButtonsDisabled(true);
-  const workId = pendingPaymentWorkId;
-  const ok = await window.markAsPaid(workId, method, selectedPaymentDate, numericValue);
-  if(ok){
-    hardClosePaymentMethodModal(true);
-    renderAll();
-    refreshVisibleUi();
-  } else {
-    paymentActionInFlight = false;
-    setPaymentButtonsDisabled(false);
-  }
+  if($('paymentMethodInput')) $('paymentMethodInput').value = method;
+  updatePaymentConfirmState();
 });
 
 $('cliente')?.addEventListener('change', fillClientContactFromSelection);
@@ -7011,8 +7068,9 @@ function printProfessionalReport(){
           <button class="pay-method-btn" type="button" data-method="Transferência">Transferência</button>
           <button class="pay-method-btn" type="button" data-method="Multibanco">Multibanco</button>
         </div>
-        <div class="row-actions" style="justify-content:flex-end; margin-top:10px;">
+        <div class="row-actions" style="justify-content:flex-end; margin-top:10px; gap:10px;">
           <button id="cancelPaymentMethodAction" type="button" class="btn btn-secondary">Cancelar</button>
+          <button id="confirmPaymentMethodAction" type="button" class="btn confirm-payment-btn" disabled>Confirmar</button>
         </div>
       </div>
     </div>
