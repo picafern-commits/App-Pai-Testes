@@ -2443,6 +2443,9 @@ td.acoes-col, .acoes-col{
 </style>
 </head>
 <body>
+<!-- USERS ONLINE WIDGET -->
+<div id="onlineUsersCompact" class="online-compact-widget"></div>
+  
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
       <div class="login-brand">
@@ -7017,6 +7020,61 @@ function printProfessionalReport(){
       </div>
     </div>
   </div>
+<script>
+/* ===== USERS ONLINE (DEMO / REALTIME BASE) ===== */
 
+let onlineUsers = [];
+
+function renderOnlineUsers(users){
+  const el = document.getElementById("onlineUsersCompact");
+  if(!el) return;
+
+  el.innerHTML = `
+    <div class="online-compact-head">
+      <div>
+        <div class="online-compact-title">
+          <div class="online-compact-dot"></div>
+          ONLINE
+        </div>
+        <div class="online-compact-meta">Utilizadores ativos</div>
+      </div>
+      <div class="online-compact-count">${users.length}</div>
+    </div>
+
+    <div class="online-compact-list">
+      ${
+        users.length === 0
+        ? `<div class="online-compact-empty">Sem utilizadores online</div>`
+        : users.map(u => `
+          <div class="online-compact-row">
+            <div class="online-compact-state online"></div>
+            <div class="online-compact-user">
+              <strong>${u.name}</strong>
+              <span>${u.page || "Dashboard"}</span>
+            </div>
+            <div class="online-compact-badge">${u.role}</div>
+          </div>
+        `).join("")
+      }
+    </div>
+  `;
+}
+
+/* ===== SIMULAÇÃO (até ligares Firebase presence) ===== */
+
+function fakeOnlineUsers(){
+  onlineUsers = [
+    { name: "Ricardo", role: "Admin", page: "Dashboard" },
+    { name: "Técnico 1", role: "User", page: "Clientes" }
+  ];
+
+  renderOnlineUsers(onlineUsers);
+}
+
+/* START */
+document.addEventListener("DOMContentLoaded", () => {
+  fakeOnlineUsers();
+});
+</script>
 </body>
 </html>
