@@ -4264,12 +4264,119 @@ function setRoleUI(){
   try{ updateTrabalhoFieldVisibility(); }catch(e){}
   updateTrabalhoAdvancedFields();
 }
+<script>
 function switchTab(tab){
-  if(!canAccessTab(tab)){
-    const fallback = getAllowedTabsForRole(currentRole)[0] || 'dashboard';
-    if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
-    tab = fallback;
+  try{
+    if(!tab) return;
+
+    const targetPage = document.getElementById(`${tab}-page`);
+    if(!targetPage){
+      console.warn('Página não encontrada para tab:', tab);
+      return;
+    }
+
+    if(typeof canAccessTab === 'function' && !canAccessTab(tab)){
+      const fallback = (typeof getAllowedTabsForRole === 'function'
+        ? (getAllowedTabsForRole(currentRole)[0] || 'dashboard')
+        : 'dashboard');
+
+      if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
+      tab = fallback;
+    }
+
+    try{
+      sessionStorage.setItem('gestao:lastTab', tab);
+    }catch(e){}
+
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+
+    document.querySelectorAll('.bottom-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+
+    document.querySelectorAll('.page').forEach(p => {
+      p.classList.remove('active');
+      p.style.display = 'none';
+    });
+
+    targetPage.classList.add('active');
+    targetPage.style.display = 'block';
+
+    const btn = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+    const titleEl = document.getElementById('pageTitle');
+    if(titleEl){
+      titleEl.textContent = btn
+        ? btn.textContent.trim()
+        : tab.charAt(0).toUpperCase() + tab.slice(1);
+    }
+
+    if(tab === 'dashboard' && typeof renderDashboard === 'function'){
+      renderDashboard();
+      if(typeof renderAlerts === 'function') renderAlerts();
+    }
+    if(tab === 'trabalhos' && typeof renderTrabalhos === 'function') renderTrabalhos();
+    if(tab === 'clientes' && typeof renderClientes === 'function') renderClientes();
+    if(tab === 'pagamentos' && typeof renderPagamentos === 'function') renderPagamentos();
+    if(tab === 'relatorios' && typeof renderRelatorios === 'function') renderRelatorios();
+    if(tab === 'configuracoes'){
+      if(typeof bindUiScaleSelector === 'function') bindUiScaleSelector();
+      if(typeof renderManagedUsers === 'function') renderManagedUsers();
+    }
+
+    if(typeof updatePresencePage === 'function'){
+      updatePresencePage(titleEl?.textContent?.trim() || tab);
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }catch(err){
+    console.error('Erro no switchTab:', err);
   }
+}
+
+window.switchTab = switchTab;
+
+function bindSidebarNavigation(){
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(this.dataset.tab);
+    };
+  });
+
+  document.querySelectorAll('.bottom-btn').forEach(btn => {
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(this.dataset.tab);
+    };
+  });
+
+  document.querySelectorAll('[data-go]').forEach(btn => {
+    btn.onclick = function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      switchTab(this.dataset.go);
+    };
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  bindSidebarNavigation();
+
+  let restoreTab = 'dashboard';
+  try{
+    restoreTab = sessionStorage.getItem('gestao:lastTab') || 'dashboard';
+  }catch(e){}
+
+  setTimeout(() => {
+    switchTab(restoreTab);
+  }, 0);
+});
+</script>
+
   try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(e){}
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
   bottomButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
