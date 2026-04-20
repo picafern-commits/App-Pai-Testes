@@ -4030,13 +4030,27 @@ function attachRealtimeListeners(){
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
 }
+async function ensureFirebaseReady(timeoutMs = 8000){
+  if (syncReady && firestoreDb) return true;
+  try { await initFirebaseSync(); } catch(err) { console.error('initFirebaseSync failed:', err); }
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs){
+    if (syncReady && firestoreDb) return true;
+    await new Promise(resolve => setTimeout(resolve, 150));
+  }
+  return !!(syncReady && firestoreDb);
+}
 async function upsertRemote(collectionName, item){
-  if (!syncReady || !firestoreDb) return false;
+  if (!item || !item.id) throw new Error('Documento sem ID para sync remoto');
+  const ready = await ensureFirebaseReady();
+  if (!ready || !firestoreDb) throw new Error('Firebase não está pronto para guardar');
   await setDoc(doc(firestoreDb, collectionName, item.id), item, { merge: true });
   return true;
 }
 async function removeRemote(collectionName, id){
-  if (!syncReady || !firestoreDb || !id) return false;
+  if (!id) throw new Error('ID inválido para remover');
+  const ready = await ensureFirebaseReady();
+  if (!ready || !firestoreDb) throw new Error('Firebase não está pronto para apagar');
   await deleteDoc(doc(firestoreDb, collectionName, id));
   return true;
 }
@@ -5700,6 +5714,15 @@ function getAgendaSmartDate(t){
 window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorOverride=null){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return false;
+
+  const ready = await ensureFirebaseReady();
+  if(!ready){
+    setSyncMessage('Firebase indisponível para guardar pagamento', 'bad');
+    alert('A Firebase não está ligada. O pagamento não foi guardado.');
+    return false;
+  }
+
+  const originalTrabalho = JSON.parse(JSON.stringify(t));
   const finalPaymentDate = dataPagamento || todayLocalDate();
   const finalValor = Number(valorOverride ?? t.valorPago ?? t.valor ?? 0);
 
@@ -5718,6 +5741,7 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorO
   t.dataFim = finalPaymentDate;
 
   const existingPagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
+  const originalPagamento = existingPagamento ? JSON.parse(JSON.stringify(existingPagamento)) : null;
   const pagamento = {
     id: existingPagamento?.id || genId('pay'),
     cliente: t.cliente || '',
@@ -5736,17 +5760,25 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorO
     pagamentos.push(pagamento);
   }
 
-  saveLocal();
-  renderAll();
-
   try {
     await upsertRemote('trabalhos', { ...t });
     await upsertRemote('pagamentos', { ...pagamento });
     saveLocal();
+    renderAll();
+    setSyncMessage('Pagamento guardado na Firebase', 'ok');
     return true;
   } catch(err) {
     console.error('Erro ao guardar pagamento no Firebase:', err);
+    Object.assign(t, originalTrabalho);
+    if(existingPagamento && originalPagamento){
+      Object.assign(existingPagamento, originalPagamento);
+    } else if(!existingPagamento){
+      pagamentos = pagamentos.filter(p => p.id !== pagamento.id);
+    }
+    saveLocal();
+    renderAll();
     setSyncMessage('Erro ao guardar pagamento no Firebase', 'bad');
+    alert('Não foi possível guardar o pagamento na Firebase.');
     return false;
   }
 }
