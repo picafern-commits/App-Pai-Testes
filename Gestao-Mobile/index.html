@@ -3100,6 +3100,8 @@ function getUsers(){
 const loginForm = document.getElementById('loginForm');
 
 function saveSession(role, username){
+  try{ localStorage.removeItem(LOGOUT_MARKER_KEY); }catch(e){}
+  try{ sessionStorage.removeItem(LOGOUT_MARKER_KEY); }catch(e){}
   localStorage.setItem('app_session', JSON.stringify({ role, username }));
 }
 
@@ -3109,6 +3111,31 @@ function readSession(){
 
 function clearSession(){
   localStorage.removeItem('app_session');
+}
+
+function markLogoutInProgress(){
+  try{ localStorage.setItem(LOGOUT_MARKER_KEY, '1'); }catch(e){}
+  try{ sessionStorage.setItem(LOGOUT_MARKER_KEY, '1'); }catch(e){}
+}
+
+function clearLogoutInProgress(){
+  try{ localStorage.removeItem(LOGOUT_MARKER_KEY); }catch(e){}
+  try{ sessionStorage.removeItem(LOGOUT_MARKER_KEY); }catch(e){}
+}
+
+function isLogoutInProgress(){
+  try{
+    return localStorage.getItem(LOGOUT_MARKER_KEY) === '1' || sessionStorage.getItem(LOGOUT_MARKER_KEY) === '1';
+  }catch(e){
+    return false;
+  }
+}
+
+function withTimeout(promise, ms=1500){
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise(resolve => setTimeout(resolve, ms))
+  ]);
 }
 
 function showApp(){
@@ -3122,6 +3149,12 @@ function showLogin(){
 }
 
 function bootFromSession(){
+  if(isLogoutInProgress()){
+    clearSession();
+    clearLogoutInProgress();
+    return false;
+  }
+
   const session = readSession();
   if(!session || !window.startApp) return false;
 
@@ -3154,14 +3187,52 @@ loginForm?.addEventListener('submit', (e) => {
   }
 });
 
-document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
-  e.preventDefault();
-  await removePresence();
-  clearSession();
+async function performLogout({reload=true} = {}){
+  if(window.__logoutInProgress) return;
+  window.__logoutInProgress = true;
+  markLogoutInProgress();
+
+  try{ stopPresenceHeartbeat(); }catch(e){}
+  try{ clearRealtimeListeners(); }catch(e){}
+
+  const previousUsername = currentUsername;
   currentUsername = null;
   currentRole = null;
+  onlineUsers = [];
+  try{ renderOnlineUsers(); }catch(e){}
+
+  clearSession();
+
+  try{ await withTimeout(removePresence(), 1200); }catch(e){ console.warn('logout presence cleanup failed', e); }
+  try{ if(firebaseAuth?.currentUser) await withTimeout(signOut(firebaseAuth), 1200); }catch(e){ console.warn('logout auth cleanup failed', e); }
+
   showLogin();
-  loginForm.reset();
+  try{
+    if(loginForm){
+      loginForm.reset();
+      const userField = document.getElementById('loginUsername');
+      const passField = document.getElementById('loginPassword');
+      if(userField) userField.value = '';
+      if(passField) passField.value = '';
+    }
+    const errEl = document.getElementById('loginError');
+    if(errEl) errEl.textContent = '';
+  }catch(e){}
+
+  if(reload){
+    setTimeout(() => {
+      try{ window.location.replace(window.location.pathname + window.location.search); }
+      catch(e){ window.location.reload(); }
+    }, 80);
+  } else {
+    clearLogoutInProgress();
+    window.__logoutInProgress = false;
+  }
+}
+
+document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  await performLogout();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -3816,11 +3887,12 @@ const firebaseConfig = {
 
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const APP_VERSION = '1.0.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
+const LOGOUT_MARKER_KEY = 'gestao_logout_in_progress';
 
 let currentRole = null, currentUsername = null;
 let trabalhos = [], clientes = [], pagamentos = [];
@@ -4582,6 +4654,8 @@ async function removePresence(){
     await deleteDoc(doc(firestoreDb, PRESENCE_COLLECTION, presenceId));
   }catch(err){
     console.warn('presence remove failed', err);
+  }finally{
+    currentPresenceId = null;
   }
 }
 
@@ -4589,14 +4663,21 @@ function attachPresenceLifecycle(){
   if(window.__presenceLifecycleBound) return;
   window.__presenceLifecycleBound = true;
   document.addEventListener('visibilitychange', () => {
+    if(window.__logoutInProgress || isLogoutInProgress()) return;
     if(document.visibilityState === 'visible'){
       updatePresence().catch(()=>{});
     }else{
       updatePresence().catch(()=>{});
     }
   });
-  window.addEventListener('beforeunload', () => { removePresence(); });
-  window.addEventListener('pagehide', () => { removePresence(); });
+  window.addEventListener('beforeunload', () => {
+    if(window.__logoutInProgress || isLogoutInProgress()) return;
+    removePresence();
+  });
+  window.addEventListener('pagehide', () => {
+    if(window.__logoutInProgress || isLogoutInProgress()) return;
+    removePresence();
+  });
 }
 
 function clearRealtimeListeners(){
@@ -6418,6 +6499,8 @@ initFirebaseSync();
 
 
 window.startApp = function(role, username){
+  clearLogoutInProgress();
+  window.__logoutInProgress = false;
   currentRole = role;
   currentUsername = username;
   loadLocal();
