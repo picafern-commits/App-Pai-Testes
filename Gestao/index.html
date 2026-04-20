@@ -213,7 +213,15 @@ textarea{resize:vertical}
   justify-content:space-between;
   gap:16px;
   margin-bottom:18px;
+  padding-right:0;
 }
+.topbar-left{
+  min-width:0;
+}
+.hero-copy h3{
+  letter-spacing:-.02em;
+}
+
 .topbar h2{margin:0;font-size:34px}
 .subline{
   display:flex;
@@ -319,6 +327,158 @@ body.ui-laptop .main{padding:12px}
 .nav-btn{padding:12px 14px}
 .bottom-nav{gap:var(--ui-space-sm,8px)}
 .settings-card{background:rgba(255,255,255,.04);border:1px solid var(--line2);margin-bottom:var(--ui-space,14px)}
+
+
+/* ===== ONLINE WIDGET PREMIUM ===== */
+.online-compact-widget{
+  position:fixed;
+  top:18px;
+  right:18px;
+  z-index:9999;
+  width:min(320px, calc(100vw - 36px));
+  display:block !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto;
+  border-radius:20px;
+  padding:12px;
+  background:
+    radial-gradient(circle at top right, rgba(56,189,248,.14), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(168,85,247,.14), transparent 30%),
+    linear-gradient(180deg, rgba(10,14,25,.96), rgba(18,24,40,.94));
+  border:1px solid rgba(255,255,255,.09);
+  backdrop-filter:blur(18px);
+  box-shadow:0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.online-compact-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:10px;
+}
+.online-compact-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#eff6ff;
+}
+.online-compact-dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:#22c55e;
+  box-shadow:0 0 0 4px rgba(34,197,94,.16);
+  flex:0 0 auto;
+}
+.online-compact-count{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:30px;
+  height:30px;
+  padding:0 10px;
+  border-radius:999px;
+  background:linear-gradient(135deg, rgba(124,58,237,.28), rgba(59,130,246,.22));
+  border:1px solid rgba(167,139,250,.24);
+  font-size:12px;
+  font-weight:900;
+  color:#f5f3ff;
+}
+.online-compact-meta{
+  margin-top:4px;
+  font-size:11px;
+  color:#9fb0d8;
+}
+.online-compact-list{
+  display:grid;
+  gap:8px;
+}
+.online-compact-row{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:10px;
+  padding:9px 10px;
+  border-radius:14px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.06);
+}
+.online-compact-state{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:#6b7280;
+}
+.online-compact-state.online{
+  background:#22c55e;
+  box-shadow:0 0 0 4px rgba(34,197,94,.14);
+}
+.online-compact-state.idle{
+  background:#f59e0b;
+  box-shadow:0 0 0 4px rgba(245,158,11,.14);
+}
+.online-compact-user{
+  min-width:0;
+}
+.online-compact-user strong{
+  display:block;
+  font-size:13px;
+  color:#f8fbff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-bottom:2px;
+}
+.online-compact-user span{
+  display:block;
+  font-size:11px;
+  color:#97a9cf;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.online-compact-badge{
+  font-size:10px;
+  font-weight:800;
+  color:#dbeafe;
+  background:rgba(59,130,246,.14);
+  border:1px solid rgba(96,165,250,.18);
+  border-radius:999px;
+  padding:5px 8px;
+  white-space:nowrap;
+  max-width:92px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.online-compact-empty{
+  font-size:12px;
+  color:#93a4c8;
+  padding:8px 4px 2px;
+}
+@media (min-width:1100px){
+  .main{
+    padding-right:350px !important;
+  }
+}
+@media (max-width:900px){
+  .online-compact-widget{
+    top:10px;
+    right:10px;
+    width:min(272px, calc(100vw - 20px));
+    padding:10px 10px 9px;
+    border-radius:18px;
+  }
+  .online-compact-user strong{font-size:12px}
+  .online-compact-user span,
+  .online-compact-meta,
+  .online-compact-badge{font-size:10px}
+}
+
 
 .online-users-panel{margin-top:14px}
 .online-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
@@ -2443,9 +2603,8 @@ td.acoes-col, .acoes-col{
 </style>
 </head>
 <body>
-<!-- USERS ONLINE WIDGET -->
-<div id="onlineUsersCompact" class="online-compact-widget"></div>
-  
+
+  <div id="onlineUsersCompact" class="online-compact-widget"></div>
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
       <div class="login-brand">
@@ -2828,7 +2987,7 @@ function getAllowedTabsForRole(role='user'){
 }
 
 
-if (typeof globalThis.currentRole === 'undefined' || !globalThis.currentRole) globalThis.currentRole = 'master_admin';
+if (typeof globalThis.currentRole === 'undefined') globalThis.currentRole = '';
 if (typeof globalThis.currentUsername === 'undefined') globalThis.currentUsername = '';
 if (typeof globalThis.currentUserEmail === 'undefined') globalThis.currentUserEmail = '';
 if (typeof globalThis.currentUserUid === 'undefined') globalThis.currentUserUid = '';
@@ -3668,7 +3827,7 @@ function formatPresenceLastSeen(lastSeenValue){
   return dt.toLocaleString('pt-PT');
 }
 async function writePresence(online=true, extra={}){
-  if(!currentUsername || !globalThis.currentRole) return;
+  if(!currentUsername || !currentRole) return;
   try{
     await ensureFirebaseReady();
     const sid = ensurePresenceSessionId();
@@ -3678,7 +3837,7 @@ async function writePresence(online=true, extra={}){
       userId: currentUsername,
       nome: currentUsername,
       email: currentUserEmail || '',
-      role: globalThis.currentRole,
+      role: currentRole,
       device: getPresenceDeviceType(),
       pagina: currentPresencePage || 'Dashboard',
       online,
@@ -3713,6 +3872,56 @@ function updatePresencePage(pageName){
   currentPresencePage = pageName || document.getElementById('pageTitle')?.textContent?.trim() || 'Dashboard';
   if(currentUsername) writePresence(true, { pagina: currentPresencePage });
 }
+
+function renderOnlineCompactWidget(activeRows){
+  const host = $('onlineUsersCompact');
+  if(!host) return;
+  const rows = Array.isArray(activeRows) ? activeRows.slice(0,4) : [];
+  const updated = new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' });
+
+  if(!rows.length){
+    host.innerHTML = `
+      <div class="online-compact-head">
+        <div>
+          <div class="online-compact-title"><span class="online-compact-dot"></span> Equipa online</div>
+          <div class="online-compact-meta">Atualizado: ${updated}</div>
+        </div>
+        <div class="online-compact-count">0</div>
+      </div>
+      <div class="online-compact-empty">Sem utilizadores online</div>
+    `;
+    return;
+  }
+
+  host.innerHTML = `
+    <div class="online-compact-head">
+      <div>
+        <div class="online-compact-title"><span class="online-compact-dot"></span> Equipa online</div>
+        <div class="online-compact-meta">Atualizado: ${updated}</div>
+      </div>
+      <div class="online-compact-count">${rows.length}</div>
+    </div>
+    <div class="online-compact-list">
+      ${rows.map(row => {
+        const status = row._presenceStatus === 'online' ? 'online' : (row._presenceStatus === 'idle' ? 'idle' : '');
+        const name = escapeHtml(row.nome || row.userId || 'Utilizador');
+        const meta = escapeHtml((row.role || '-') + ' · ' + (row.device || '-'));
+        const page = escapeHtml(row.pagina || 'Dashboard');
+        return `
+          <div class="online-compact-row">
+            <span class="online-compact-state ${status}"></span>
+            <div class="online-compact-user">
+              <strong>${name}</strong>
+              <span>${meta}</span>
+            </div>
+            <div class="online-compact-badge">${page}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 function renderOnlineUsersList(){
   const host = $('onlineUsersList');
   const counter = $('onlineUsersCounter');
@@ -3728,8 +3937,10 @@ function renderOnlineUsersList(){
     });
   if(counter) counter.textContent = String(activeRows.length);
   if(updatedAt) updatedAt.textContent = `Atualizado: ${new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' })}`;
+  renderOnlineCompactWidget(activeRows);
   if(!activeRows.length){
     host.innerHTML = '<div class="online-empty">Sem sessões online de momento.</div>';
+    renderOnlineCompactWidget([]);
     return;
   }
   host.innerHTML = activeRows.map(row => {
@@ -3935,7 +4146,7 @@ function getNextFlowEstado(value=''){
 
 function isMasterAdminUser(){
   try{
-    const role = String(globalThis.currentRole || '').toLowerCase();
+    const role = String(window.currentRole || (typeof currentRole !== 'undefined' ? currentRole : '') || '').toLowerCase();
     return role === 'master_admin';
   }catch(e){
     return false;
@@ -4274,7 +4485,7 @@ function setRoleUI(){
   updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
-  if (typeof globalThis.currentRole === 'undefined' || !globalThis.currentRole) globalThis.currentRole = 'master_admin';
+  if (!globalThis.currentRole) globalThis.currentRole = 'master_admin';
   if(!canAccessTab(tab, globalThis.currentRole)){
     const fallback = getAllowedTabsForRole(globalThis.currentRole)[0] || 'dashboard';
     if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
@@ -4361,7 +4572,7 @@ async function initFirebaseSync(){
         setSyncMessage(user ? 'Firebase Sync' : 'Firebase pronto', user ? 'ok' : 'warn');
         clearRealtimeListeners();
         attachRealtimeListeners();
-        if (globalThis.currentRole) renderAll();
+        if (currentRole) renderAll();
       });
 
       await waitForFirebaseSyncReady();
@@ -4393,7 +4604,7 @@ function attachRealtimeListeners(){
       const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setter(rows);
       saveLocal();
-      if (globalThis.currentRole) renderAll();
+      if (currentRole) renderAll();
     }, err => {
       console.error(`Snapshot ${name} failed:`, err);
       setSyncMessage('Erro de sync, uso local', 'bad');
@@ -5881,7 +6092,7 @@ function renderRelatorios() {
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
 function renderDashboardAgenda(){ return; }
-function renderAll(){ if(!globalThis.currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+function renderAll(){ if(!(globalThis.currentRole || currentRole)) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){}
   renderManagedUsers();
   updateWorkCodePreview();
@@ -6123,7 +6334,7 @@ window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) 
 window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
 window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
-function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole: globalThis.currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
+function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
 $('exportBackupBtn').addEventListener('click', exportBackup);
 $('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMensal').innerHTML; printHtml('Relatório mensal', `<h1>Relatório Mensal</h1><div style="display:grid;gap:14px">${html}</div>`); });
 
@@ -6157,11 +6368,11 @@ window.performLogout = async function(){
 
 window.startApp = function(sessionOrRole, maybeUsername){
   const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
-  globalThis.currentRole = session.role || 'master_admin';
-  currentRole = globalThis.currentRole;
+  currentRole = session.role || 'master_admin';
   currentUsername = session.username || 'user';
   currentUserEmail = session.email || currentUserEmail || null;
   currentUserUid = session.uid || currentUserUid || null;
+  globalThis.currentRole = currentRole;
   globalThis.currentUsername = currentUsername;
   globalThis.currentUserEmail = currentUserEmail;
   globalThis.currentUserUid = currentUserUid;
@@ -7020,61 +7231,6 @@ function printProfessionalReport(){
       </div>
     </div>
   </div>
-<script>
-/* ===== USERS ONLINE (DEMO / REALTIME BASE) ===== */
 
-let onlineUsers = [];
-
-function renderOnlineUsers(users){
-  const el = document.getElementById("onlineUsersCompact");
-  if(!el) return;
-
-  el.innerHTML = `
-    <div class="online-compact-head">
-      <div>
-        <div class="online-compact-title">
-          <div class="online-compact-dot"></div>
-          ONLINE
-        </div>
-        <div class="online-compact-meta">Utilizadores ativos</div>
-      </div>
-      <div class="online-compact-count">${users.length}</div>
-    </div>
-
-    <div class="online-compact-list">
-      ${
-        users.length === 0
-        ? `<div class="online-compact-empty">Sem utilizadores online</div>`
-        : users.map(u => `
-          <div class="online-compact-row">
-            <div class="online-compact-state online"></div>
-            <div class="online-compact-user">
-              <strong>${u.name}</strong>
-              <span>${u.page || "Dashboard"}</span>
-            </div>
-            <div class="online-compact-badge">${u.role}</div>
-          </div>
-        `).join("")
-      }
-    </div>
-  `;
-}
-
-/* ===== SIMULAÇÃO (até ligares Firebase presence) ===== */
-
-function fakeOnlineUsers(){
-  onlineUsers = [
-    { name: "Ricardo", role: "Admin", page: "Dashboard" },
-    { name: "Técnico 1", role: "User", page: "Clientes" }
-  ];
-
-  renderOnlineUsers(onlineUsers);
-}
-
-/* START */
-document.addEventListener("DOMContentLoaded", () => {
-  fakeOnlineUsers();
-});
-</script>
 </body>
 </html>
