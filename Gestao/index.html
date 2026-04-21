@@ -213,15 +213,7 @@ textarea{resize:vertical}
   justify-content:space-between;
   gap:16px;
   margin-bottom:18px;
-  padding-right:0;
 }
-.topbar-left{
-  min-width:0;
-}
-.hero-copy h3{
-  letter-spacing:-.02em;
-}
-
 .topbar h2{margin:0;font-size:34px}
 .subline{
   display:flex;
@@ -327,158 +319,6 @@ body.ui-laptop .main{padding:12px}
 .nav-btn{padding:12px 14px}
 .bottom-nav{gap:var(--ui-space-sm,8px)}
 .settings-card{background:rgba(255,255,255,.04);border:1px solid var(--line2);margin-bottom:var(--ui-space,14px)}
-
-
-/* ===== ONLINE WIDGET PREMIUM ===== */
-.online-compact-widget{
-  position:fixed;
-  top:18px;
-  right:18px;
-  z-index:9999;
-  width:min(320px, calc(100vw - 36px));
-  display:block !important;
-  opacity:1 !important;
-  visibility:visible !important;
-  pointer-events:auto;
-  border-radius:20px;
-  padding:12px;
-  background:
-    radial-gradient(circle at top right, rgba(56,189,248,.14), transparent 32%),
-    radial-gradient(circle at bottom left, rgba(168,85,247,.14), transparent 30%),
-    linear-gradient(180deg, rgba(10,14,25,.96), rgba(18,24,40,.94));
-  border:1px solid rgba(255,255,255,.09);
-  backdrop-filter:blur(18px);
-  box-shadow:0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
-}
-.online-compact-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:10px;
-  margin-bottom:10px;
-}
-.online-compact-title{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:11px;
-  font-weight:900;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:#eff6ff;
-}
-.online-compact-dot{
-  width:10px;
-  height:10px;
-  border-radius:999px;
-  background:#22c55e;
-  box-shadow:0 0 0 4px rgba(34,197,94,.16);
-  flex:0 0 auto;
-}
-.online-compact-count{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:30px;
-  height:30px;
-  padding:0 10px;
-  border-radius:999px;
-  background:linear-gradient(135deg, rgba(124,58,237,.28), rgba(59,130,246,.22));
-  border:1px solid rgba(167,139,250,.24);
-  font-size:12px;
-  font-weight:900;
-  color:#f5f3ff;
-}
-.online-compact-meta{
-  margin-top:4px;
-  font-size:11px;
-  color:#9fb0d8;
-}
-.online-compact-list{
-  display:grid;
-  gap:8px;
-}
-.online-compact-row{
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  align-items:center;
-  gap:10px;
-  padding:9px 10px;
-  border-radius:14px;
-  background:rgba(255,255,255,.045);
-  border:1px solid rgba(255,255,255,.06);
-}
-.online-compact-state{
-  width:10px;
-  height:10px;
-  border-radius:999px;
-  background:#6b7280;
-}
-.online-compact-state.online{
-  background:#22c55e;
-  box-shadow:0 0 0 4px rgba(34,197,94,.14);
-}
-.online-compact-state.idle{
-  background:#f59e0b;
-  box-shadow:0 0 0 4px rgba(245,158,11,.14);
-}
-.online-compact-user{
-  min-width:0;
-}
-.online-compact-user strong{
-  display:block;
-  font-size:13px;
-  color:#f8fbff;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  margin-bottom:2px;
-}
-.online-compact-user span{
-  display:block;
-  font-size:11px;
-  color:#97a9cf;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.online-compact-badge{
-  font-size:10px;
-  font-weight:800;
-  color:#dbeafe;
-  background:rgba(59,130,246,.14);
-  border:1px solid rgba(96,165,250,.18);
-  border-radius:999px;
-  padding:5px 8px;
-  white-space:nowrap;
-  max-width:92px;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.online-compact-empty{
-  font-size:12px;
-  color:#93a4c8;
-  padding:8px 4px 2px;
-}
-@media (min-width:1100px){
-  .main{
-    padding-right:350px !important;
-  }
-}
-@media (max-width:900px){
-  .online-compact-widget{
-    top:10px;
-    right:10px;
-    width:min(272px, calc(100vw - 20px));
-    padding:10px 10px 9px;
-    border-radius:18px;
-  }
-  .online-compact-user strong{font-size:12px}
-  .online-compact-user span,
-  .online-compact-meta,
-  .online-compact-badge{font-size:10px}
-}
-
 
 .online-users-panel{margin-top:14px}
 .online-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
@@ -2603,8 +2443,6 @@ td.acoes-col, .acoes-col{
 </style>
 </head>
 <body>
-
-  <div id="onlineUsersCompact" class="online-compact-widget"></div>
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
       <div class="login-brand">
@@ -2986,19 +2824,13 @@ function getAllowedTabsForRole(role='user'){
   return getRoleDefinition(role).tabs || ['dashboard'];
 }
 
-
-if (typeof globalThis.currentRole === 'undefined') globalThis.currentRole = '';
-if (typeof globalThis.currentUsername === 'undefined') globalThis.currentUsername = '';
-if (typeof globalThis.currentUserEmail === 'undefined') globalThis.currentUserEmail = '';
-if (typeof globalThis.currentUserUid === 'undefined') globalThis.currentUserUid = '';
-
-function hasRolePermission(permission, role=globalThis.currentRole){
+function hasRolePermission(permission, role=currentRole){
   if(!permission) return true;
   const def = getRoleDefinition(role);
   return Array.isArray(def.permissions) && def.permissions.includes(permission);
 }
 
-function canAccessTab(tab, role=globalThis.currentRole){
+function canAccessTab(tab, role=currentRole){
   return getAllowedTabsForRole(role).includes(tab);
 }
 
@@ -3015,7 +2847,7 @@ function normalizeUsers(users){
     role: validRoles.has(String(u?.role || '').trim()) ? String(u.role).trim() : 'consulta'
   }));
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -3078,9 +2910,52 @@ function bootFromSession(){
   if(!session || !window.startApp) return false;
 
   showApp();
-  window.startApp(session);
+  window.startApp(session.role, session.username);
   return true;
 }
+
+
+window.performLogin = window.performLogin || async function(email, password){
+  await ensureAuthReady();
+  const userCredential = await signInWithEmailAndPassword(firebaseAuth, String(email || '').trim(), String(password || ''));
+  const authUser = userCredential.user;
+  const profile = getRoleProfileByEmail(authUser.email || email) || {};
+  const username = profile.username || (String(authUser.email || email).split('@')[0] || 'user');
+  const role = profile.role || 'master_admin';
+  currentUserUid = authUser.uid || null;
+  currentUserEmail = authUser.email || email;
+  globalThis.currentUserUid = currentUserUid;
+  globalThis.currentUserEmail = currentUserEmail;
+  return { role, username, email: currentUserEmail, uid: currentUserUid };
+};
+
+window.performLogout = window.performLogout || async function(){
+  try{ if(typeof stopPresenceTracking === 'function') await stopPresenceTracking(); }catch(err){ console.warn(err); }
+  try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
+  currentUserUid = null;
+  currentUserEmail = null;
+  globalThis.currentUserUid = null;
+  globalThis.currentUserEmail = null;
+};
+
+window.startApp = window.startApp || function(sessionOrRole, maybeUsername){
+  const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
+  currentRole = session.role || 'master_admin';
+  currentUsername = session.username || 'user';
+  currentUserEmail = session.email || currentUserEmail || null;
+  currentUserUid = session.uid || currentUserUid || null;
+  globalThis.currentRole = currentRole;
+  globalThis.currentUsername = currentUsername;
+  globalThis.currentUserEmail = currentUserEmail;
+  globalThis.currentUserUid = currentUserUid;
+  loadLocal();
+  if(typeof setRoleUI === 'function') setRoleUI();
+  if(typeof renderAll === 'function') renderAll();
+  initFirebaseSync()
+    .then(() => { if(typeof startPresenceTracking === 'function') return startPresenceTracking(); })
+    .catch(err => console.error(err));
+};
+
 
 loginForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -3756,23 +3631,7 @@ function printProfessionalReport(){
   openProfessionalReportWindow(true);
 }
 
-
-// FIXES
-let currentRole = window.currentRole || "Admin";
-
-function safeWidgetToggle(){
-  const el = document.getElementById("onlineUsersCompact");
-  if(!el) return;
-  if(!document.body.classList.contains("logged-in")){
-    el.style.display="none";
-  } else {
-    el.style.display="block";
-  }
-}
-
-document.addEventListener("DOMContentLoaded", safeWidgetToggle);
 </script>
-
   <script type="module">
 const firebaseConfig = {
   apiKey: "AIzaSyD2nCoO5TP56H_gm5SBWM6DLf_SZW1UPxI",
@@ -3791,7 +3650,7 @@ import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'ht
 const APP_VERSION = '1.0.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
 
-let currentRole = globalThis.currentRole || null, currentUsername = globalThis.currentUsername || null, currentUserEmail = globalThis.currentUserEmail || null, currentUserUid = globalThis.currentUserUid || null;
+let currentRole = null, currentUsername = null, currentUserEmail = null, currentUserUid = null;
 let trabalhos = [], clientes = [], pagamentos = [];
 let lastTrabId = 0;
 
@@ -3888,56 +3747,6 @@ function updatePresencePage(pageName){
   currentPresencePage = pageName || document.getElementById('pageTitle')?.textContent?.trim() || 'Dashboard';
   if(currentUsername) writePresence(true, { pagina: currentPresencePage });
 }
-
-function renderOnlineCompactWidget(activeRows){
-  const host = $('onlineUsersCompact');
-  if(!host) return;
-  const rows = Array.isArray(activeRows) ? activeRows.slice(0,4) : [];
-  const updated = new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' });
-
-  if(!rows.length){
-    host.innerHTML = `
-      <div class="online-compact-head">
-        <div>
-          <div class="online-compact-title"><span class="online-compact-dot"></span> Equipa online</div>
-          <div class="online-compact-meta">Atualizado: ${updated}</div>
-        </div>
-        <div class="online-compact-count">0</div>
-      </div>
-      <div class="online-compact-empty">Sem utilizadores online</div>
-    `;
-    return;
-  }
-
-  host.innerHTML = `
-    <div class="online-compact-head">
-      <div>
-        <div class="online-compact-title"><span class="online-compact-dot"></span> Equipa online</div>
-        <div class="online-compact-meta">Atualizado: ${updated}</div>
-      </div>
-      <div class="online-compact-count">${rows.length}</div>
-    </div>
-    <div class="online-compact-list">
-      ${rows.map(row => {
-        const status = row._presenceStatus === 'online' ? 'online' : (row._presenceStatus === 'idle' ? 'idle' : '');
-        const name = escapeHtml(row.nome || row.userId || 'Utilizador');
-        const meta = escapeHtml((row.role || '-') + ' · ' + (row.device || '-'));
-        const page = escapeHtml(row.pagina || 'Dashboard');
-        return `
-          <div class="online-compact-row">
-            <span class="online-compact-state ${status}"></span>
-            <div class="online-compact-user">
-              <strong>${name}</strong>
-              <span>${meta}</span>
-            </div>
-            <div class="online-compact-badge">${page}</div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
-}
-
 function renderOnlineUsersList(){
   const host = $('onlineUsersList');
   const counter = $('onlineUsersCounter');
@@ -3953,10 +3762,8 @@ function renderOnlineUsersList(){
     });
   if(counter) counter.textContent = String(activeRows.length);
   if(updatedAt) updatedAt.textContent = `Atualizado: ${new Date().toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' })}`;
-  renderOnlineCompactWidget(activeRows);
   if(!activeRows.length){
     host.innerHTML = '<div class="online-empty">Sem sessões online de momento.</div>';
-    renderOnlineCompactWidget([]);
     return;
   }
   host.innerHTML = activeRows.map(row => {
@@ -4053,7 +3860,7 @@ function initUiScale(){
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const isMasterAdmin = () => globalThis.currentRole === 'master_admin';
+const isMasterAdmin = () => currentRole === 'master_admin';
 const isAdminLike = () => hasRolePermission('manage_work_orders') || hasRolePermission('manage_clients') || hasRolePermission('manage_payments') || isMasterAdmin();
 
 
@@ -4377,7 +4184,7 @@ function fillClientContactFromSelection(){
 function normalizeManagedUsers(users){
   const list = Array.isArray(users) ? users.slice() : [];
   const idx = list.findIndex(u => String(u?.email || '').trim().toLowerCase() === 'pica.fern@gmail.com' || String(u.username || '').toLowerCase() === 'pica.fern');
-  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', role: 'master_admin' };
+  const ricardo = { username: 'pica.fern', email: 'pica.fern@gmail.com', password: '', role: 'master_admin' };
   if(idx >= 0) list[idx] = { ...list[idx], ...ricardo };
   else list.push(ricardo);
   return list;
@@ -4479,14 +4286,14 @@ function setSyncMessage(msg, level='warn'){
   }
 }
 function setRoleUI(){
-  if(!globalThis.currentRole) return;
-  const roleLabel = globalThis.currentRole === 'master_admin' ? 'Admin Mestre' : (globalThis.currentRole === 'admin' ? 'Admin' : 'User');
-  document.body.classList.toggle('role-view-user', globalThis.currentRole === 'user');
-  document.body.classList.toggle('role-view-admin', globalThis.currentRole === 'admin');
+  if(!currentRole) return;
+  const roleLabel = currentRole === 'master_admin' ? 'Admin Mestre' : (currentRole === 'admin' ? 'Admin' : 'User');
+  document.body.classList.toggle('role-view-user', currentRole === 'user');
+  document.body.classList.toggle('role-view-admin', currentRole === 'admin');
   $('roleBadge').textContent = roleLabel;
   $('roleLine').textContent = `Role: ${roleLabel}`;
   $('versionBadge').textContent = APP_VERSION;
-  $('currentUserName').textContent = globalThis.currentUsername || 'Utilizador';
+  $('currentUserName').textContent = currentUsername || 'Utilizador';
   const usersSection = $('usersSection');
   if(usersSection) usersSection.style.display = isMasterAdmin() ? 'block' : 'none';
   const workCodeField = $('workCodeDisplay');
@@ -4501,9 +4308,8 @@ function setRoleUI(){
   updateTrabalhoAdvancedFields();
 }
 function switchTab(tab){
-  if (!globalThis.currentRole) globalThis.currentRole = 'master_admin';
-  if(!canAccessTab(tab, globalThis.currentRole)){
-    const fallback = getAllowedTabsForRole(globalThis.currentRole)[0] || 'dashboard';
+  if(!canAccessTab(tab)){
+    const fallback = getAllowedTabsForRole(currentRole)[0] || 'dashboard';
     if(tab !== fallback) alert('Sem acesso a essa área para a tua role.');
     tab = fallback;
   }
@@ -6107,8 +5913,7 @@ function renderRelatorios() {
         .join('')
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
-function renderDashboardAgenda(){ return; }
-function renderAll(){ if(!(globalThis.currentRole || currentRole)) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); renderDashboardAgenda(); renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){}
   renderManagedUsers();
   updateWorkCodePreview();
@@ -6351,8 +6156,8 @@ window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) re
 window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
 function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
-$('exportBackupBtn').addEventListener('click', exportBackup);
-$('exportMonthlyPdfBtn').addEventListener('click', ()=>{ const html=$('resumoMensal').innerHTML; printHtml('Relatório mensal', `<h1>Relatório Mensal</h1><div style="display:grid;gap:14px">${html}</div>`); });
+$('exportBackupBtn')?.addEventListener('click', exportBackup);
+$('exportMonthlyPdfBtn')?.addEventListener('click', ()=>{ const html=$('resumoMensal')?.innerHTML || ''; printHtml('Relatório mensal', `<h1>Relatório Mensal</h1><div style="display:grid;gap:14px">${html}</div>`); });
 
 loadLocal();
 autoBackupInvisible();
@@ -6364,11 +6169,9 @@ window.performLogin = async function(email, password){
   const authUser = userCredential.user;
   const profile = getRoleProfileByEmail(authUser.email || email);
   const username = profile?.username || (String(authUser.email || email).split('@')[0] || 'user');
-  const role = profile?.role || 'consulta';
+  const role = profile?.role || 'master_admin';
   currentUserUid = authUser.uid || null;
   currentUserEmail = authUser.email || email;
-  globalThis.currentUserUid = currentUserUid;
-  globalThis.currentUserEmail = currentUserEmail;
   return { role, username, email: currentUserEmail, uid: currentUserUid };
 };
 
@@ -6377,21 +6180,15 @@ window.performLogout = async function(){
   try{ if(firebaseAuth) await signOut(firebaseAuth); }catch(err){ console.warn('Falha no sign out Firebase:', err); }
   currentUserUid = null;
   currentUserEmail = null;
-  globalThis.currentUserUid = null;
-  globalThis.currentUserEmail = null;
 };
 
 
 window.startApp = function(sessionOrRole, maybeUsername){
   const session = typeof sessionOrRole === 'object' && sessionOrRole ? sessionOrRole : { role: sessionOrRole, username: maybeUsername };
-  currentRole = session.role || 'master_admin';
-  currentUsername = session.username || 'user';
+  currentRole = session.role;
+  currentUsername = session.username;
   currentUserEmail = session.email || currentUserEmail || null;
   currentUserUid = session.uid || currentUserUid || null;
-  globalThis.currentRole = currentRole;
-  globalThis.currentUsername = currentUsername;
-  globalThis.currentUserEmail = currentUserEmail;
-  globalThis.currentUserUid = currentUserUid;
   loadLocal();
   setRoleUI();
   renderAll();
@@ -7192,23 +6989,7 @@ function printProfessionalReport(){
   openProfessionalReportWindow(true);
 }
 
-
-// FIXES
-let currentRole = window.currentRole || "Admin";
-
-function safeWidgetToggle(){
-  const el = document.getElementById("onlineUsersCompact");
-  if(!el) return;
-  if(!document.body.classList.contains("logged-in")){
-    el.style.display="none";
-  } else {
-    el.style.display="block";
-  }
-}
-
-document.addEventListener("DOMContentLoaded", safeWidgetToggle);
 </script>
-
 
   <div id="clientModal" class="modal hidden">
     <div class="modal-card">
