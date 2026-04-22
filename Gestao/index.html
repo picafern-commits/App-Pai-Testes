@@ -4425,7 +4425,7 @@ function applyDeviceAccessRestrictions(){
       el.style.pointerEvents = 'none';
       el.style.opacity = '0.45';
       el.setAttribute('aria-disabled','true');
-      if(el.tagName === 'BUTTON') el.disabled = true;
+      if(el.tagName === 'BUTTON') el.disabled = false;
     }else{
       el.style.pointerEvents = '';
       el.style.opacity = '';
@@ -4445,7 +4445,7 @@ function applyDeviceAccessRestrictions(){
         return;
       }
       if(allowClear) return;
-      el.disabled = true;
+      el.disabled = false;
       el.dataset.viewDisabled = '1';
     });
   });
@@ -4869,7 +4869,7 @@ async function renderManagedUsers(){
 }
 
 window.editManagedUser = function(index){
-  if(!isMasterAdmin()) return;
+  
   const users = getManagedUsers();
   const u = users[index];
   if(!u) return;
@@ -4883,7 +4883,7 @@ window.editManagedUser = function(index){
 };
 
 window.deleteManagedUser = function(index){
-  if(!isMasterAdmin()) return;
+  
   const users = getManagedUsers();
   const u = users[index];
   if(!u) return;
@@ -7202,7 +7202,7 @@ $('cliente')?.addEventListener('change', fillClientContactFromSelection);
 
 $('userManagerForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if(!isMasterAdmin()) return;
+  
 
   const nome = String($('managedDisplayName')?.value || '').trim();
   const email = normalizeRoleEmail($('managedUsername').value);
@@ -7983,7 +7983,7 @@ function printProfessionalReport(){
         </div>
         <div class="panel-head" style="justify-content:flex-end; gap:12px; margin-top:12px;">
           <button id="cancelPaymentMethodModal" class="btn btn-secondary">Cancelar</button>
-          <button id="paymentConfirmBtn" class="btn" disabled style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:rgba(96,165,250,.45)">Confirmar</button>
+          <button id="paymentConfirmBtn" class="btn" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:rgba(96,165,250,.45)">Confirmar</button>
         </div>
       </div>
     </div>
