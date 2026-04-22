@@ -3232,15 +3232,15 @@ td.acoes-col, .acoes-col{
 const loginForm = document.getElementById('loginForm');
 
 function showApp(){
-  document.getElementById('loginScreen')?.classList.remove('hidden');
+  document.getElementById('loginScreen')?.classList.add('hidden');
   document.getElementById('appRoot')?.classList.remove('hidden');
   document.getElementById('onlineUsersWidget')?.classList.remove('hidden');
 }
 
 function showLogin(){
   document.getElementById('loginScreen')?.classList.remove('hidden');
-  document.getElementById('appRoot')?.classList.remove('hidden');
-  document.getElementById('onlineUsersWidget')?.classList.remove('hidden');
+  document.getElementById('appRoot')?.classList.add('hidden');
+  document.getElementById('onlineUsersWidget')?.classList.add('hidden');
 }
 
 window.showApp = showApp;
@@ -3298,7 +3298,7 @@ function legacy_openPaymentMethodModal(id){
 function legacy_closePaymentMethodModal(){
   const modal = document.getElementById('paymentMethodModal');
   if(!modal) return;
-  modal.style.display = '';
+  modal.style.display = 'none';
   modal.classList.remove('show');
 }
 
@@ -4732,9 +4732,9 @@ function initUiScale(){
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const isMasterAdmin = () => true;
-const isDeviceViewMode = () => false;
-const isAdminLike = () => true;
+const isMasterAdmin = () => currentRole === 'master_admin';
+const isDeviceViewMode = () => !isMasterAdmin() && normalizeAccessMode(currentAccessMode) === 'view';
+const isAdminLike = () => !isDeviceViewMode() && (currentRole === 'admin' || currentRole === 'master_admin');
 
 function applyDeviceAccessRestrictions(){
   const viewMode = isDeviceViewMode();
@@ -4761,7 +4761,7 @@ function applyDeviceAccessRestrictions(){
       el.style.pointerEvents = 'none';
       el.style.opacity = '0.45';
       el.setAttribute('aria-disabled','true');
-      if(el.tagName === 'BUTTON') el.disabled = false;
+      if(el.tagName === 'BUTTON') el.disabled = true;
     }else{
       el.style.pointerEvents = '';
       el.style.opacity = '';
@@ -4781,7 +4781,7 @@ function applyDeviceAccessRestrictions(){
         return;
       }
       if(allowClear) return;
-      el.disabled = false;
+      el.disabled = true;
       el.dataset.viewDisabled = '1';
     });
   });
@@ -4894,10 +4894,13 @@ function getNextFlowEstado(value=''){
 
 
 function isMasterAdminUser(){
-  return true;
+  try{
+    const role = String(window.currentRole || (typeof currentRole !== 'undefined' ? currentRole : '') || '').toLowerCase();
+    return role === 'master_admin';
+  }catch(e){
+    return false;
+  }
 }
-
-function __old_isMasterAdminUser_disabled(){ return true; }
 
 function isEditingTrabalho(){
   try{
@@ -5205,7 +5208,7 @@ async function renderManagedUsers(){
 }
 
 window.editManagedUser = function(index){
-  
+  if(!isMasterAdmin()) return;
   const users = getManagedUsers();
   const u = users[index];
   if(!u) return;
@@ -5219,7 +5222,7 @@ window.editManagedUser = function(index){
 };
 
 window.deleteManagedUser = function(index){
-  
+  if(!isMasterAdmin()) return;
   const users = getManagedUsers();
   const u = users[index];
   if(!u) return;
@@ -7293,8 +7296,8 @@ window.deleteCliente = async function(id){
 };
 
 const clientModal = $('clientModal');
-$('closeClientModal').addEventListener('click', ()=> clientModal.classList.remove('hidden'));
-clientModal.addEventListener('click', (e)=>{ if(e.target === clientModal) clientModal.classList.remove('hidden'); });
+$('closeClientModal').addEventListener('click', ()=> clientModal.classList.add('hidden'));
+clientModal.addEventListener('click', (e)=>{ if(e.target === clientModal) clientModal.classList.add('hidden'); });
 
 window.openClientHistory = function(id){
   const c = clientes.find(x=>x.id===id);
@@ -7485,8 +7488,8 @@ window.showDesc = function(id){
   $('descModal').classList.remove('hidden');
 };
 
-$('closeDescModal')?.addEventListener('click', ()=> $('descModal').classList.remove('hidden'));
-$('descModal')?.addEventListener('click', (e)=>{ if(e.target.id === 'descModal') $('descModal').classList.remove('hidden'); });
+$('closeDescModal')?.addEventListener('click', ()=> $('descModal').classList.add('hidden'));
+$('descModal')?.addEventListener('click', (e)=>{ if(e.target.id === 'descModal') $('descModal').classList.add('hidden'); });
 
 let pendingPaymentWorkId = null;
 let selectedPaymentMethod = '';
@@ -7503,9 +7506,9 @@ function resetPaymentModalState(){
 function hidePaymentModal(){
   const modal = $('paymentMethodModal');
   if(!modal) return;
-  modal.classList.remove('hidden');
+  modal.classList.add('hidden');
   modal.classList.remove('show');
-  modal.style.display = '';
+  modal.style.display = 'none';
 }
 
 function showPaymentModal(){
@@ -7606,7 +7609,7 @@ $('cliente')?.addEventListener('change', fillClientContactFromSelection);
 
 $('userManagerForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
+  if(!isMasterAdmin()) return;
 
   const nome = String($('managedDisplayName')?.value || '').trim();
   const email = normalizeRoleEmail($('managedUsername').value);
@@ -7767,7 +7770,7 @@ function legacy2_openPaymentMethodModal(id){
 function legacy2_closePaymentMethodModal(){
   const modal = document.getElementById('paymentMethodModal');
   if(!modal) return;
-  modal.style.display = '';
+  modal.style.display = 'none';
   modal.classList.remove('show');
 }
 
@@ -8387,7 +8390,7 @@ function printProfessionalReport(){
         </div>
         <div class="panel-head" style="justify-content:flex-end; gap:12px; margin-top:12px;">
           <button id="cancelPaymentMethodModal" class="btn btn-secondary">Cancelar</button>
-          <button id="paymentConfirmBtn" class="btn" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:rgba(96,165,250,.45)">Confirmar</button>
+          <button id="paymentConfirmBtn" class="btn" disabled style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:rgba(96,165,250,.45)">Confirmar</button>
         </div>
       </div>
     </div>
