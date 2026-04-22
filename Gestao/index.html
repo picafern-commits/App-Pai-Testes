@@ -132,9 +132,6 @@ input:focus,select:focus,textarea:focus{
 }
 textarea{resize:vertical}
 .login-error{min-height:20px;color:#fecaca;margin-top:12px;font-size:13px}
-.remember-login{display:flex;align-items:center;gap:10px;margin-top:-2px;color:#dbe3ff;font-size:13px;user-select:none}
-.remember-login input{width:18px;height:18px;min-height:auto;padding:0;margin:0;accent-color:var(--accent)}
-.remember-login span{line-height:1.2}
 
 .app-shell{
   position:relative;
@@ -2641,6 +2638,12 @@ td.acoes-col, .acoes-col{
 
 .table-sort-btn{background:none;border:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0}
 .table-sort-btn span{opacity:.8}
+
+/* HOTFIX LOGIN + BACKUP */
+.clean-brand-copy h1,.login-only-title h1{color:#eef3ff!important;text-shadow:0 6px 18px rgba(0,0,0,.35)!important}
+.login-brand,.login-panel{background:linear-gradient(180deg,rgba(20,28,48,.92),rgba(15,21,36,.92))!important}
+.login-screen .field label,.login-error,.remember-login,.remember-login span{color:#dbe3ff!important}
+
 </style>
 </head>
 <body>
@@ -2667,10 +2670,6 @@ td.acoes-col, .acoes-col{
             <label>Palavra-passe</label>
             <input id="loginPassword" type="password" placeholder="••••••••" required />
           </div>
-          <label class="remember-login">
-            <input id="rememberMe" type="checkbox" />
-            <span>Memorizar conta</span>
-          </label>
           <button type="submit" class="btn btn-primary full">Entrar</button>
         </form>
         <div id="loginError" class="login-error"></div>
@@ -3055,39 +3054,6 @@ td.acoes-col, .acoes-col{
 
 
 const loginForm = document.getElementById('loginForm');
-const REMEMBER_LOGIN_KEY = 'ge_remember_login';
-const REMEMBER_LOGIN_EMAIL_KEY = 'ge_remember_login_email';
-
-function syncRememberLoginUi(){
-  const remember = localStorage.getItem(REMEMBER_LOGIN_KEY) === 'true';
-  const savedEmail = remember ? String(localStorage.getItem(REMEMBER_LOGIN_EMAIL_KEY) || '') : '';
-  const rememberInput = document.getElementById('rememberMe');
-  const emailInput = document.getElementById('loginUsername');
-  if(rememberInput) rememberInput.checked = remember;
-  if(emailInput && savedEmail){
-    emailInput.value = savedEmail;
-  }
-}
-
-function applyRememberLoginState(email, remember){
-  if(remember){
-    localStorage.setItem(REMEMBER_LOGIN_KEY, 'true');
-    localStorage.setItem(REMEMBER_LOGIN_EMAIL_KEY, String(email || '').trim());
-  }else{
-    localStorage.removeItem(REMEMBER_LOGIN_KEY);
-    localStorage.removeItem(REMEMBER_LOGIN_EMAIL_KEY);
-  }
-}
-
-function resetLoginFormForRememberedState(){
-  const remember = localStorage.getItem(REMEMBER_LOGIN_KEY) === 'true';
-  const savedEmail = remember ? String(localStorage.getItem(REMEMBER_LOGIN_EMAIL_KEY) || '') : '';
-  loginForm?.reset();
-  const rememberInput = document.getElementById('rememberMe');
-  const emailInput = document.getElementById('loginUsername');
-  if(rememberInput) rememberInput.checked = remember;
-  if(emailInput) emailInput.value = savedEmail;
-}
 
 function showApp(){
   document.getElementById('loginScreen')?.classList.add('hidden');
@@ -3099,7 +3065,6 @@ function showLogin(){
   document.getElementById('loginScreen')?.classList.remove('hidden');
   document.getElementById('appRoot')?.classList.add('hidden');
   document.getElementById('onlineUsersWidget')?.classList.add('hidden');
-  syncRememberLoginUi();
 }
 
 window.showApp = showApp;
@@ -3115,7 +3080,7 @@ window.handleFirebaseLogout = async function(){
     console.error(e);
   }
   showLogin();
-  resetLoginFormForRememberedState();
+  loginForm?.reset();
 };
 
 document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
@@ -3124,7 +3089,6 @@ document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  syncRememberLoginUi();
   showLogin();
 });
 
@@ -3642,7 +3606,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   try{refreshBackupStatusUi();
   try{ updateBackupWeekIndicator(); }catch(e){}
-  try{fazerBackupSexta();}catch(e){}}catch(e){}
+  /* hotfix: auto backup deferred */}catch(e){}
 
 });
 
@@ -4118,7 +4082,207 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script>
+(function(){
+  const AUTO_BACKUP_INTERVAL_MS = 15 * 60 * 1000;
+  const AUTO_BACKUP_MAX_ITEMS = 50;
+  const BACKUP_COLLECTION = 'app_backups';
+  const REMOTE_STATUS_KEY = 'ge_remote_backup_status';
+  const REMOTE_DATE_KEY = 'ge_remote_backup_date';
+  const LOCAL_HASH_KEY = 'ge_auto_backup_hash';
+  const LOCAL_LAST_KEY = 'ge_auto_backup_last_run';
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function nowIso(){ return new Date().toISOString(); }
+  function fmtDateTime(value){
+    if(!value) return '--';
+    try{
+      const d = new Date(value);
+      if(Number.isNaN(d.getTime())) return String(value);
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }catch(_){ return String(value || '--'); }
+  }
+  function safeJsonParse(raw, fallback){
+    try{ return JSON.parse(raw); }catch(_){ return fallback; }
+  }
+  function stableClone(value){
+    if(Array.isArray(value)) return value.map(stableClone);
+    if(value && typeof value === 'object'){
+      const out = {};
+      Object.keys(value).sort().forEach(key => { out[key] = stableClone(value[key]); });
+      return out;
+    }
+    return value;
+  }
+  function stableStringify(value){
+    try{ return JSON.stringify(stableClone(value)); }catch(_){ return JSON.stringify(value || null); }
+  }
+  function simpleHash(text){
+    let hash = 0;
+    const str = String(text || '');
+    for(let i=0;i<str.length;i++) hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+    return Math.abs(hash).toString(36);
+  }
+  function getSnapshot(){
+    const base = (typeof window.getAppDataSnapshot === 'function')
+      ? window.getAppDataSnapshot()
+      : {
+          trabalhos: safeJsonParse(localStorage.getItem('trabalhos') || localStorage.getItem('ge_trabalhos') || '[]', []),
+          clientes: safeJsonParse(localStorage.getItem('clientes') || localStorage.getItem('ge_clientes') || '[]', []),
+          pagamentos: safeJsonParse(localStorage.getItem('pagamentos') || localStorage.getItem('ge_pagamentos') || '[]', []),
+          dataBackup: nowIso(),
+          versao: 'backup-app-v13'
+        };
+    const actor = (window.currentUserProfile || {});
+    return {
+      ...base,
+      dataBackup: nowIso(),
+      backupMeta: {
+        source: 'auto',
+        actorEmail: actor.email || actor.username || '',
+        actorName: actor.displayName || '',
+        actorRole: actor.role || '',
+        device: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        userAgent: navigator.userAgent
+      }
+    };
+  }
+  function getBackupList(){
+    return safeJsonParse(localStorage.getItem('dailyAutoBackups') || localStorage.getItem('weeklyAutoBackups') || '[]', []);
+  }
+  function saveBackupList(list){
+    localStorage.setItem('dailyAutoBackups', JSON.stringify(list));
+    localStorage.setItem('weeklyAutoBackups', JSON.stringify(list));
+    localStorage.setItem('backupFridayHistory', JSON.stringify(list));
+  }
+  function saveLocalSnapshot(snapshot){
+    const list = getBackupList();
+    list.push(snapshot);
+    while(list.length > AUTO_BACKUP_MAX_ITEMS) list.shift();
+    saveBackupList(list);
+    localStorage.setItem('dailyAutoBackupLastDate', snapshot.dataBackup || nowIso());
+    localStorage.setItem('weeklyAutoBackupLastDate', snapshot.dataBackup || nowIso());
+    localStorage.setItem('backupFridayDone', String(snapshot.dataBackup || nowIso()).slice(0,10));
+    localStorage.setItem(LOCAL_LAST_KEY, String(Date.now()));
+  }
+  async function saveRemoteSnapshot(snapshot){
+    try{
+      if(typeof window.ensureFirebaseCore === 'function') await window.ensureFirebaseCore();
+      const db = window.firestoreDb;
+      const setDoc = window.setDoc;
+      const doc = window.doc;
+      if(!db || typeof setDoc !== 'function' || typeof doc !== 'function') throw new Error('firebase-indisponivel');
+      const hash = simpleHash(stableStringify({ trabalhos:snapshot.trabalhos, clientes:snapshot.clientes, pagamentos:snapshot.pagamentos }));
+      const backupId = `${String(snapshot.dataBackup || nowIso()).slice(0,10)}_${hash}`;
+      await setDoc(doc(db, BACKUP_COLLECTION, backupId), {
+        ...snapshot,
+        backupId,
+        updatedAt: nowIso(),
+        dayKey: String(snapshot.dataBackup || nowIso()).slice(0,10),
+        summary: {
+          trabalhos: Array.isArray(snapshot.trabalhos) ? snapshot.trabalhos.length : 0,
+          clientes: Array.isArray(snapshot.clientes) ? snapshot.clientes.length : 0,
+          pagamentos: Array.isArray(snapshot.pagamentos) ? snapshot.pagamentos.length : 0
+        }
+      }, { merge:true });
+      localStorage.setItem(REMOTE_STATUS_KEY, 'ok');
+      localStorage.setItem(REMOTE_DATE_KEY, snapshot.dataBackup || nowIso());
+      return { ok:true, backupId };
+    }catch(err){
+      console.warn('Backup remoto não concluído:', err);
+      localStorage.setItem(REMOTE_STATUS_KEY, err && (err.code || err.message) ? String(err.code || err.message) : 'erro');
+      return { ok:false, error: err };
+    }
+  }
+  function updateBackupUiExtra(){
+    const root = document.getElementById('backupToolsCard');
+    if(!root) return;
+    let extra = document.getElementById('backupRemoteStatusCard');
+    if(!extra){
+      const grid = root.querySelector('.backups-premium-grid');
+      if(grid){
+        extra = document.createElement('div');
+        extra.className = 'backups-premium-stat';
+        extra.id = 'backupRemoteStatusCard';
+        extra.innerHTML = '<span class="label">Backup remoto</span><span class="value" id="backupRemoteStatus">--</span>';
+        grid.appendChild(extra);
+      }
+    }
+    const remoteStatusEl = document.getElementById('backupRemoteStatus');
+    const modeBadgeEl = document.getElementById('backupModeBadge');
+    const btnWrap = root.querySelector('.backups-premium-actions');
+    if(btnWrap && !document.getElementById('backupRunNowBtn')){
+      const btn = document.createElement('button');
+      btn.id = 'backupRunNowBtn';
+      btn.className = 'backups-premium-btn export';
+      btn.textContent = 'Criar Backup Agora';
+      btn.onclick = function(){ window.forceAutomaticBackupNow && window.forceAutomaticBackupNow(true); };
+      btnWrap.insertBefore(btn, btnWrap.firstChild);
+    }
+    const lastRemote = localStorage.getItem(REMOTE_DATE_KEY) || '';
+    const remoteStatus = localStorage.getItem(REMOTE_STATUS_KEY) || '';
+    if(remoteStatusEl){
+      remoteStatusEl.textContent = remoteStatus === 'ok' ? `OK · ${fmtDateTime(lastRemote)}` : (remoteStatus ? `Local apenas · ${remoteStatus}` : 'Local apenas');
+    }
+    if(modeBadgeEl){
+      modeBadgeEl.textContent = remoteStatus === 'ok' ? 'Automático Local + Firebase' : 'Automático Local';
+    }
+    if(typeof window.refreshBackupStatusUi === 'function'){
+      try{ window.refreshBackupStatusUi(); }catch(_){ }
+    }
+  }
+  async function runAutoBackup(force){
+    try{
+      const snapshot = getSnapshot();
+      const coreHash = simpleHash(stableStringify({ trabalhos:snapshot.trabalhos, clientes:snapshot.clientes, pagamentos:snapshot.pagamentos }));
+      const lastHash = localStorage.getItem(LOCAL_HASH_KEY) || '';
+      const lastRun = Number(localStorage.getItem(LOCAL_LAST_KEY) || '0');
+      const now = Date.now();
+      const tooSoon = now - lastRun < AUTO_BACKUP_INTERVAL_MS;
+      if(!force && coreHash === lastHash && tooSoon){
+        updateBackupUiExtra();
+        return { skipped:true, reason:'sem-alteracoes' };
+      }
+      saveLocalSnapshot(snapshot);
+      localStorage.setItem(LOCAL_HASH_KEY, coreHash);
+      const remote = await saveRemoteSnapshot(snapshot);
+      updateBackupUiExtra();
+      return { skipped:false, remote };
+    }catch(err){
+      console.error('Falha no backup automático:', err);
+      updateBackupUiExtra();
+      return { skipped:false, error:err };
+    }
+  }
+
+  window.forceAutomaticBackupNow = async function(showMessage){
+    const result = await runAutoBackup(true);
+    if(showMessage){
+      if(result && result.remote && result.remote.ok) alert('Backup criado com sucesso e sincronizado com a Firebase.');
+      else alert('Backup criado localmente. Se a Firebase não estiver pronta, fica sincronizado depois.');
+    }
+    return result;
+  };
+
+  const originalExport = window.exportBackupManual;
+  window.exportBackupManual = function(){
+    try{ runAutoBackup(true); }catch(_){ }
+    if(typeof originalExport === 'function') return originalExport();
+  };
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') runAutoBackup(false);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(() => runAutoBackup(false), 1200);
+    setTimeout(() => updateBackupUiExtra(), 1800);
+  });
+  setInterval(function(){ runAutoBackup(false); }, AUTO_BACKUP_INTERVAL_MS);
+})();
+</script>
+
+</body>
   </html>`;
 }
 
@@ -4145,17 +4309,17 @@ function printProfessionalReport(){
 </script>
   <script type="module">
 const firebaseConfig = {
-  apiKey: "AIzaSyD2nCoO5TP56H_gm5SBWM6DLf_SZW1UPxI",
-  authDomain: "app-gestao-c932d.firebaseapp.com",
-  projectId: "app-gestao-c932d",
-  storageBucket: "app-gestao-c932d.firebasestorage.app",
-  messagingSenderId: "318015040210",
-  appId: "1:318015040210:web:e3070e6b8f4d74a8799b0b"
+  apiKey: "AIzaSyDbiMRCFhD9WC4Z17fc9M9uXdY8ETUO05Q",
+  authDomain: "app-pai-feb73.firebaseapp.com",
+  projectId: "app-pai-feb73",
+  storageBucket: "app-pai-feb73.firebasestorage.app",
+  messagingSenderId: "594270955224",
+  appId: "1:594270955224:web:85d1d530889704d0f359ad"
 };
 
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const APP_VERSION = '1.0.6';
@@ -4190,6 +4354,7 @@ const ONLINE_WIDGET_KEY = 'ge_online_widget_hidden';
 
 let authBootstrapped = false;
 let authListenerAttached = false;
+let syncAuthListenerAttached = false;
 if(typeof window !== 'undefined'){ window.firebaseApp = firebaseApp; window.firebaseAuth = firebaseAuth; window.firestoreDb = firestoreDb; }
 
 function deriveLoginUsername(user){
@@ -4311,6 +4476,7 @@ async function ensureFirebaseCore(){
   if(typeof window !== 'undefined'){
     window.firebaseApp = firebaseApp;
     window.firebaseAuth = firebaseAuth;
+    window.auth = firebaseAuth;
     window.firestoreDb = firestoreDb;
     window.ensureFirebaseCore = ensureFirebaseCore;
     window.onAuthStateChanged = onAuthStateChanged;
@@ -4521,9 +4687,6 @@ async function initFirebaseEmailLogin(){
       }
       try{
         await ensureFirebaseCore();
-        const rememberLogin = !!$('rememberMe')?.checked;
-        await setPersistence(firebaseAuth, rememberLogin ? browserLocalPersistence : browserSessionPersistence);
-        applyRememberLoginState(email, rememberLogin);
         await signInWithEmailAndPassword(firebaseAuth, email, password);
       }catch(err){
         console.error('Erro no login Firebase:', err);
@@ -4553,7 +4716,7 @@ async function initFirebaseEmailLogin(){
     currentUsername = null;
     currentUserEmail = null;
     if(window.showLogin) window.showLogin();
-    resetLoginFormForRememberedState();
+    $('loginForm')?.reset();
   };
 
   if(firebaseAuth.currentUser && !firebaseAuth.currentUser.isAnonymous){
@@ -5478,33 +5641,40 @@ async function waitForFirebaseSyncReady(timeoutMs = 12000){
   }
   return true;
 }
-async function initFirebaseSync(){
-  if(firebaseSyncInitPromise) return firebaseSyncInitPromise;
-  firebaseSyncInitPromise = (async()=>{
-    try{
-      if (!firebaseApp) firebaseApp = initializeApp(firebaseConfig);
-      if (!firebaseAuth) firebaseAuth = getAuth(firebaseApp);
-      if (!firestoreDb) firestoreDb = getFirestore(firebaseApp);
-
+function attachSyncAuthListener(){
+  if(syncAuthListenerAttached || !firebaseAuth) return;
+  syncAuthListenerAttached = true;
+  onAuthStateChanged(firebaseAuth, user => {
+    if (user && !user.isAnonymous) {
       syncReady = true;
       setSyncMessage('Firebase Sync', 'ok');
       clearRealtimeListeners();
       attachRealtimeListeners();
+    } else {
+      clearRealtimeListeners();
+      setSyncMessage('Firebase Sync (à espera de login)', 'warn');
+    }
+    if (currentRole) refreshVisibleViews();
+  });
+}
+async function initFirebaseSync(){
+  if(firebaseSyncInitPromise) return firebaseSyncInitPromise;
+  firebaseSyncInitPromise = (async()=>{
+    try{
+      await ensureFirebaseCore();
 
-      if(!firebaseAuth.currentUser){
+      syncReady = true;
+      attachSyncAuthListener();
+
+      if(firebaseAuth?.currentUser && !firebaseAuth.currentUser.isAnonymous){
+        setSyncMessage('Firebase Sync', 'ok');
+        clearRealtimeListeners();
+        attachRealtimeListeners();
+      }else{
+        clearRealtimeListeners();
         console.warn('Sem utilizador autenticado na Firebase; a app não vai tentar auth anónima.');
         setSyncMessage('Firebase Sync (à espera de login)', 'warn');
       }
-
-      onAuthStateChanged(firebaseAuth, user => {
-        if (user) {
-          syncReady = true;
-          setSyncMessage('Firebase Sync', 'ok');
-          clearRealtimeListeners();
-          attachRealtimeListeners();
-        }
-        if (currentRole) refreshVisibleViews();
-      });
 
       await waitForFirebaseSyncReady();
       return true;
@@ -5557,6 +5727,7 @@ async function ensureFirebaseReady(timeoutMs = 12000){
     window.ensureFirebaseReady = ensureFirebaseReady;
     window.firestoreDb = firestoreDb;
     window.firebaseAuth = firebaseAuth;
+    window.auth = firebaseAuth;
   }
   return true;
 }
@@ -6856,7 +7027,207 @@ td.acoes-col, .acoes-col{
   .online-users-list{padding:10px;max-height:280px;}
 }
 
-</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</style></head><body>${bodyHtml}
+<script>
+(function(){
+  const AUTO_BACKUP_INTERVAL_MS = 15 * 60 * 1000;
+  const AUTO_BACKUP_MAX_ITEMS = 50;
+  const BACKUP_COLLECTION = 'app_backups';
+  const REMOTE_STATUS_KEY = 'ge_remote_backup_status';
+  const REMOTE_DATE_KEY = 'ge_remote_backup_date';
+  const LOCAL_HASH_KEY = 'ge_auto_backup_hash';
+  const LOCAL_LAST_KEY = 'ge_auto_backup_last_run';
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function nowIso(){ return new Date().toISOString(); }
+  function fmtDateTime(value){
+    if(!value) return '--';
+    try{
+      const d = new Date(value);
+      if(Number.isNaN(d.getTime())) return String(value);
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }catch(_){ return String(value || '--'); }
+  }
+  function safeJsonParse(raw, fallback){
+    try{ return JSON.parse(raw); }catch(_){ return fallback; }
+  }
+  function stableClone(value){
+    if(Array.isArray(value)) return value.map(stableClone);
+    if(value && typeof value === 'object'){
+      const out = {};
+      Object.keys(value).sort().forEach(key => { out[key] = stableClone(value[key]); });
+      return out;
+    }
+    return value;
+  }
+  function stableStringify(value){
+    try{ return JSON.stringify(stableClone(value)); }catch(_){ return JSON.stringify(value || null); }
+  }
+  function simpleHash(text){
+    let hash = 0;
+    const str = String(text || '');
+    for(let i=0;i<str.length;i++) hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+    return Math.abs(hash).toString(36);
+  }
+  function getSnapshot(){
+    const base = (typeof window.getAppDataSnapshot === 'function')
+      ? window.getAppDataSnapshot()
+      : {
+          trabalhos: safeJsonParse(localStorage.getItem('trabalhos') || localStorage.getItem('ge_trabalhos') || '[]', []),
+          clientes: safeJsonParse(localStorage.getItem('clientes') || localStorage.getItem('ge_clientes') || '[]', []),
+          pagamentos: safeJsonParse(localStorage.getItem('pagamentos') || localStorage.getItem('ge_pagamentos') || '[]', []),
+          dataBackup: nowIso(),
+          versao: 'backup-app-v13'
+        };
+    const actor = (window.currentUserProfile || {});
+    return {
+      ...base,
+      dataBackup: nowIso(),
+      backupMeta: {
+        source: 'auto',
+        actorEmail: actor.email || actor.username || '',
+        actorName: actor.displayName || '',
+        actorRole: actor.role || '',
+        device: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        userAgent: navigator.userAgent
+      }
+    };
+  }
+  function getBackupList(){
+    return safeJsonParse(localStorage.getItem('dailyAutoBackups') || localStorage.getItem('weeklyAutoBackups') || '[]', []);
+  }
+  function saveBackupList(list){
+    localStorage.setItem('dailyAutoBackups', JSON.stringify(list));
+    localStorage.setItem('weeklyAutoBackups', JSON.stringify(list));
+    localStorage.setItem('backupFridayHistory', JSON.stringify(list));
+  }
+  function saveLocalSnapshot(snapshot){
+    const list = getBackupList();
+    list.push(snapshot);
+    while(list.length > AUTO_BACKUP_MAX_ITEMS) list.shift();
+    saveBackupList(list);
+    localStorage.setItem('dailyAutoBackupLastDate', snapshot.dataBackup || nowIso());
+    localStorage.setItem('weeklyAutoBackupLastDate', snapshot.dataBackup || nowIso());
+    localStorage.setItem('backupFridayDone', String(snapshot.dataBackup || nowIso()).slice(0,10));
+    localStorage.setItem(LOCAL_LAST_KEY, String(Date.now()));
+  }
+  async function saveRemoteSnapshot(snapshot){
+    try{
+      if(typeof window.ensureFirebaseCore === 'function') await window.ensureFirebaseCore();
+      const db = window.firestoreDb;
+      const setDoc = window.setDoc;
+      const doc = window.doc;
+      if(!db || typeof setDoc !== 'function' || typeof doc !== 'function') throw new Error('firebase-indisponivel');
+      const hash = simpleHash(stableStringify({ trabalhos:snapshot.trabalhos, clientes:snapshot.clientes, pagamentos:snapshot.pagamentos }));
+      const backupId = `${String(snapshot.dataBackup || nowIso()).slice(0,10)}_${hash}`;
+      await setDoc(doc(db, BACKUP_COLLECTION, backupId), {
+        ...snapshot,
+        backupId,
+        updatedAt: nowIso(),
+        dayKey: String(snapshot.dataBackup || nowIso()).slice(0,10),
+        summary: {
+          trabalhos: Array.isArray(snapshot.trabalhos) ? snapshot.trabalhos.length : 0,
+          clientes: Array.isArray(snapshot.clientes) ? snapshot.clientes.length : 0,
+          pagamentos: Array.isArray(snapshot.pagamentos) ? snapshot.pagamentos.length : 0
+        }
+      }, { merge:true });
+      localStorage.setItem(REMOTE_STATUS_KEY, 'ok');
+      localStorage.setItem(REMOTE_DATE_KEY, snapshot.dataBackup || nowIso());
+      return { ok:true, backupId };
+    }catch(err){
+      console.warn('Backup remoto não concluído:', err);
+      localStorage.setItem(REMOTE_STATUS_KEY, err && (err.code || err.message) ? String(err.code || err.message) : 'erro');
+      return { ok:false, error: err };
+    }
+  }
+  function updateBackupUiExtra(){
+    const root = document.getElementById('backupToolsCard');
+    if(!root) return;
+    let extra = document.getElementById('backupRemoteStatusCard');
+    if(!extra){
+      const grid = root.querySelector('.backups-premium-grid');
+      if(grid){
+        extra = document.createElement('div');
+        extra.className = 'backups-premium-stat';
+        extra.id = 'backupRemoteStatusCard';
+        extra.innerHTML = '<span class="label">Backup remoto</span><span class="value" id="backupRemoteStatus">--</span>';
+        grid.appendChild(extra);
+      }
+    }
+    const remoteStatusEl = document.getElementById('backupRemoteStatus');
+    const modeBadgeEl = document.getElementById('backupModeBadge');
+    const btnWrap = root.querySelector('.backups-premium-actions');
+    if(btnWrap && !document.getElementById('backupRunNowBtn')){
+      const btn = document.createElement('button');
+      btn.id = 'backupRunNowBtn';
+      btn.className = 'backups-premium-btn export';
+      btn.textContent = 'Criar Backup Agora';
+      btn.onclick = function(){ window.forceAutomaticBackupNow && window.forceAutomaticBackupNow(true); };
+      btnWrap.insertBefore(btn, btnWrap.firstChild);
+    }
+    const lastRemote = localStorage.getItem(REMOTE_DATE_KEY) || '';
+    const remoteStatus = localStorage.getItem(REMOTE_STATUS_KEY) || '';
+    if(remoteStatusEl){
+      remoteStatusEl.textContent = remoteStatus === 'ok' ? `OK · ${fmtDateTime(lastRemote)}` : (remoteStatus ? `Local apenas · ${remoteStatus}` : 'Local apenas');
+    }
+    if(modeBadgeEl){
+      modeBadgeEl.textContent = remoteStatus === 'ok' ? 'Automático Local + Firebase' : 'Automático Local';
+    }
+    if(typeof window.refreshBackupStatusUi === 'function'){
+      try{ window.refreshBackupStatusUi(); }catch(_){ }
+    }
+  }
+  async function runAutoBackup(force){
+    try{
+      const snapshot = getSnapshot();
+      const coreHash = simpleHash(stableStringify({ trabalhos:snapshot.trabalhos, clientes:snapshot.clientes, pagamentos:snapshot.pagamentos }));
+      const lastHash = localStorage.getItem(LOCAL_HASH_KEY) || '';
+      const lastRun = Number(localStorage.getItem(LOCAL_LAST_KEY) || '0');
+      const now = Date.now();
+      const tooSoon = now - lastRun < AUTO_BACKUP_INTERVAL_MS;
+      if(!force && coreHash === lastHash && tooSoon){
+        updateBackupUiExtra();
+        return { skipped:true, reason:'sem-alteracoes' };
+      }
+      saveLocalSnapshot(snapshot);
+      localStorage.setItem(LOCAL_HASH_KEY, coreHash);
+      const remote = await saveRemoteSnapshot(snapshot);
+      updateBackupUiExtra();
+      return { skipped:false, remote };
+    }catch(err){
+      console.error('Falha no backup automático:', err);
+      updateBackupUiExtra();
+      return { skipped:false, error:err };
+    }
+  }
+
+  window.forceAutomaticBackupNow = async function(showMessage){
+    const result = await runAutoBackup(true);
+    if(showMessage){
+      if(result && result.remote && result.remote.ok) alert('Backup criado com sucesso e sincronizado com a Firebase.');
+      else alert('Backup criado localmente. Se a Firebase não estiver pronta, fica sincronizado depois.');
+    }
+    return result;
+  };
+
+  const originalExport = window.exportBackupManual;
+  window.exportBackupManual = function(){
+    try{ runAutoBackup(true); }catch(_){ }
+    if(typeof originalExport === 'function') return originalExport();
+  };
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') runAutoBackup(false);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(() => runAutoBackup(false), 1200);
+    setTimeout(() => updateBackupUiExtra(), 1800);
+  });
+  setInterval(function(){ runAutoBackup(false); }, AUTO_BACKUP_INTERVAL_MS);
+})();
+</script>
+
+</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -7988,7 +8359,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
   try{refreshBackupStatusUi();
   try{ updateBackupWeekIndicator(); }catch(e){}
-  try{fazerBackupSexta();}catch(e){}}catch(e){}
+  /* hotfix: auto backup deferred */}catch(e){}
 
 });
 
@@ -8451,7 +8822,207 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script>
+(function(){
+  const AUTO_BACKUP_INTERVAL_MS = 15 * 60 * 1000;
+  const AUTO_BACKUP_MAX_ITEMS = 50;
+  const BACKUP_COLLECTION = 'app_backups';
+  const REMOTE_STATUS_KEY = 'ge_remote_backup_status';
+  const REMOTE_DATE_KEY = 'ge_remote_backup_date';
+  const LOCAL_HASH_KEY = 'ge_auto_backup_hash';
+  const LOCAL_LAST_KEY = 'ge_auto_backup_last_run';
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function nowIso(){ return new Date().toISOString(); }
+  function fmtDateTime(value){
+    if(!value) return '--';
+    try{
+      const d = new Date(value);
+      if(Number.isNaN(d.getTime())) return String(value);
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }catch(_){ return String(value || '--'); }
+  }
+  function safeJsonParse(raw, fallback){
+    try{ return JSON.parse(raw); }catch(_){ return fallback; }
+  }
+  function stableClone(value){
+    if(Array.isArray(value)) return value.map(stableClone);
+    if(value && typeof value === 'object'){
+      const out = {};
+      Object.keys(value).sort().forEach(key => { out[key] = stableClone(value[key]); });
+      return out;
+    }
+    return value;
+  }
+  function stableStringify(value){
+    try{ return JSON.stringify(stableClone(value)); }catch(_){ return JSON.stringify(value || null); }
+  }
+  function simpleHash(text){
+    let hash = 0;
+    const str = String(text || '');
+    for(let i=0;i<str.length;i++) hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+    return Math.abs(hash).toString(36);
+  }
+  function getSnapshot(){
+    const base = (typeof window.getAppDataSnapshot === 'function')
+      ? window.getAppDataSnapshot()
+      : {
+          trabalhos: safeJsonParse(localStorage.getItem('trabalhos') || localStorage.getItem('ge_trabalhos') || '[]', []),
+          clientes: safeJsonParse(localStorage.getItem('clientes') || localStorage.getItem('ge_clientes') || '[]', []),
+          pagamentos: safeJsonParse(localStorage.getItem('pagamentos') || localStorage.getItem('ge_pagamentos') || '[]', []),
+          dataBackup: nowIso(),
+          versao: 'backup-app-v13'
+        };
+    const actor = (window.currentUserProfile || {});
+    return {
+      ...base,
+      dataBackup: nowIso(),
+      backupMeta: {
+        source: 'auto',
+        actorEmail: actor.email || actor.username || '',
+        actorName: actor.displayName || '',
+        actorRole: actor.role || '',
+        device: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        userAgent: navigator.userAgent
+      }
+    };
+  }
+  function getBackupList(){
+    return safeJsonParse(localStorage.getItem('dailyAutoBackups') || localStorage.getItem('weeklyAutoBackups') || '[]', []);
+  }
+  function saveBackupList(list){
+    localStorage.setItem('dailyAutoBackups', JSON.stringify(list));
+    localStorage.setItem('weeklyAutoBackups', JSON.stringify(list));
+    localStorage.setItem('backupFridayHistory', JSON.stringify(list));
+  }
+  function saveLocalSnapshot(snapshot){
+    const list = getBackupList();
+    list.push(snapshot);
+    while(list.length > AUTO_BACKUP_MAX_ITEMS) list.shift();
+    saveBackupList(list);
+    localStorage.setItem('dailyAutoBackupLastDate', snapshot.dataBackup || nowIso());
+    localStorage.setItem('weeklyAutoBackupLastDate', snapshot.dataBackup || nowIso());
+    localStorage.setItem('backupFridayDone', String(snapshot.dataBackup || nowIso()).slice(0,10));
+    localStorage.setItem(LOCAL_LAST_KEY, String(Date.now()));
+  }
+  async function saveRemoteSnapshot(snapshot){
+    try{
+      if(typeof window.ensureFirebaseCore === 'function') await window.ensureFirebaseCore();
+      const db = window.firestoreDb;
+      const setDoc = window.setDoc;
+      const doc = window.doc;
+      if(!db || typeof setDoc !== 'function' || typeof doc !== 'function') throw new Error('firebase-indisponivel');
+      const hash = simpleHash(stableStringify({ trabalhos:snapshot.trabalhos, clientes:snapshot.clientes, pagamentos:snapshot.pagamentos }));
+      const backupId = `${String(snapshot.dataBackup || nowIso()).slice(0,10)}_${hash}`;
+      await setDoc(doc(db, BACKUP_COLLECTION, backupId), {
+        ...snapshot,
+        backupId,
+        updatedAt: nowIso(),
+        dayKey: String(snapshot.dataBackup || nowIso()).slice(0,10),
+        summary: {
+          trabalhos: Array.isArray(snapshot.trabalhos) ? snapshot.trabalhos.length : 0,
+          clientes: Array.isArray(snapshot.clientes) ? snapshot.clientes.length : 0,
+          pagamentos: Array.isArray(snapshot.pagamentos) ? snapshot.pagamentos.length : 0
+        }
+      }, { merge:true });
+      localStorage.setItem(REMOTE_STATUS_KEY, 'ok');
+      localStorage.setItem(REMOTE_DATE_KEY, snapshot.dataBackup || nowIso());
+      return { ok:true, backupId };
+    }catch(err){
+      console.warn('Backup remoto não concluído:', err);
+      localStorage.setItem(REMOTE_STATUS_KEY, err && (err.code || err.message) ? String(err.code || err.message) : 'erro');
+      return { ok:false, error: err };
+    }
+  }
+  function updateBackupUiExtra(){
+    const root = document.getElementById('backupToolsCard');
+    if(!root) return;
+    let extra = document.getElementById('backupRemoteStatusCard');
+    if(!extra){
+      const grid = root.querySelector('.backups-premium-grid');
+      if(grid){
+        extra = document.createElement('div');
+        extra.className = 'backups-premium-stat';
+        extra.id = 'backupRemoteStatusCard';
+        extra.innerHTML = '<span class="label">Backup remoto</span><span class="value" id="backupRemoteStatus">--</span>';
+        grid.appendChild(extra);
+      }
+    }
+    const remoteStatusEl = document.getElementById('backupRemoteStatus');
+    const modeBadgeEl = document.getElementById('backupModeBadge');
+    const btnWrap = root.querySelector('.backups-premium-actions');
+    if(btnWrap && !document.getElementById('backupRunNowBtn')){
+      const btn = document.createElement('button');
+      btn.id = 'backupRunNowBtn';
+      btn.className = 'backups-premium-btn export';
+      btn.textContent = 'Criar Backup Agora';
+      btn.onclick = function(){ window.forceAutomaticBackupNow && window.forceAutomaticBackupNow(true); };
+      btnWrap.insertBefore(btn, btnWrap.firstChild);
+    }
+    const lastRemote = localStorage.getItem(REMOTE_DATE_KEY) || '';
+    const remoteStatus = localStorage.getItem(REMOTE_STATUS_KEY) || '';
+    if(remoteStatusEl){
+      remoteStatusEl.textContent = remoteStatus === 'ok' ? `OK · ${fmtDateTime(lastRemote)}` : (remoteStatus ? `Local apenas · ${remoteStatus}` : 'Local apenas');
+    }
+    if(modeBadgeEl){
+      modeBadgeEl.textContent = remoteStatus === 'ok' ? 'Automático Local + Firebase' : 'Automático Local';
+    }
+    if(typeof window.refreshBackupStatusUi === 'function'){
+      try{ window.refreshBackupStatusUi(); }catch(_){ }
+    }
+  }
+  async function runAutoBackup(force){
+    try{
+      const snapshot = getSnapshot();
+      const coreHash = simpleHash(stableStringify({ trabalhos:snapshot.trabalhos, clientes:snapshot.clientes, pagamentos:snapshot.pagamentos }));
+      const lastHash = localStorage.getItem(LOCAL_HASH_KEY) || '';
+      const lastRun = Number(localStorage.getItem(LOCAL_LAST_KEY) || '0');
+      const now = Date.now();
+      const tooSoon = now - lastRun < AUTO_BACKUP_INTERVAL_MS;
+      if(!force && coreHash === lastHash && tooSoon){
+        updateBackupUiExtra();
+        return { skipped:true, reason:'sem-alteracoes' };
+      }
+      saveLocalSnapshot(snapshot);
+      localStorage.setItem(LOCAL_HASH_KEY, coreHash);
+      const remote = await saveRemoteSnapshot(snapshot);
+      updateBackupUiExtra();
+      return { skipped:false, remote };
+    }catch(err){
+      console.error('Falha no backup automático:', err);
+      updateBackupUiExtra();
+      return { skipped:false, error:err };
+    }
+  }
+
+  window.forceAutomaticBackupNow = async function(showMessage){
+    const result = await runAutoBackup(true);
+    if(showMessage){
+      if(result && result.remote && result.remote.ok) alert('Backup criado com sucesso e sincronizado com a Firebase.');
+      else alert('Backup criado localmente. Se a Firebase não estiver pronta, fica sincronizado depois.');
+    }
+    return result;
+  };
+
+  const originalExport = window.exportBackupManual;
+  window.exportBackupManual = function(){
+    try{ runAutoBackup(true); }catch(_){ }
+    if(typeof originalExport === 'function') return originalExport();
+  };
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') runAutoBackup(false);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(() => runAutoBackup(false), 1200);
+    setTimeout(() => updateBackupUiExtra(), 1800);
+  });
+  setInterval(function(){ runAutoBackup(false); }, AUTO_BACKUP_INTERVAL_MS);
+})();
+</script>
+
+</body>
   </html>`;
 }
 
@@ -8530,6 +9101,206 @@ function printProfessionalReport(){
       </div>
     </div>
   </div>
+
+
+<script>
+(function(){
+  const AUTO_BACKUP_INTERVAL_MS = 15 * 60 * 1000;
+  const AUTO_BACKUP_MAX_ITEMS = 50;
+  const BACKUP_COLLECTION = 'app_backups';
+  const REMOTE_STATUS_KEY = 'ge_remote_backup_status';
+  const REMOTE_DATE_KEY = 'ge_remote_backup_date';
+  const LOCAL_HASH_KEY = 'ge_auto_backup_hash';
+  const LOCAL_LAST_KEY = 'ge_auto_backup_last_run';
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function nowIso(){ return new Date().toISOString(); }
+  function fmtDateTime(value){
+    if(!value) return '--';
+    try{
+      const d = new Date(value);
+      if(Number.isNaN(d.getTime())) return String(value);
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }catch(_){ return String(value || '--'); }
+  }
+  function safeJsonParse(raw, fallback){
+    try{ return JSON.parse(raw); }catch(_){ return fallback; }
+  }
+  function stableClone(value){
+    if(Array.isArray(value)) return value.map(stableClone);
+    if(value && typeof value === 'object'){
+      const out = {};
+      Object.keys(value).sort().forEach(key => { out[key] = stableClone(value[key]); });
+      return out;
+    }
+    return value;
+  }
+  function stableStringify(value){
+    try{ return JSON.stringify(stableClone(value)); }catch(_){ return JSON.stringify(value || null); }
+  }
+  function simpleHash(text){
+    let hash = 0;
+    const str = String(text || '');
+    for(let i=0;i<str.length;i++) hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+    return Math.abs(hash).toString(36);
+  }
+  function getSnapshot(){
+    const base = (typeof window.getAppDataSnapshot === 'function')
+      ? window.getAppDataSnapshot()
+      : {
+          trabalhos: safeJsonParse(localStorage.getItem('trabalhos') || localStorage.getItem('ge_trabalhos') || '[]', []),
+          clientes: safeJsonParse(localStorage.getItem('clientes') || localStorage.getItem('ge_clientes') || '[]', []),
+          pagamentos: safeJsonParse(localStorage.getItem('pagamentos') || localStorage.getItem('ge_pagamentos') || '[]', []),
+          dataBackup: nowIso(),
+          versao: 'backup-app-v13'
+        };
+    const actor = (window.currentUserProfile || {});
+    return {
+      ...base,
+      dataBackup: nowIso(),
+      backupMeta: {
+        source: 'auto',
+        actorEmail: actor.email || actor.username || '',
+        actorName: actor.displayName || '',
+        actorRole: actor.role || '',
+        device: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        userAgent: navigator.userAgent
+      }
+    };
+  }
+  function getBackupList(){
+    return safeJsonParse(localStorage.getItem('dailyAutoBackups') || localStorage.getItem('weeklyAutoBackups') || '[]', []);
+  }
+  function saveBackupList(list){
+    localStorage.setItem('dailyAutoBackups', JSON.stringify(list));
+    localStorage.setItem('weeklyAutoBackups', JSON.stringify(list));
+    localStorage.setItem('backupFridayHistory', JSON.stringify(list));
+  }
+  function saveLocalSnapshot(snapshot){
+    const list = getBackupList();
+    list.push(snapshot);
+    while(list.length > AUTO_BACKUP_MAX_ITEMS) list.shift();
+    saveBackupList(list);
+    localStorage.setItem('dailyAutoBackupLastDate', snapshot.dataBackup || nowIso());
+    localStorage.setItem('weeklyAutoBackupLastDate', snapshot.dataBackup || nowIso());
+    localStorage.setItem('backupFridayDone', String(snapshot.dataBackup || nowIso()).slice(0,10));
+    localStorage.setItem(LOCAL_LAST_KEY, String(Date.now()));
+  }
+  async function saveRemoteSnapshot(snapshot){
+    try{
+      if(typeof window.ensureFirebaseCore === 'function') await window.ensureFirebaseCore();
+      const db = window.firestoreDb;
+      const setDoc = window.setDoc;
+      const doc = window.doc;
+      if(!db || typeof setDoc !== 'function' || typeof doc !== 'function') throw new Error('firebase-indisponivel');
+      const hash = simpleHash(stableStringify({ trabalhos:snapshot.trabalhos, clientes:snapshot.clientes, pagamentos:snapshot.pagamentos }));
+      const backupId = `${String(snapshot.dataBackup || nowIso()).slice(0,10)}_${hash}`;
+      await setDoc(doc(db, BACKUP_COLLECTION, backupId), {
+        ...snapshot,
+        backupId,
+        updatedAt: nowIso(),
+        dayKey: String(snapshot.dataBackup || nowIso()).slice(0,10),
+        summary: {
+          trabalhos: Array.isArray(snapshot.trabalhos) ? snapshot.trabalhos.length : 0,
+          clientes: Array.isArray(snapshot.clientes) ? snapshot.clientes.length : 0,
+          pagamentos: Array.isArray(snapshot.pagamentos) ? snapshot.pagamentos.length : 0
+        }
+      }, { merge:true });
+      localStorage.setItem(REMOTE_STATUS_KEY, 'ok');
+      localStorage.setItem(REMOTE_DATE_KEY, snapshot.dataBackup || nowIso());
+      return { ok:true, backupId };
+    }catch(err){
+      console.warn('Backup remoto não concluído:', err);
+      localStorage.setItem(REMOTE_STATUS_KEY, err && (err.code || err.message) ? String(err.code || err.message) : 'erro');
+      return { ok:false, error: err };
+    }
+  }
+  function updateBackupUiExtra(){
+    const root = document.getElementById('backupToolsCard');
+    if(!root) return;
+    let extra = document.getElementById('backupRemoteStatusCard');
+    if(!extra){
+      const grid = root.querySelector('.backups-premium-grid');
+      if(grid){
+        extra = document.createElement('div');
+        extra.className = 'backups-premium-stat';
+        extra.id = 'backupRemoteStatusCard';
+        extra.innerHTML = '<span class="label">Backup remoto</span><span class="value" id="backupRemoteStatus">--</span>';
+        grid.appendChild(extra);
+      }
+    }
+    const remoteStatusEl = document.getElementById('backupRemoteStatus');
+    const modeBadgeEl = document.getElementById('backupModeBadge');
+    const btnWrap = root.querySelector('.backups-premium-actions');
+    if(btnWrap && !document.getElementById('backupRunNowBtn')){
+      const btn = document.createElement('button');
+      btn.id = 'backupRunNowBtn';
+      btn.className = 'backups-premium-btn export';
+      btn.textContent = 'Criar Backup Agora';
+      btn.onclick = function(){ window.forceAutomaticBackupNow && window.forceAutomaticBackupNow(true); };
+      btnWrap.insertBefore(btn, btnWrap.firstChild);
+    }
+    const lastRemote = localStorage.getItem(REMOTE_DATE_KEY) || '';
+    const remoteStatus = localStorage.getItem(REMOTE_STATUS_KEY) || '';
+    if(remoteStatusEl){
+      remoteStatusEl.textContent = remoteStatus === 'ok' ? `OK · ${fmtDateTime(lastRemote)}` : (remoteStatus ? `Local apenas · ${remoteStatus}` : 'Local apenas');
+    }
+    if(modeBadgeEl){
+      modeBadgeEl.textContent = remoteStatus === 'ok' ? 'Automático Local + Firebase' : 'Automático Local';
+    }
+    if(typeof window.refreshBackupStatusUi === 'function'){
+      try{ window.refreshBackupStatusUi(); }catch(_){ }
+    }
+  }
+  async function runAutoBackup(force){
+    try{
+      const snapshot = getSnapshot();
+      const coreHash = simpleHash(stableStringify({ trabalhos:snapshot.trabalhos, clientes:snapshot.clientes, pagamentos:snapshot.pagamentos }));
+      const lastHash = localStorage.getItem(LOCAL_HASH_KEY) || '';
+      const lastRun = Number(localStorage.getItem(LOCAL_LAST_KEY) || '0');
+      const now = Date.now();
+      const tooSoon = now - lastRun < AUTO_BACKUP_INTERVAL_MS;
+      if(!force && coreHash === lastHash && tooSoon){
+        updateBackupUiExtra();
+        return { skipped:true, reason:'sem-alteracoes' };
+      }
+      saveLocalSnapshot(snapshot);
+      localStorage.setItem(LOCAL_HASH_KEY, coreHash);
+      const remote = await saveRemoteSnapshot(snapshot);
+      updateBackupUiExtra();
+      return { skipped:false, remote };
+    }catch(err){
+      console.error('Falha no backup automático:', err);
+      updateBackupUiExtra();
+      return { skipped:false, error:err };
+    }
+  }
+
+  window.forceAutomaticBackupNow = async function(showMessage){
+    const result = await runAutoBackup(true);
+    if(showMessage){
+      if(result && result.remote && result.remote.ok) alert('Backup criado com sucesso e sincronizado com a Firebase.');
+      else alert('Backup criado localmente. Se a Firebase não estiver pronta, fica sincronizado depois.');
+    }
+    return result;
+  };
+
+  const originalExport = window.exportBackupManual;
+  window.exportBackupManual = function(){
+    try{ runAutoBackup(true); }catch(_){ }
+    if(typeof originalExport === 'function') return originalExport();
+  };
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') runAutoBackup(false);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(() => runAutoBackup(false), 1200);
+    setTimeout(() => updateBackupUiExtra(), 1800);
+  });
+  setInterval(function(){ runAutoBackup(false); }, AUTO_BACKUP_INTERVAL_MS);
+})();
+</script>
 
 </body>
 </html>

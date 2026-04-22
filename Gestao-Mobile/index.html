@@ -4634,12 +4634,12 @@ function printProfessionalReport(){
 </script>
   <script type="module">
 const firebaseConfig = {
-  apiKey: "AIzaSyD2nCoO5TP56H_gm5SBWM6DLf_SZW1UPxI",
-  authDomain: "app-gestao-c932d.firebaseapp.com",
-  projectId: "app-gestao-c932d",
-  storageBucket: "app-gestao-c932d.firebasestorage.app",
-  messagingSenderId: "318015040210",
-  appId: "1:318015040210:web:e3070e6b8f4d74a8799b0b"
+  apiKey: "AIzaSyDbiMRCFhD9WC4Z17fc9M9uXdY8ETUO05Q",
+  authDomain: "app-pai-feb73.firebaseapp.com",
+  projectId: "app-pai-feb73",
+  storageBucket: "app-pai-feb73.firebasestorage.app",
+  messagingSenderId: "594270955224",
+  appId: "1:594270955224:web:85d1d530889704d0f359ad"
 };
 
 
@@ -4679,6 +4679,7 @@ const ONLINE_WIDGET_KEY = 'ge_online_widget_hidden';
 
 let authBootstrapped = false;
 let authListenerAttached = false;
+let syncAuthListenerAttached = false;
 if(typeof window !== 'undefined'){ window.firebaseApp = firebaseApp; window.firebaseAuth = firebaseAuth; window.firestoreDb = firestoreDb; }
 
 function deriveLoginUsername(user){
@@ -4800,6 +4801,7 @@ async function ensureFirebaseCore(){
   if(typeof window !== 'undefined'){
     window.firebaseApp = firebaseApp;
     window.firebaseAuth = firebaseAuth;
+    window.auth = firebaseAuth;
     window.firestoreDb = firestoreDb;
     window.ensureFirebaseCore = ensureFirebaseCore;
     window.onAuthStateChanged = onAuthStateChanged;
@@ -5970,33 +5972,40 @@ async function waitForFirebaseSyncReady(timeoutMs = 12000){
   }
   return true;
 }
-async function initFirebaseSync(){
-  if(firebaseSyncInitPromise) return firebaseSyncInitPromise;
-  firebaseSyncInitPromise = (async()=>{
-    try{
-      if (!firebaseApp) firebaseApp = initializeApp(firebaseConfig);
-      if (!firebaseAuth) firebaseAuth = getAuth(firebaseApp);
-      if (!firestoreDb) firestoreDb = getFirestore(firebaseApp);
-
+function attachSyncAuthListener(){
+  if(syncAuthListenerAttached || !firebaseAuth) return;
+  syncAuthListenerAttached = true;
+  onAuthStateChanged(firebaseAuth, user => {
+    if (user && !user.isAnonymous) {
       syncReady = true;
       setSyncMessage('Firebase Sync', 'ok');
       clearRealtimeListeners();
       attachRealtimeListeners();
+    } else {
+      clearRealtimeListeners();
+      setSyncMessage('Firebase Sync (à espera de login)', 'warn');
+    }
+    if (currentRole) refreshVisibleViews();
+  });
+}
+async function initFirebaseSync(){
+  if(firebaseSyncInitPromise) return firebaseSyncInitPromise;
+  firebaseSyncInitPromise = (async()=>{
+    try{
+      await ensureFirebaseCore();
 
-      if(!firebaseAuth.currentUser){
+      syncReady = true;
+      attachSyncAuthListener();
+
+      if(firebaseAuth?.currentUser && !firebaseAuth.currentUser.isAnonymous){
+        setSyncMessage('Firebase Sync', 'ok');
+        clearRealtimeListeners();
+        attachRealtimeListeners();
+      }else{
+        clearRealtimeListeners();
         console.warn('Sem utilizador autenticado na Firebase; a app não vai tentar auth anónima.');
         setSyncMessage('Firebase Sync (à espera de login)', 'warn');
       }
-
-      onAuthStateChanged(firebaseAuth, user => {
-        if (user) {
-          syncReady = true;
-          setSyncMessage('Firebase Sync', 'ok');
-          clearRealtimeListeners();
-          attachRealtimeListeners();
-        }
-        if (currentRole) refreshVisibleViews();
-      });
 
       await waitForFirebaseSyncReady();
       return true;
@@ -6049,6 +6058,7 @@ async function ensureFirebaseReady(timeoutMs = 12000){
     window.ensureFirebaseReady = ensureFirebaseReady;
     window.firestoreDb = firestoreDb;
     window.firebaseAuth = firebaseAuth;
+    window.auth = firebaseAuth;
   }
   return true;
 }
