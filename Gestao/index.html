@@ -132,6 +132,9 @@ input:focus,select:focus,textarea:focus{
 }
 textarea{resize:vertical}
 .login-error{min-height:20px;color:#fecaca;margin-top:12px;font-size:13px}
+.remember-login{display:flex;align-items:center;gap:10px;margin-top:-2px;color:#dbe3ff;font-size:13px;user-select:none}
+.remember-login input{width:18px;height:18px;min-height:auto;padding:0;margin:0;accent-color:var(--accent)}
+.remember-login span{line-height:1.2}
 
 .app-shell{
   position:relative;
@@ -479,34 +482,57 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .role-device-view-banner{position:fixed;right:18px;bottom:18px;z-index:1200;padding:10px 14px;border-radius:999px;background:rgba(245,158,11,.16);border:1px solid rgba(245,158,11,.35);color:#fcd34d;font-weight:700;backdrop-filter:blur(8px)}
 .bottom-nav{display:none}
 
-.audit-toolbar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:end}
+.audit-primary-panel{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(15,23,42,.92),rgba(10,16,29,.92));border:1px solid rgba(255,255,255,.08);box-shadow:0 22px 48px rgba(0,0,0,.24)}
+.audit-primary-panel::before{content:'';position:absolute;inset:auto -10% 58% auto;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(111,92,255,.22),transparent 65%);pointer-events:none}
+.audit-primary-panel::after{content:'';position:absolute;inset:-120px auto auto -120px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(36,200,255,.14),transparent 68%);pointer-events:none}
+.audit-header-wrap{position:relative;z-index:1;display:grid;gap:18px}
+.audit-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.audit-heading-copy h3{margin:0 0 6px}
+.audit-kicker{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#c9d6f5;margin-bottom:12px}
+.audit-subtitle{margin:0;color:#9fb0d8;max-width:720px;line-height:1.55}
+.audit-inline-actions{display:flex;gap:10px;flex-wrap:wrap}
+.audit-inline-actions .btn{box-shadow:0 10px 24px rgba(0,0,0,.16)}
+.audit-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px;position:relative;z-index:1}
+.audit-stat{position:relative;overflow:hidden;padding:18px 18px 16px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08);box-shadow:0 16px 34px rgba(0,0,0,.16);min-height:112px}
+.audit-stat::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(180deg,#6f5cff,#24c8ff)}
+.audit-stat:nth-child(2)::before{background:linear-gradient(180deg,#22c55e,#86efac)}
+.audit-stat:nth-child(3)::before{background:linear-gradient(180deg,#f59e0b,#fde68a)}
+.audit-stat:nth-child(4)::before{background:linear-gradient(180deg,#ef4444,#fca5a5)}
+.audit-stat span{display:block;color:#9fb0d8;font-size:11px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.14em;font-weight:800}
+.audit-stat strong{font-size:30px;line-height:1.05;display:block;margin-bottom:8px}
+.audit-stat small{display:block;color:#c9d6f5;font-size:13px}
+.audit-toolbar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:end;position:relative;z-index:1;padding:14px;border-radius:22px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);backdrop-filter:blur(10px)}
 .audit-toolbar .field-span-2{grid-column:span 2}
-.audit-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
-.audit-stat{padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
-.audit-stat span{display:block;color:var(--muted);font-size:12px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
-.audit-stat strong{font-size:28px;line-height:1.1}
-.audit-layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(320px,1fr);gap:16px;align-items:start}
-.audit-table-wrap{overflow:auto}
-.audit-table{width:100%;border-collapse:collapse}
-.audit-table th,.audit-table td{padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;text-align:left}
-.audit-table tbody tr{cursor:pointer;transition:.15s ease}
-.audit-table tbody tr:hover{background:rgba(255,255,255,.03)}
-.audit-table tbody tr.active{background:rgba(111,92,255,.12)}
-.audit-badge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05)}
-.audit-badge.create{color:#86efac;border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.12)}
+.audit-toolbar .form-group{margin:0}
+.audit-toolbar label{font-size:12px;font-weight:700;letter-spacing:.04em;color:#b8c6e6}
+.audit-toolbar input,.audit-toolbar select{background:rgba(8,12,22,.88);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+.audit-layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(340px,1fr);gap:18px;align-items:start}
+.audit-table-wrap{overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.07);box-shadow:0 18px 42px rgba(0,0,0,.18)}
+.audit-table-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 2px 14px;flex-wrap:wrap}
+.audit-table-note{color:#9fb0d8;font-size:13px}
+.audit-table{width:100%;border-collapse:separate;border-spacing:0}
+.audit-table thead th{position:sticky;top:0;background:rgba(9,13,24,.96);backdrop-filter:blur(12px);z-index:1;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#b8c6e6}
+.audit-table th,.audit-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;text-align:left}
+.audit-table tbody tr{cursor:pointer;transition:transform .15s ease,background .15s ease,box-shadow .15s ease}
+.audit-table tbody tr:hover{background:rgba(255,255,255,.04);transform:translateY(-1px)}
+.audit-table tbody tr.active{background:linear-gradient(90deg,rgba(111,92,255,.16),rgba(36,200,255,.08));box-shadow:inset 3px 0 0 #6f5cff}
+.audit-badge{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05);letter-spacing:.08em;text-transform:uppercase}
+.audit-badge.create{color:#86efac;border-color:rgba(34,197,94,.28);background:rgba(34,197,94,.12)}
 .audit-badge.update{color:#fde68a;border-color:rgba(245,158,11,.28);background:rgba(245,158,11,.12)}
 .audit-badge.delete{color:#fca5a5;border-color:rgba(239,68,68,.28);background:rgba(239,68,68,.12)}
 .audit-badge.other{color:#bfdbfe;border-color:rgba(59,130,246,.24);background:rgba(59,130,246,.12)}
-.audit-side{position:sticky;top:16px}
-.audit-empty{padding:18px;border-radius:18px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.08);color:var(--muted)}
+.audit-user-cell strong{display:block;margin-bottom:4px}
+.audit-user-cell span,.audit-summary-cell{color:#9fb0d8;font-size:13px;line-height:1.45}
+.audit-side{position:sticky;top:16px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.07);box-shadow:0 18px 42px rgba(0,0,0,.18)}
+.audit-side .panel-head{padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:12px}
+.audit-empty{padding:22px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px dashed rgba(255,255,255,.12);color:#9fb0d8;min-height:180px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.6}
 .audit-meta{display:grid;gap:10px;margin-bottom:14px}
-.audit-meta-item{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}
-.audit-meta-item span{display:block;color:var(--muted);font-size:12px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em}
-.audit-json{margin:0;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;background:rgba(2,6,23,.55);padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,.06);max-height:58vh;overflow:auto}
-.audit-inline-actions{display:flex;gap:10px;flex-wrap:wrap}
+.audit-meta-item{padding:13px 15px;border-radius:18px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+.audit-meta-item span{display:block;color:#9fb0d8;font-size:11px;margin-bottom:7px;text-transform:uppercase;letter-spacing:.12em;font-weight:800}
+.audit-json{margin:0;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6;background:rgba(2,6,23,.7);padding:16px;border-radius:18px;border:1px solid rgba(255,255,255,.07);max-height:58vh;overflow:auto;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
 .audit-access-note{margin-top:14px;padding:14px 16px;border-radius:16px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:#fde68a}
 @media (max-width:1200px){.audit-layout{grid-template-columns:1fr}.audit-side{position:static}.audit-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.audit-toolbar .field-span-2{grid-column:span 2}.audit-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:700px){.audit-toolbar,.audit-stats{grid-template-columns:1fr}.audit-toolbar .field-span-2{grid-column:span 1}}
+@media (max-width:700px){.audit-heading{flex-direction:column;align-items:stretch}.audit-inline-actions .btn{width:100%;justify-content:center}.audit-toolbar,.audit-stats{grid-template-columns:1fr}.audit-toolbar .field-span-2{grid-column:span 1}.audit-table-head{flex-direction:column;align-items:flex-start}.audit-table th,.audit-table td{padding:12px 10px}}
 
 .modal{
   position:fixed; inset:0; background:rgba(0,0,0,.55); display:grid; place-items:center; z-index:100; padding:20px;
@@ -2615,8 +2641,6 @@ td.acoes-col, .acoes-col{
 
 .table-sort-btn{background:none;border:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0}
 .table-sort-btn span{opacity:.8}
-.remember-login-row{display:flex;align-items:center;gap:10px;margin:6px 0 2px;color:#cbd5e1;font-size:14px;font-weight:600;cursor:pointer;user-select:none}
-.remember-login-row input{width:16px;height:16px;accent-color:#2563eb;cursor:pointer}
 </style>
 </head>
 <body>
@@ -2637,15 +2661,15 @@ td.acoes-col, .acoes-col{
         <form id="loginForm" class="login-form">
           <div class="field">
             <label>Utilizador</label>
-            <input id="loginUsername" type="email" placeholder="email@exemplo.com" autocomplete="email" required />
+            <input id="loginUsername" type="email" placeholder="email@exemplo.com" required />
           </div>
           <div class="field">
             <label>Palavra-passe</label>
-            <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" required />
+            <input id="loginPassword" type="password" placeholder="••••••••" required />
           </div>
-          <label class="remember-login-row">
+          <label class="remember-login">
             <input id="rememberMe" type="checkbox" />
-            <span>Lembrar-me</span>
+            <span>Memorizar conta</span>
           </label>
           <button type="submit" class="btn btn-primary full">Entrar</button>
         </form>
@@ -2877,58 +2901,70 @@ td.acoes-col, .acoes-col{
       </section>
       
       <section class="page admin-only" id="logs-page">
-        <section class="panel">
-          <div class="panel-head">
-            <h3>Auditoria avançada</h3>
-            <div class="audit-inline-actions">
-              <button id="refreshLogsBtn" class="btn btn-secondary">Atualizar</button>
-              <button id="exportLogsJsonBtn" class="btn btn-ghost">Exportar JSON</button>
-              <button id="exportLogsCsvBtn" class="btn btn-ghost">Exportar CSV</button>
+        <section class="panel audit-primary-panel">
+          <div class="audit-header-wrap">
+            <div class="audit-heading">
+              <div class="audit-heading-copy">
+                <div class="audit-kicker">Auditoria Visual Top</div>
+                <h3>Auditoria avançada</h3>
+                <p class="audit-subtitle">Acompanha tudo o que foi criado, alterado ou apagado, com uma vista muito mais limpa e profissional para controlo diário.</p>
+              </div>
+              <div class="audit-inline-actions">
+                <button id="refreshLogsBtn" class="btn btn-secondary">Atualizar</button>
+                <button id="exportLogsJsonBtn" class="btn btn-ghost">Exportar JSON</button>
+                <button id="exportLogsCsvBtn" class="btn btn-ghost">Exportar CSV</button>
+              </div>
             </div>
-          </div>
-          <div class="audit-stats" id="auditStats">
-            <div class="audit-stat"><span>Total</span><strong id="auditStatTotal">0</strong></div>
-            <div class="audit-stat"><span>Criar</span><strong id="auditStatCreate">0</strong></div>
-            <div class="audit-stat"><span>Editar</span><strong id="auditStatUpdate">0</strong></div>
-            <div class="audit-stat"><span>Apagar</span><strong id="auditStatDelete">0</strong></div>
-          </div>
-          <div class="audit-toolbar">
-            <div class="form-group field-span-2">
-              <label for="auditSearchInput">Pesquisar</label>
-              <input id="auditSearchInput" type="text" placeholder="email, nome, ação, cliente, id...">
+            <div class="audit-stats" id="auditStats">
+              <div class="audit-stat"><span>Total</span><strong id="auditStatTotal">0</strong><small>Todos os movimentos registados</small></div>
+              <div class="audit-stat"><span>Criar</span><strong id="auditStatCreate">0</strong><small>Novos registos e inserções</small></div>
+              <div class="audit-stat"><span>Editar</span><strong id="auditStatUpdate">0</strong><small>Alterações e atualizações</small></div>
+              <div class="audit-stat"><span>Apagar</span><strong id="auditStatDelete">0</strong><small>Eliminações e limpeza</small></div>
             </div>
-            <div class="form-group">
-              <label for="auditActionFilter">Ação</label>
-              <select id="auditActionFilter">
-                <option value="">Todas</option>
-                <option value="create">Criar</option>
-                <option value="update">Editar</option>
-                <option value="delete">Apagar</option>
-                <option value="role">Roles</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="auditRoleFilter">Role</label>
-              <select id="auditRoleFilter">
-                <option value="">Todas</option>
-                <option value="master_admin">master_admin</option>
-                <option value="admin">admin</option>
-                <option value="user">user</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="auditDateFrom">De</label>
-              <input id="auditDateFrom" type="date">
-            </div>
-            <div class="form-group">
-              <label for="auditDateTo">Até</label>
-              <input id="auditDateTo" type="date">
+            <div class="audit-toolbar">
+              <div class="form-group field-span-2">
+                <label for="auditSearchInput">Pesquisar</label>
+                <input id="auditSearchInput" type="text" placeholder="email, nome, ação, cliente, id...">
+              </div>
+              <div class="form-group">
+                <label for="auditActionFilter">Ação</label>
+                <select id="auditActionFilter">
+                  <option value="">Todas</option>
+                  <option value="create">Criar</option>
+                  <option value="update">Editar</option>
+                  <option value="delete">Apagar</option>
+                  <option value="role">Roles</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="auditRoleFilter">Role</label>
+                <select id="auditRoleFilter">
+                  <option value="">Todas</option>
+                  <option value="master_admin">master_admin</option>
+                  <option value="admin">admin</option>
+                  <option value="user">user</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="auditDateFrom">De</label>
+                <input id="auditDateFrom" type="date">
+              </div>
+              <div class="form-group">
+                <label for="auditDateTo">Até</label>
+                <input id="auditDateTo" type="date">
+              </div>
             </div>
           </div>
         </section>
 
         <div class="audit-layout">
           <section class="panel audit-table-wrap">
+            <div class="audit-table-head">
+              <div>
+                <h3 style="margin:0 0 4px">Linha temporal</h3>
+                <div class="audit-table-note">Seleciona um registo para veres o detalhe completo no painel lateral.</div>
+              </div>
+            </div>
             <table class="audit-table">
               <thead>
                 <tr>
@@ -2946,7 +2982,7 @@ td.acoes-col, .acoes-col{
           </section>
 
           <aside class="panel audit-side">
-            <div class="panel-head"><h3>Detalhe</h3></div>
+            <div class="panel-head"><h3>Detalhe do registo</h3></div>
             <div id="auditDetail" class="audit-empty">Seleciona um registo para ver os detalhes completos.</div>
             <div id="auditAccessNote" class="audit-access-note" style="display:none">Esta página está disponível apenas para admin e master_admin.</div>
           </aside>
@@ -3019,6 +3055,39 @@ td.acoes-col, .acoes-col{
 
 
 const loginForm = document.getElementById('loginForm');
+const REMEMBER_LOGIN_KEY = 'ge_remember_login';
+const REMEMBER_LOGIN_EMAIL_KEY = 'ge_remember_login_email';
+
+function syncRememberLoginUi(){
+  const remember = localStorage.getItem(REMEMBER_LOGIN_KEY) === 'true';
+  const savedEmail = remember ? String(localStorage.getItem(REMEMBER_LOGIN_EMAIL_KEY) || '') : '';
+  const rememberInput = document.getElementById('rememberMe');
+  const emailInput = document.getElementById('loginUsername');
+  if(rememberInput) rememberInput.checked = remember;
+  if(emailInput && savedEmail){
+    emailInput.value = savedEmail;
+  }
+}
+
+function applyRememberLoginState(email, remember){
+  if(remember){
+    localStorage.setItem(REMEMBER_LOGIN_KEY, 'true');
+    localStorage.setItem(REMEMBER_LOGIN_EMAIL_KEY, String(email || '').trim());
+  }else{
+    localStorage.removeItem(REMEMBER_LOGIN_KEY);
+    localStorage.removeItem(REMEMBER_LOGIN_EMAIL_KEY);
+  }
+}
+
+function resetLoginFormForRememberedState(){
+  const remember = localStorage.getItem(REMEMBER_LOGIN_KEY) === 'true';
+  const savedEmail = remember ? String(localStorage.getItem(REMEMBER_LOGIN_EMAIL_KEY) || '') : '';
+  loginForm?.reset();
+  const rememberInput = document.getElementById('rememberMe');
+  const emailInput = document.getElementById('loginUsername');
+  if(rememberInput) rememberInput.checked = remember;
+  if(emailInput) emailInput.value = savedEmail;
+}
 
 function showApp(){
   document.getElementById('loginScreen')?.classList.add('hidden');
@@ -3030,6 +3099,7 @@ function showLogin(){
   document.getElementById('loginScreen')?.classList.remove('hidden');
   document.getElementById('appRoot')?.classList.add('hidden');
   document.getElementById('onlineUsersWidget')?.classList.add('hidden');
+  syncRememberLoginUi();
 }
 
 window.showApp = showApp;
@@ -3045,7 +3115,7 @@ window.handleFirebaseLogout = async function(){
     console.error(e);
   }
   showLogin();
-  loginForm?.reset();
+  resetLoginFormForRememberedState();
 };
 
 document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
@@ -3054,6 +3124,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+  syncRememberLoginUi();
   showLogin();
 });
 
@@ -4084,7 +4155,7 @@ const firebaseConfig = {
 
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const APP_VERSION = '1.0.6';
@@ -4251,38 +4322,6 @@ async function ensureFirebaseCore(){
     window.deleteDoc = deleteDoc;
   }
   return true;
-}
-
-const LOGIN_MEMORY_EMAIL_KEY = 'appgestao_login_email';
-const LOGIN_MEMORY_REMEMBER_KEY = 'appgestao_login_remember';
-
-function loadSavedLoginPreference(){
-  try{
-    const savedEmail = String(localStorage.getItem(LOGIN_MEMORY_EMAIL_KEY) || '').trim();
-    const remember = localStorage.getItem(LOGIN_MEMORY_REMEMBER_KEY) === '1';
-    const emailInput = $('loginUsername');
-    const rememberInput = $('rememberMe');
-    if(emailInput && savedEmail) emailInput.value = savedEmail;
-    if(rememberInput) rememberInput.checked = remember;
-  }catch(err){
-    console.warn('Não foi possível carregar memória do login:', err);
-  }
-}
-
-function saveLoginPreference(){
-  try{
-    const email = String($('loginUsername')?.value || '').trim();
-    const remember = !!$('rememberMe')?.checked;
-    if(remember && email){
-      localStorage.setItem(LOGIN_MEMORY_EMAIL_KEY, email);
-      localStorage.setItem(LOGIN_MEMORY_REMEMBER_KEY, '1');
-    }else{
-      localStorage.removeItem(LOGIN_MEMORY_EMAIL_KEY);
-      localStorage.removeItem(LOGIN_MEMORY_REMEMBER_KEY);
-    }
-  }catch(err){
-    console.warn('Não foi possível guardar memória do login:', err);
-  }
 }
 
 function normalizePresenceId(){
@@ -4467,8 +4506,6 @@ async function initFirebaseEmailLogin(){
   await ensureFirebaseCore();
   attachPrimaryAuthListener();
 
-  loadSavedLoginPreference();
-
   const loginFormEl = $('loginForm');
   if(loginFormEl && !loginFormEl.dataset.firebaseBound){
     loginFormEl.dataset.firebaseBound = '1';
@@ -4484,8 +4521,10 @@ async function initFirebaseEmailLogin(){
       }
       try{
         await ensureFirebaseCore();
+        const rememberLogin = !!$('rememberMe')?.checked;
+        await setPersistence(firebaseAuth, rememberLogin ? browserLocalPersistence : browserSessionPersistence);
+        applyRememberLoginState(email, rememberLogin);
         await signInWithEmailAndPassword(firebaseAuth, email, password);
-        saveLoginPreference();
       }catch(err){
         console.error('Erro no login Firebase:', err);
         const code = String(err?.code || '');
@@ -4514,7 +4553,7 @@ async function initFirebaseEmailLogin(){
     currentUsername = null;
     currentUserEmail = null;
     if(window.showLogin) window.showLogin();
-    $('loginForm')?.reset();
+    resetLoginFormForRememberedState();
   };
 
   if(firebaseAuth.currentUser && !firebaseAuth.currentUser.isAnonymous){
@@ -5290,7 +5329,7 @@ function renderAuditTable(logs){
       <td>${escapeHtml(formatAuditWhen(log.timestamp))}</td>
       <td><span class="audit-badge ${group}">${escapeHtml(log.action || '-')}</span></td>
       <td>${escapeHtml(log.actorName || '-')}<br><small>${escapeHtml(log.actorEmail || '-')}</small></td>
-      <td>${escapeHtml(log.actorRole || '-')}</td>
+      <td><span class="audit-badge other">${escapeHtml(log.actorRole || '-')}</span></td>
       <td>${escapeHtml(summarizeAuditDetails(log))}</td>
     </tr>`;
   }).join('');
