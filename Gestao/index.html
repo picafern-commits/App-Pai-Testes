@@ -2615,6 +2615,8 @@ td.acoes-col, .acoes-col{
 
 .table-sort-btn{background:none;border:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0}
 .table-sort-btn span{opacity:.8}
+.remember-login-row{display:flex;align-items:center;gap:10px;margin:6px 0 2px;color:#cbd5e1;font-size:14px;font-weight:600;cursor:pointer;user-select:none}
+.remember-login-row input{width:16px;height:16px;accent-color:#2563eb;cursor:pointer}
 </style>
 </head>
 <body>
@@ -2635,12 +2637,16 @@ td.acoes-col, .acoes-col{
         <form id="loginForm" class="login-form">
           <div class="field">
             <label>Utilizador</label>
-            <input id="loginUsername" type="email" placeholder="email@exemplo.com" required />
+            <input id="loginUsername" type="email" placeholder="email@exemplo.com" autocomplete="email" required />
           </div>
           <div class="field">
             <label>Palavra-passe</label>
-            <input id="loginPassword" type="password" placeholder="••••••••" required />
+            <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" required />
           </div>
+          <label class="remember-login-row">
+            <input id="rememberMe" type="checkbox" />
+            <span>Lembrar-me</span>
+          </label>
           <button type="submit" class="btn btn-primary full">Entrar</button>
         </form>
         <div id="loginError" class="login-error"></div>
@@ -4247,6 +4253,38 @@ async function ensureFirebaseCore(){
   return true;
 }
 
+const LOGIN_MEMORY_EMAIL_KEY = 'appgestao_login_email';
+const LOGIN_MEMORY_REMEMBER_KEY = 'appgestao_login_remember';
+
+function loadSavedLoginPreference(){
+  try{
+    const savedEmail = String(localStorage.getItem(LOGIN_MEMORY_EMAIL_KEY) || '').trim();
+    const remember = localStorage.getItem(LOGIN_MEMORY_REMEMBER_KEY) === '1';
+    const emailInput = $('loginUsername');
+    const rememberInput = $('rememberMe');
+    if(emailInput && savedEmail) emailInput.value = savedEmail;
+    if(rememberInput) rememberInput.checked = remember;
+  }catch(err){
+    console.warn('Não foi possível carregar memória do login:', err);
+  }
+}
+
+function saveLoginPreference(){
+  try{
+    const email = String($('loginUsername')?.value || '').trim();
+    const remember = !!$('rememberMe')?.checked;
+    if(remember && email){
+      localStorage.setItem(LOGIN_MEMORY_EMAIL_KEY, email);
+      localStorage.setItem(LOGIN_MEMORY_REMEMBER_KEY, '1');
+    }else{
+      localStorage.removeItem(LOGIN_MEMORY_EMAIL_KEY);
+      localStorage.removeItem(LOGIN_MEMORY_REMEMBER_KEY);
+    }
+  }catch(err){
+    console.warn('Não foi possível guardar memória do login:', err);
+  }
+}
+
 function normalizePresenceId(){
   const email = normalizeRoleEmail(currentUserEmail || firebaseAuth?.currentUser?.email);
   if(email) return email.replace(/[^a-z0-9@._-]/gi, '_');
@@ -4429,6 +4467,8 @@ async function initFirebaseEmailLogin(){
   await ensureFirebaseCore();
   attachPrimaryAuthListener();
 
+  loadSavedLoginPreference();
+
   const loginFormEl = $('loginForm');
   if(loginFormEl && !loginFormEl.dataset.firebaseBound){
     loginFormEl.dataset.firebaseBound = '1';
@@ -4445,6 +4485,7 @@ async function initFirebaseEmailLogin(){
       try{
         await ensureFirebaseCore();
         await signInWithEmailAndPassword(firebaseAuth, email, password);
+        saveLoginPreference();
       }catch(err){
         console.error('Erro no login Firebase:', err);
         const code = String(err?.code || '');
