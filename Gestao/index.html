@@ -478,6 +478,36 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .role-device-view .device-edit-only{display:none!important}
 .role-device-view-banner{position:fixed;right:18px;bottom:18px;z-index:1200;padding:10px 14px;border-radius:999px;background:rgba(245,158,11,.16);border:1px solid rgba(245,158,11,.35);color:#fcd34d;font-weight:700;backdrop-filter:blur(8px)}
 .bottom-nav{display:none}
+
+.audit-toolbar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:end}
+.audit-toolbar .field-span-2{grid-column:span 2}
+.audit-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.audit-stat{padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.audit-stat span{display:block;color:var(--muted);font-size:12px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
+.audit-stat strong{font-size:28px;line-height:1.1}
+.audit-layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(320px,1fr);gap:16px;align-items:start}
+.audit-table-wrap{overflow:auto}
+.audit-table{width:100%;border-collapse:collapse}
+.audit-table th,.audit-table td{padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;text-align:left}
+.audit-table tbody tr{cursor:pointer;transition:.15s ease}
+.audit-table tbody tr:hover{background:rgba(255,255,255,.03)}
+.audit-table tbody tr.active{background:rgba(111,92,255,.12)}
+.audit-badge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05)}
+.audit-badge.create{color:#86efac;border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.12)}
+.audit-badge.update{color:#fde68a;border-color:rgba(245,158,11,.28);background:rgba(245,158,11,.12)}
+.audit-badge.delete{color:#fca5a5;border-color:rgba(239,68,68,.28);background:rgba(239,68,68,.12)}
+.audit-badge.other{color:#bfdbfe;border-color:rgba(59,130,246,.24);background:rgba(59,130,246,.12)}
+.audit-side{position:sticky;top:16px}
+.audit-empty{padding:18px;border-radius:18px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.08);color:var(--muted)}
+.audit-meta{display:grid;gap:10px;margin-bottom:14px}
+.audit-meta-item{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}
+.audit-meta-item span{display:block;color:var(--muted);font-size:12px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em}
+.audit-json{margin:0;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;background:rgba(2,6,23,.55);padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,.06);max-height:58vh;overflow:auto}
+.audit-inline-actions{display:flex;gap:10px;flex-wrap:wrap}
+.audit-access-note{margin-top:14px;padding:14px 16px;border-radius:16px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:#fde68a}
+@media (max-width:1200px){.audit-layout{grid-template-columns:1fr}.audit-side{position:static}.audit-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.audit-toolbar .field-span-2{grid-column:span 2}.audit-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.audit-toolbar,.audit-stats{grid-template-columns:1fr}.audit-toolbar .field-span-2{grid-column:span 1}}
+
 .modal{
   position:fixed; inset:0; background:rgba(0,0,0,.55); display:grid; place-items:center; z-index:100; padding:20px;
 }
@@ -2654,6 +2684,7 @@ td.acoes-col, .acoes-col{
         <button class="nav-btn" data-tab="clientes"><span class="nav-icon">◉</span><span>Clientes</span></button>
         <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">€</span><span>Pagamentos</span></button>
         <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">▣</span><span>Relatórios</span></button>
+        <button class="nav-btn admin-only" data-tab="logs"><span class="nav-icon">🧾</span><span>Auditoria</span></button>
         <button class="nav-btn" data-tab="configuracoes"><span class="nav-icon">⚙</span><span>Configurações</span></button>
       </nav>
 
@@ -2838,6 +2869,83 @@ td.acoes-col, .acoes-col{
           <div id="resumoMensal" class="report-grid"></div>
         </section>
       </section>
+      
+      <section class="page admin-only" id="logs-page">
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Auditoria avançada</h3>
+            <div class="audit-inline-actions">
+              <button id="refreshLogsBtn" class="btn btn-secondary">Atualizar</button>
+              <button id="exportLogsJsonBtn" class="btn btn-ghost">Exportar JSON</button>
+              <button id="exportLogsCsvBtn" class="btn btn-ghost">Exportar CSV</button>
+            </div>
+          </div>
+          <div class="audit-stats" id="auditStats">
+            <div class="audit-stat"><span>Total</span><strong id="auditStatTotal">0</strong></div>
+            <div class="audit-stat"><span>Criar</span><strong id="auditStatCreate">0</strong></div>
+            <div class="audit-stat"><span>Editar</span><strong id="auditStatUpdate">0</strong></div>
+            <div class="audit-stat"><span>Apagar</span><strong id="auditStatDelete">0</strong></div>
+          </div>
+          <div class="audit-toolbar">
+            <div class="form-group field-span-2">
+              <label for="auditSearchInput">Pesquisar</label>
+              <input id="auditSearchInput" type="text" placeholder="email, nome, ação, cliente, id...">
+            </div>
+            <div class="form-group">
+              <label for="auditActionFilter">Ação</label>
+              <select id="auditActionFilter">
+                <option value="">Todas</option>
+                <option value="create">Criar</option>
+                <option value="update">Editar</option>
+                <option value="delete">Apagar</option>
+                <option value="role">Roles</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="auditRoleFilter">Role</label>
+              <select id="auditRoleFilter">
+                <option value="">Todas</option>
+                <option value="master_admin">master_admin</option>
+                <option value="admin">admin</option>
+                <option value="user">user</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="auditDateFrom">De</label>
+              <input id="auditDateFrom" type="date">
+            </div>
+            <div class="form-group">
+              <label for="auditDateTo">Até</label>
+              <input id="auditDateTo" type="date">
+            </div>
+          </div>
+        </section>
+
+        <div class="audit-layout">
+          <section class="panel audit-table-wrap">
+            <table class="audit-table">
+              <thead>
+                <tr>
+                  <th>Quando</th>
+                  <th>Ação</th>
+                  <th>Utilizador</th>
+                  <th>Role</th>
+                  <th>Resumo</th>
+                </tr>
+              </thead>
+              <tbody id="auditTableBody">
+                <tr><td colspan="5">A carregar logs...</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          <aside class="panel audit-side">
+            <div class="panel-head"><h3>Detalhe</h3></div>
+            <div id="auditDetail" class="audit-empty">Seleciona um registo para ver os detalhes completos.</div>
+            <div id="auditAccessNote" class="audit-access-note" style="display:none">Esta página está disponível apenas para admin e master_admin.</div>
+          </aside>
+        </div>
+      </section>
       <section class="page" id="configuracoes-page">
           <div id="usersSection" class="panel users-master-panel">
             <div class="panel-head"><h3>Gestão de utilizadores</h3></div>
@@ -2897,6 +3005,7 @@ td.acoes-col, .acoes-col{
     <button class="bottom-btn" data-tab="clientes">Clientes</button>
     <button class="bottom-btn" data-tab="pagamentos">Pagamentos</button>
     <button class="bottom-btn" data-tab="relatorios">Relatórios</button>
+    <button class="bottom-btn admin-only" data-tab="logs">Auditoria</button>
     <button class="bottom-btn" data-tab="configuracoes">Configurações</button>
   </nav>
 
@@ -4988,6 +5097,235 @@ function setRoleUI(){
   updateTrabalhoAdvancedFields();
   applyDeviceAccessRestrictions();
 }
+
+let auditLogsCache = [];
+let auditFilteredLogs = [];
+let auditSelectedLogId = null;
+
+function getActionGroup(action=''){
+  const text = String(action || '').toLowerCase();
+  if(text.includes('delete') || text.includes('apagar')) return 'delete';
+  if(text.includes('update') || text.includes('edit') || text.includes('pago') || text.includes('confirm')) return 'update';
+  if(text.includes('create') || text.includes('add') || text.includes('novo') || text.includes('seed')) return 'create';
+  return 'other';
+}
+function formatAuditWhen(value){
+  const d = new Date(value || '');
+  if(Number.isNaN(d.getTime())) return '-';
+  return d.toLocaleString('pt-PT');
+}
+function normalizeAuditText(value){
+  try{ return JSON.stringify(value || {}).toLowerCase(); }catch(e){ return String(value || '').toLowerCase(); }
+}
+function summarizeAuditDetails(log){
+  const details = log?.details || {};
+  const priorityKeys = ['clienteNome','cliente','nome','titulo','descricao','id','trabalhoId','clienteId','pagamentoId','valor','targetEmail'];
+  const parts = [];
+  for(const key of priorityKeys){
+    const val = details?.[key];
+    if(val === undefined || val === null || val === '') continue;
+    parts.push(`${key}: ${typeof val === 'object' ? JSON.stringify(val) : String(val)}`);
+    if(parts.length >= 2) break;
+  }
+  if(!parts.length){
+    const keys = Object.keys(details || {}).slice(0,2);
+    for(const key of keys){
+      const val = details[key];
+      parts.push(`${key}: ${typeof val === 'object' ? JSON.stringify(val) : String(val)}`);
+    }
+  }
+  return parts.join(' • ') || '-';
+}
+function escapeCsvValue(value){
+  const text = String(value ?? '');
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+function downloadBlobFile(filename, content, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1200);
+}
+async function loadAuditLogs(force=false){
+  if(!isAdminLike()){
+    const body = $('auditTableBody');
+    if(body) body.innerHTML = '<tr><td colspan="5">Sem permissão para ver a auditoria.</td></tr>';
+    const detail = $('auditDetail');
+    if(detail) detail.innerHTML = 'Sem permissão para ver a auditoria.';
+    const note = $('auditAccessNote');
+    if(note) note.style.display = 'block';
+    return [];
+  }
+  const note = $('auditAccessNote');
+  if(note) note.style.display = 'none';
+  if(auditLogsCache.length && !force) return auditLogsCache;
+  const body = $('auditTableBody');
+  if(body) body.innerHTML = '<tr><td colspan="5">A carregar logs...</td></tr>';
+  await ensureFirebaseReady();
+  const snap = await getDocs(collection(firestoreDb, LOGS_COLLECTION));
+  auditLogsCache = snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+    .sort((a,b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+  return auditLogsCache;
+}
+function getAuditFilterState(){
+  return {
+    search: String($('auditSearchInput')?.value || '').trim().toLowerCase(),
+    action: String($('auditActionFilter')?.value || '').trim().toLowerCase(),
+    role: String($('auditRoleFilter')?.value || '').trim().toLowerCase(),
+    dateFrom: $('auditDateFrom')?.value || '',
+    dateTo: $('auditDateTo')?.value || ''
+  };
+}
+function filterAuditLogs(logs){
+  const filters = getAuditFilterState();
+  return logs.filter(log => {
+    const haystack = [log.action, log.actorEmail, log.actorName, log.actorRole, summarizeAuditDetails(log), normalizeAuditText(log.details)].join(' ').toLowerCase();
+    if(filters.search && !haystack.includes(filters.search)) return false;
+    if(filters.action){
+      const actionText = String(log.action || '').toLowerCase();
+      if(filters.action === 'role'){
+        if(!actionText.includes('role')) return false;
+      }else if(!actionText.includes(filters.action)) return false;
+    }
+    if(filters.role && String(log.actorRole || '').toLowerCase() !== filters.role) return false;
+    const iso = String(log.timestamp || '');
+    if(filters.dateFrom && iso.slice(0,10) < filters.dateFrom) return false;
+    if(filters.dateTo && iso.slice(0,10) > filters.dateTo) return false;
+    return true;
+  });
+}
+function renderAuditStats(logs){
+  const groups = { total: logs.length, create:0, update:0, delete:0 };
+  logs.forEach(log => {
+    const group = getActionGroup(log.action);
+    if(group === 'create') groups.create += 1;
+    else if(group === 'update') groups.update += 1;
+    else if(group === 'delete') groups.delete += 1;
+  });
+  if($('auditStatTotal')) $('auditStatTotal').textContent = String(groups.total);
+  if($('auditStatCreate')) $('auditStatCreate').textContent = String(groups.create);
+  if($('auditStatUpdate')) $('auditStatUpdate').textContent = String(groups.update);
+  if($('auditStatDelete')) $('auditStatDelete').textContent = String(groups.delete);
+}
+function renderAuditDetail(log){
+  const detail = $('auditDetail');
+  if(!detail) return;
+  if(!log){
+    detail.className = 'audit-empty';
+    detail.innerHTML = 'Seleciona um registo para ver os detalhes completos.';
+    return;
+  }
+  detail.className = '';
+  const safeDetails = escapeHtml(JSON.stringify(log.details || {}, null, 2));
+  detail.innerHTML = `
+    <div class="audit-meta">
+      <div class="audit-meta-item"><span>Ação</span><strong>${escapeHtml(log.action || '-')}</strong></div>
+      <div class="audit-meta-item"><span>Quando</span><strong>${escapeHtml(formatAuditWhen(log.timestamp))}</strong></div>
+      <div class="audit-meta-item"><span>Utilizador</span><strong>${escapeHtml(log.actorName || log.actorEmail || '-')}</strong><div>${escapeHtml(log.actorEmail || '-')}</div></div>
+      <div class="audit-meta-item"><span>Role</span><strong>${escapeHtml(log.actorRole || '-')}</strong></div>
+      <div class="audit-meta-item"><span>ID do log</span><strong>${escapeHtml(log.id || '-')}</strong></div>
+      <div class="audit-meta-item"><span>Versão</span><strong>${escapeHtml(log.appVersion || '-')}</strong></div>
+    </div>
+    <pre class="audit-json">${safeDetails}</pre>
+  `;
+}
+function renderAuditTable(logs){
+  const body = $('auditTableBody');
+  if(!body) return;
+  if(!logs.length){
+    body.innerHTML = '<tr><td colspan="5">Sem resultados para os filtros escolhidos.</td></tr>';
+    renderAuditDetail(null);
+    return;
+  }
+  body.innerHTML = logs.map(log => {
+    const selected = auditSelectedLogId === log.id ? ' class="active"' : '';
+    const group = getActionGroup(log.action);
+    return `<tr data-log-id="${escapeHtml(log.id || '')}"${selected}>
+      <td>${escapeHtml(formatAuditWhen(log.timestamp))}</td>
+      <td><span class="audit-badge ${group}">${escapeHtml(log.action || '-')}</span></td>
+      <td>${escapeHtml(log.actorName || '-')}<br><small>${escapeHtml(log.actorEmail || '-')}</small></td>
+      <td>${escapeHtml(log.actorRole || '-')}</td>
+      <td>${escapeHtml(summarizeAuditDetails(log))}</td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('tr[data-log-id]').forEach(row => row.addEventListener('click', () => {
+    auditSelectedLogId = row.dataset.logId || null;
+    renderAuditTable(auditFilteredLogs);
+    const selectedLog = auditFilteredLogs.find(item => item.id === auditSelectedLogId) || null;
+    renderAuditDetail(selectedLog);
+  }));
+  const selected = auditFilteredLogs.find(item => item.id === auditSelectedLogId) || auditFilteredLogs[0] || null;
+  if(selected){
+    auditSelectedLogId = selected.id;
+    const activeRow = body.querySelector(`tr[data-log-id="${CSS.escape(String(selected.id))}"]`);
+    if(activeRow) activeRow.classList.add('active');
+  }
+  renderAuditDetail(selected);
+}
+async function renderAuditLogs(force=false){
+  if(!$('logs-page')) return;
+  try{
+    const logs = await loadAuditLogs(force);
+    auditFilteredLogs = filterAuditLogs(logs);
+    renderAuditStats(auditFilteredLogs);
+    renderAuditTable(auditFilteredLogs);
+  }catch(err){
+    console.error('Falha ao renderizar auditoria:', err);
+    const body = $('auditTableBody');
+    if(body) body.innerHTML = '<tr><td colspan="5">Erro ao carregar logs.</td></tr>';
+    renderAuditDetail(null);
+  }
+}
+function exportAuditLogsJson(){
+  const data = auditFilteredLogs.length ? auditFilteredLogs : auditLogsCache;
+  downloadBlobFile(`auditoria-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(data, null, 2), 'application/json;charset=utf-8');
+}
+function exportAuditLogsCsv(){
+  const data = auditFilteredLogs.length ? auditFilteredLogs : auditLogsCache;
+  const rows = [['timestamp','action','actorName','actorEmail','actorRole','summary','detailsJson']];
+  data.forEach(log => rows.push([
+    log.timestamp || '',
+    log.action || '',
+    log.actorName || '',
+    log.actorEmail || '',
+    log.actorRole || '',
+    summarizeAuditDetails(log),
+    JSON.stringify(log.details || {})
+  ]));
+  const csv = rows.map(row => row.map(escapeCsvValue).join(';')).join('
+');
+  downloadBlobFile(`auditoria-${new Date().toISOString().slice(0,10)}.csv`, csv, 'text/csv;charset=utf-8');
+}
+function bindAuditEvents(){
+  ['auditSearchInput','auditActionFilter','auditRoleFilter','auditDateFrom','auditDateTo'].forEach(id => {
+    const el = $(id);
+    if(!el || el.dataset.bound === '1') return;
+    el.dataset.bound = '1';
+    el.addEventListener('input', ()=>renderAuditLogs(false));
+    el.addEventListener('change', ()=>renderAuditLogs(false));
+  });
+  const refreshBtn = $('refreshLogsBtn');
+  if(refreshBtn && refreshBtn.dataset.bound !== '1'){
+    refreshBtn.dataset.bound = '1';
+    refreshBtn.addEventListener('click', ()=>renderAuditLogs(true));
+  }
+  const jsonBtn = $('exportLogsJsonBtn');
+  if(jsonBtn && jsonBtn.dataset.bound !== '1'){
+    jsonBtn.dataset.bound = '1';
+    jsonBtn.addEventListener('click', exportAuditLogsJson);
+  }
+  const csvBtn = $('exportLogsCsvBtn');
+  if(csvBtn && csvBtn.dataset.bound !== '1'){
+    csvBtn.dataset.bound = '1';
+    csvBtn.addEventListener('click', exportAuditLogsCsv);
+  }
+}
+
 function switchTab(tab){
   try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(e){}
   navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
@@ -5005,18 +5343,26 @@ function switchTab(tab){
   if(tab === 'clientes') renderClientes();
   if(tab === 'pagamentos') renderPagamentos();
   if(tab === 'relatorios') renderRelatorios();
+  if(tab === 'logs') renderAuditLogs(false);
   try{ renderAdvancedReports(); }catch(e){}
   if(tab === 'configuracoes'){
     bindUiScaleSelector();
     renderManagedUsers();
   }
   applyDeviceAccessRestrictions();
+  bindAuditEvents();
+  if(tab === 'logs' && !isAdminLike()){
+    const fallbackTab = 'dashboard';
+    if(tab !== fallbackTab){ setTimeout(()=>switchTab(fallbackTab), 0); return; }
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
 
+
+bindAuditEvents();
 
 function refreshVisibleViews(){
   try{ renderAll(); }catch(e){}
