@@ -533,6 +533,9 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .audit-meta-item span{display:block;color:#9fb0d8;font-size:11px;margin-bottom:7px;text-transform:uppercase;letter-spacing:.12em;font-weight:800}
 .audit-json{margin:0;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6;background:rgba(2,6,23,.7);padding:16px;border-radius:18px;border:1px solid rgba(255,255,255,.07);max-height:58vh;overflow:auto;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
 .audit-access-note{margin-top:14px;padding:14px 16px;border-radius:16px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:#fde68a}
+.audit-access-note.ok{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.25);color:#86efac}
+.audit-access-note.warn{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2);color:#fde68a}
+.audit-access-note.error{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.24);color:#fca5a5}
 @media (max-width:1200px){.audit-layout{grid-template-columns:1fr}.audit-side{position:static}.audit-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.audit-toolbar .field-span-2{grid-column:span 2}.audit-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:700px){.audit-heading{flex-direction:column;align-items:stretch}.audit-inline-actions .btn{width:100%;justify-content:center}.audit-toolbar,.audit-stats{grid-template-columns:1fr}.audit-toolbar .field-span-2{grid-column:span 1}.audit-table-head{flex-direction:column;align-items:flex-start}.audit-table th,.audit-table td{padding:12px 10px}}
 
@@ -3084,41 +3087,28 @@ td.acoes-col, .acoes-col{
       </header>
 
       <section class="page active" id="dashboard-page">
-        <div class="hero panel dashboard-empresa-hero">
+        <div class="hero panel">
           <div class="hero-copy">
-            <h3>Dashboard Empresa</h3>
-            <p id="dashboardHeroSummary">Visão rápida da operação, receitas e clientes que precisam de atenção.</p>
+            <h3>Controlo Total Rapido</h3>
             <div class="hero-actions">
               <button class="btn btn-primary admin-only" data-go="trabalhos">Adicionar trabalho</button>
               <button class="btn btn-ghost" data-go="clientes">Ver clientes</button>
-              <button class="btn btn-ghost" data-go="pagamentos">Ver pagamentos</button>
             </div>
           </div>
-          <div class="hero-side dashboard-hero-side">
+          <div class="hero-side">
             <div class="hero-chip">
               <span>Estado</span>
               <strong>Premium</strong>
             </div>
-            <div class="hero-chip secondary">
-              <span>Mês atual</span>
-              <strong id="heroMesAtual">0 €</strong>
-            </div>
           </div>
         </div>
 
-        <div class="stats-grid stats-grid-empresa">
+        <div class="stats-grid">
           <div class="stat-card panel pink"><span>Total trabalhos</span><strong id="statTotalTrabalhos">0</strong><small>Todos os registos</small></div>
           <div class="stat-card panel blue"><span>Em andamento</span><strong id="statEmAndamento">0</strong><small>Serviços abertos</small></div>
           <div class="stat-card panel green"><span>Concluídos</span><strong id="statConcluidos">0</strong><small>Fechados ou pagos</small></div>
           <div class="stat-card panel gold"><span>Total faturado</span><strong id="statTotalFaturado">0 €</strong><small>Soma dos valores</small></div>
-          <div class="stat-card panel blue"><span>Total recebido</span><strong id="statTotalRecebido">0 €</strong><small>Pagamentos registados</small></div>
-          <div class="stat-card panel pink"><span>Em dívida</span><strong id="statTotalDivida">0 €</strong><small>Valor ainda por regularizar</small></div>
         </div>
-
-        <section class="panel">
-          <div class="panel-head"><h3>Indicadores empresa</h3></div>
-          <div id="empresaKpis" class="alert-grid"></div>
-        </section>
 
         <section class="panel">
           <div class="panel-head"><h3>Alertas e prioridades</h3></div>
@@ -3126,7 +3116,7 @@ td.acoes-col, .acoes-col{
         </section>
 
         <section class="panel">
-          <div class="panel-head"><h3>Agenda inteligente</h3></div>
+          <div class="panel-head">
           <div id="dashboardAgendaWrap" class="agenda-smart-grid"></div>
         </section>
 
@@ -3139,18 +3129,6 @@ td.acoes-col, .acoes-col{
           <section class="panel">
             <div class="panel-head"><h3>Receitas por mês</h3></div>
             <div id="monthlyBars" class="bars"></div>
-          </section>
-        </div>
-
-        <div class="dashboard-grid">
-          <section class="panel">
-            <div class="panel-head"><h3>Clientes com dívida</h3></div>
-            <div id="clientesDividaList" class="list-stack"></div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-head"><h3>Resumo empresa</h3></div>
-            <div id="empresaResumoCards" class="report-grid"></div>
           </section>
         </div>
       </section>
@@ -3565,6 +3543,7 @@ function legacy_confirmPaymentMethod(method){
 }
 
 
+
 function getBackupTodayIso(){
   const now = new Date();
   const y = now.getFullYear();
@@ -3573,49 +3552,217 @@ function getBackupTodayIso(){
   return `${y}-${m}-${d}`;
 }
 
+const PROFESSIONAL_BACKUP_KEYS = {
+  latest: 'ge_professional_backup_latest',
+  history: 'ge_professional_backup_history',
+  meta: 'ge_professional_backup_meta'
+};
+const BACKUP_REMOTE_COLLECTION = 'app_backups';
+
 function getAppDataSnapshot(){
-  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : JSON.parse(localStorage.getItem('trabalhos') || '[]'));
-  const clientesLista = window.clientes || (typeof clientes !== 'undefined' ? clientes : JSON.parse(localStorage.getItem('clientes') || '[]'));
-  const pagamentosLista = window.pagamentos || (typeof pagamentos !== 'undefined' ? pagamentos : JSON.parse(localStorage.getItem('pagamentos') || '[]'));
+  const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : JSON.parse(localStorage.getItem('trabalhos') || localStorage.getItem('ge_trabalhos') || '[]'));
+  const clientesLista = window.clientes || (typeof clientes !== 'undefined' ? clientes : JSON.parse(localStorage.getItem('clientes') || localStorage.getItem('ge_clientes') || '[]'));
+  const pagamentosLista = window.pagamentos || (typeof pagamentos !== 'undefined' ? pagamentos : JSON.parse(localStorage.getItem('pagamentos') || localStorage.getItem('ge_pagamentos') || '[]'));
   return {
     trabalhos: Array.isArray(trabalhosLista) ? trabalhosLista : [],
     clientes: Array.isArray(clientesLista) ? clientesLista : [],
     pagamentos: Array.isArray(pagamentosLista) ? pagamentosLista : [],
     dataBackup: new Date().toISOString(),
-    versao: 'backup-app-v12'
+    versao: 'backup-profissional-v1'
   };
 }
 
-
-function refreshBackupStatusUi(){
-  const lastEl = document.getElementById('backupLastStatus');
-  const countEl = document.getElementById('backupCountStatus');
-  const dayEl = document.getElementById('backupTodayStatus');
-  const dailyBackups = JSON.parse(localStorage.getItem('dailyAutoBackups') || localStorage.getItem('weeklyAutoBackups') || '[]');
-  const last = localStorage.getItem('dailyAutoBackupLastDate') || localStorage.getItem('weeklyAutoBackupLastDate') || localStorage.getItem('backupFridayDone') || '';
-  const today = new Date().toISOString().split('T')[0];
-
-  if(lastEl){
-    lastEl.textContent = (last ? fmtDate(last) : '--');
+function getProfessionalBackupMeta(){
+  try{
+    const raw = localStorage.getItem(PROFESSIONAL_BACKUP_KEYS.meta);
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){
+    return {};
   }
-  if(countEl){
-    countEl.textContent = String(dailyBackups.length);
-  }
-  if(dayEl){
-    if(last === today){
-      dayEl.textContent = 'Feito hoje';
-    }else if(last){
-      dayEl.textContent = 'Pendente hoje';
-    }else{
-      dayEl.textContent = 'Sem backup';
-    }
-  }
-  try{ updateBackupWeekIndicator(); }catch(e){}
 }
 
+function setProfessionalBackupMeta(meta){
+  try{ localStorage.setItem(PROFESSIONAL_BACKUP_KEYS.meta, JSON.stringify(meta || {})); }catch(e){}
+}
+
+function getProfessionalBackupHistory(){
+  try{
+    const raw = localStorage.getItem(PROFESSIONAL_BACKUP_KEYS.history);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function getLatestProfessionalBackup(){
+  try{
+    const raw = localStorage.getItem(PROFESSIONAL_BACKUP_KEYS.latest) || localStorage.getItem('ge_invisible_backup') || '';
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){
+    return null;
+  }
+}
+
+function countBackupRecords(snapshot){
+  const snap = snapshot || getLatestProfessionalBackup();
+  if(!snap || typeof snap !== 'object') return 0;
+  const trabalhosLista = Array.isArray(snap.trabalhos) ? snap.trabalhos.length : 0;
+  const clientesLista = Array.isArray(snap.clientes) ? snap.clientes.length : 0;
+  const pagamentosLista = Array.isArray(snap.pagamentos) ? snap.pagamentos.length : 0;
+  return trabalhosLista + clientesLista + pagamentosLista;
+}
+
+function setBackupNotice(message, level='info'){
+  const el = document.getElementById('backupNotice');
+  if(!el) return;
+  el.textContent = message || '';
+  el.classList.remove('ok','warn','error');
+  if(level === 'ok') el.classList.add('ok');
+  else if(level === 'warn') el.classList.add('warn');
+  else if(level === 'error') el.classList.add('error');
+}
+
+function refreshBackupStatusUi(){
+  const snapshot = getLatestProfessionalBackup();
+  const meta = getProfessionalBackupMeta();
+  const history = getProfessionalBackupHistory();
+  const lastIso = meta.lastBackupAt || snapshot?.dataBackup || '';
+  const lastLabel = lastIso ? fmtDate(lastIso) : '--';
+  const recordCount = countBackupRecords(snapshot);
+  const storageMode = meta.remoteOk ? 'Local + Firebase' : (snapshot ? 'Local' : '--');
+  const stateLabel = snapshot ? (meta.remoteOk ? 'OK' : 'Local OK') : 'Sem backup';
+
+  const map = {
+    backupLastStatus: lastLabel,
+    backupCountStatus: String(history.length || (snapshot ? 1 : 0)),
+    backupTodayStatus: stateLabel,
+    backupStorageStatus: storageMode,
+    backupRecordsStatus: String(recordCount),
+    backupRemoteStatus: meta.remoteOk ? (meta.remoteAt ? fmtDate(meta.remoteAt) : 'Confirmado') : 'Não confirmado',
+    backupWeekStatus: meta.remoteOk ? 'Pronto a restaurar' : (snapshot ? 'Backup local disponível' : 'Sem snapshot')
+  };
+  Object.entries(map).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = value;
+  });
+
+  const badge = document.getElementById('backupModeBadge') || document.getElementById('backupWeekBadge');
+  if(badge){
+    badge.classList.remove('ok','warn','error','daily');
+    if(meta.remoteOk){
+      badge.textContent = 'Protegido';
+      badge.classList.add('ok');
+    }else if(snapshot){
+      badge.textContent = 'Local';
+      badge.classList.add('warn');
+    }else{
+      badge.textContent = 'Sem backup';
+      badge.classList.add('error');
+    }
+  }
+
+  const lastSyncText = document.getElementById('backupLastSyncText');
+  if(lastSyncText){
+    if(meta.remoteOk && meta.remoteAt) lastSyncText.textContent = `Última sync Firebase: ${fmtDate(meta.remoteAt)}`;
+    else if(lastIso) lastSyncText.textContent = `Último backup: ${fmtDate(lastIso)}`;
+    else lastSyncText.textContent = 'Ainda não existe backup criado nesta app.';
+  }
+
+  const indicatorBadge = document.getElementById('backupIndicatorBadge');
+  if(indicatorBadge){
+    indicatorBadge.classList.remove('ok','warn','error');
+    if(meta.remoteOk){
+      indicatorBadge.textContent = 'Ativo · Local + Firebase';
+      indicatorBadge.classList.add('ok');
+    }else if(snapshot){
+      indicatorBadge.textContent = 'Ativo · Local apenas';
+      indicatorBadge.classList.add('warn');
+    }else{
+      indicatorBadge.textContent = 'Sem backup válido';
+      indicatorBadge.classList.add('error');
+    }
+  }
+}
+
+async function saveBackupRemote(snapshot, backupId){
+  const dbObj = window.firestoreDb;
+  const setDocFn = window.setDoc;
+  const docFn = window.doc;
+  if(!dbObj || typeof setDocFn !== 'function' || typeof docFn !== 'function'){
+    return { ok:false, reason:'firebase-indisponivel' };
+  }
+  try{
+    const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
+    if(typeof ensureReady === 'function') await ensureReady();
+    await waitForFirebaseUser(4000);
+    await setDocFn(docFn(dbObj, BACKUP_REMOTE_COLLECTION, backupId), {
+      id: backupId,
+      criadoEm: snapshot.dataBackup,
+      actorEmail: String(currentUserEmail || window.firebaseAuth?.currentUser?.email || '').trim().toLowerCase(),
+      actorName: String(currentUsername || window.firebaseAuth?.currentUser?.displayName || '').trim(),
+      actorRole: String(currentRole || 'user'),
+      appVersion: APP_VERSION || '',
+      counts: {
+        trabalhos: Array.isArray(snapshot.trabalhos) ? snapshot.trabalhos.length : 0,
+        clientes: Array.isArray(snapshot.clientes) ? snapshot.clientes.length : 0,
+        pagamentos: Array.isArray(snapshot.pagamentos) ? snapshot.pagamentos.length : 0
+      },
+      payload: snapshot
+    }, { merge:true });
+    return { ok:true, at:new Date().toISOString() };
+  }catch(err){
+    console.warn('Backup remoto falhou:', err);
+    return { ok:false, reason: err?.code || err?.message || 'remote-failed' };
+  }
+}
+
+async function createProfessionalBackup(options = {}){
+  const silent = !!options.silent;
+  const snapshot = getAppDataSnapshot();
+  const backupId = `backup-${snapshot.dataBackup.replace(/[:.]/g,'-')}`;
+  const meta = getProfessionalBackupMeta();
+  const counts = {
+    trabalhos: Array.isArray(snapshot.trabalhos) ? snapshot.trabalhos.length : 0,
+    clientes: Array.isArray(snapshot.clientes) ? snapshot.clientes.length : 0,
+    pagamentos: Array.isArray(snapshot.pagamentos) ? snapshot.pagamentos.length : 0
+  };
+
+  try{ localStorage.setItem(PROFESSIONAL_BACKUP_KEYS.latest, JSON.stringify(snapshot)); }catch(e){}
+  const history = getProfessionalBackupHistory();
+  history.push({ id: backupId, at: snapshot.dataBackup, counts });
+  while(history.length > 20) history.shift();
+  try{ localStorage.setItem(PROFESSIONAL_BACKUP_KEYS.history, JSON.stringify(history)); }catch(e){}
+
+  const nextMeta = {
+    ...meta,
+    lastBackupAt: snapshot.dataBackup,
+    lastBackupId: backupId,
+    lastBackupCounts: counts,
+    remoteOk: false,
+    remoteAt: ''
+  };
+  setProfessionalBackupMeta(nextMeta);
+
+  const remote = await saveBackupRemote(snapshot, backupId);
+  if(remote.ok){
+    nextMeta.remoteOk = true;
+    nextMeta.remoteAt = remote.at || new Date().toISOString();
+    setProfessionalBackupMeta(nextMeta);
+  }
+
+  refreshBackupStatusUi();
+  if(!silent){
+    const total = counts.trabalhos + counts.clientes + counts.pagamentos;
+    setBackupNotice(remote.ok
+      ? `Backup concluído com sucesso. ${total} registos guardados em Local + Firebase.`
+      : `Backup local concluído. ${total} registos guardados localmente.`
+    , remote.ok ? 'ok' : 'warn');
+  }
+  return { snapshot, remote };
+}
 
 function exportBackupManual(){
-  const data = getAppDataSnapshot();
+  const data = getLatestProfessionalBackup() || getAppDataSnapshot();
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -3627,6 +3774,21 @@ function exportBackupManual(){
     URL.revokeObjectURL(a.href);
     a.remove();
   }, 1500);
+  setBackupNotice('Backup exportado em JSON.', 'ok');
+}
+
+async function createBackupNow(){
+  const btn = document.getElementById('backupCreateNowBtn');
+  if(btn) btn.disabled = true;
+  setBackupNotice('A criar backup...', 'warn');
+  try{
+    await createProfessionalBackup({ silent:false });
+  }catch(err){
+    console.error('Erro ao criar backup manual:', err);
+    setBackupNotice('O backup falhou. Mantive a app intacta.', 'error');
+  }finally{
+    if(btn) btn.disabled = false;
+  }
 }
 
 function recalcLastTrabIdFromList(trabalhosLista){
@@ -3894,74 +4056,30 @@ function importBackupFile(event){
 }
 
 
+
 function runWeeklyAutomaticBackupSilently(){
-  const now = new Date();
-  const todayIso = now.toISOString().split('T')[0];
-  const lastDateIso = localStorage.getItem('dailyAutoBackupLastDate') || localStorage.getItem('weeklyAutoBackupLastDate') || localStorage.getItem('backupFridayDone');
-
-  if(lastDateIso && String(lastDateIso).slice(0,10) === todayIso){
-    refreshBackupStatusUi();
-    try{ updateBackupWeekIndicator(); }catch(e){}
-    return;
-  }
-
-  const snapshot = getAppDataSnapshot();
-  const backups = JSON.parse(localStorage.getItem('dailyAutoBackups') || localStorage.getItem('weeklyAutoBackups') || '[]');
-  backups.push(snapshot);
-  while(backups.length > 30){
-    backups.shift();
-  }
-  localStorage.setItem('dailyAutoBackups', JSON.stringify(backups));
-  localStorage.setItem('dailyAutoBackupLastDate', snapshot.dataBackup || new Date().toISOString());
-  localStorage.setItem('weeklyAutoBackups', JSON.stringify(backups));
-  localStorage.setItem('weeklyAutoBackupLastDate', snapshot.dataBackup || new Date().toISOString());
-  localStorage.setItem('backupFridayDone', todayIso);
-  localStorage.setItem('backupFridayHistory', JSON.stringify(backups));
   refreshBackupStatusUi();
-  try{ updateBackupWeekIndicator(); }catch(e){}
 }
-
-
 
 function downloadLatestWeeklyBackup(){
-  const backups = JSON.parse(localStorage.getItem('dailyAutoBackups') || localStorage.getItem('weeklyAutoBackups') || '[]');
-  if(!backups.length){
-    alert('Sem backups diários.');
-    return;
-  }
-  const latest = backups[backups.length - 1];
-  const stamp = String(latest.dataBackup || new Date().toISOString()).replace(/[:.]/g, '-');
-  const blob = new Blob([JSON.stringify(latest, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `backup-diario-${stamp}.json`;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    URL.revokeObjectURL(a.href);
-    a.remove();
-  }, 1500);
+  exportBackupManual();
 }
 
-
-
 document.addEventListener("DOMContentLoaded", function(){
-
   const page = document.getElementById("configuracoes-page");
   if(!page) return;
-
   if(document.getElementById("backupToolsCard")) return;
 
   const div = document.createElement("div");
   div.id = "backupToolsCard";
   div.innerHTML = `
-    <div class="backups-premium-wrap">
+    <div class="backups-premium-wrap backups-clean-wrap">
       <div class="backups-premium-head">
         <div>
-          <h3>Backups</h3>
-          <p>Proteção automática e recuperação rápida dos dados da app.</p>
+          <h3>Backup limpo e profissional</h3>
+          <p>Crias um backup oficial quando quiseres e vês sempre o estado real dos teus dados.</p>
         </div>
-        <span id="backupModeBadge" class="backups-premium-pill daily">Diário Automático</span>
+        <span id="backupModeBadge" class="backups-premium-pill warn">Local</span>
       </div>
 
       <div class="backups-premium-grid">
@@ -3970,161 +4088,86 @@ document.addEventListener("DOMContentLoaded", function(){
           <span class="value" id="backupLastStatus">--</span>
         </div>
         <div class="backups-premium-stat">
-          <span class="label">Backups guardados</span>
+          <span class="label">Registos no backup</span>
+          <span class="value" id="backupRecordsStatus">0</span>
+        </div>
+        <div class="backups-premium-stat">
+          <span class="label">Histórico guardado</span>
           <span class="value" id="backupCountStatus">0</span>
         </div>
         <div class="backups-premium-stat">
-          <span class="label">Estado do backup</span>
-          <span class="value" id="backupTodayStatus">Pendente</span>
+          <span class="label">Armazenamento</span>
+          <span class="value" id="backupStorageStatus">--</span>
+        </div>
+        <div class="backups-premium-stat">
+          <span class="label">Estado</span>
+          <span class="value" id="backupTodayStatus">Sem backup</span>
+        </div>
+        <div class="backups-premium-stat">
+          <span class="label">Última sync Firebase</span>
+          <span class="value" id="backupRemoteStatus">Não confirmado</span>
         </div>
       </div>
 
-      <div class="backups-premium-actions">
-        <button class="backups-premium-btn export" onclick="exportBackupManual()">Exportar Backup</button>
-        <button class="backups-premium-btn download" onclick="downloadLatestWeeklyBackup()">Download Último</button>
-        <label for="backupImportInputPremium">Importar Backup</label>
-        <input id="backupImportInputPremium" class="backups-hidden-input" type="file" accept=".json,application/json" onchange="importBackupFile(event)">
+      <div class="backup-indicator-card" style="margin-top:14px;">
+        <div class="backup-indicator-head">
+          <div>
+            <h3>Estado do backup</h3>
+            <p id="backupLastSyncText" class="backup-indicator-sub">Ainda não existe backup criado nesta app.</p>
+          </div>
+          <span id="backupIndicatorBadge" class="backup-indicator-badge error">Sem backup válido</span>
+        </div>
+        <div class="backup-indicator-actions">
+          <button id="backupCreateNowBtn" class="backup-indicator-btn primary" onclick="createBackupNow()">Criar Backup Agora</button>
+          <button class="backup-indicator-btn secondary" onclick="exportBackupManual()">Exportar JSON</button>
+          <label class="backup-indicator-btn import" for="backupImportInputPremium">Restaurar Backup</label>
+          <input id="backupImportInputPremium" class="backup-hidden-file" type="file" accept=".json,application/json" onchange="importBackupFile(event)">
+        </div>
+        <div id="backupNotice" class="audit-access-note" style="margin-top:14px;">Sem ações pendentes.</div>
       </div>
     </div>
   `;
 
   page.appendChild(div);
-
-  try{refreshBackupStatusUi();
-  try{ updateBackupWeekIndicator(); }catch(e){}
-  try{fazerBackupSexta();}catch(e){}}catch(e){}
-
+  setBackupNotice('Sem ações pendentes.', 'warn');
+  refreshBackupStatusUi();
 });
 
-
-/* BACKUP AUTOMÁTICO SEXTA-FEIRA */
 function isFriday(){
   return new Date().getDay() === 5;
 }
 
 function getLastBackupDay(){
-  return localStorage.getItem("dailyAutoBackupLastDate") || localStorage.getItem("backupFridayDone");
+  const meta = getProfessionalBackupMeta();
+  return meta.lastBackupAt || '';
 }
 
 function setBackupDoneToday(){
-  const today = new Date().toISOString().split('T')[0];
-  localStorage.setItem("dailyAutoBackupLastDate", today);
-  localStorage.setItem("backupFridayDone", today);
+  const meta = getProfessionalBackupMeta();
+  meta.lastBackupAt = new Date().toISOString();
+  setProfessionalBackupMeta(meta);
 }
-
-
 
 function fazerBackupSexta(){
-  const hoje = new Date().toISOString().split('T')[0];
-  const ultimo = getLastBackupDay();
-
-  if(String(ultimo || '').slice(0,10) === hoje) return;
-
-  const data = {
-    trabalhos: JSON.parse(localStorage.getItem("trabalhos") || localStorage.getItem("ge_trabalhos") || "[]"),
-    clientes: JSON.parse(localStorage.getItem("clientes") || localStorage.getItem("ge_clientes") || "[]"),
-    pagamentos: JSON.parse(localStorage.getItem("pagamentos") || localStorage.getItem("ge_pagamentos") || "[]"),
-    dataBackup: new Date().toISOString()
-  };
-
-  const backups = JSON.parse(localStorage.getItem("dailyAutoBackups") || localStorage.getItem("backupFridayHistory") || "[]");
-  backups.push(data);
-
-  if(backups.length > 30){
-    backups.shift();
-  }
-
-  localStorage.setItem("dailyAutoBackups", JSON.stringify(backups));
-  localStorage.setItem("backupFridayHistory", JSON.stringify(backups));
-
-  setBackupDoneToday();
-
-  mostrarAvisoBackup();
-  refreshBackupStatusUi();
-  try{ updateBackupWeekIndicator(); }catch(e){}
+  return false;
 }
-
 
 function mostrarAvisoBackup(){
-  const aviso = document.createElement("div");
-  aviso.innerHTML = `
-    <div style="
-      position:fixed;
-      bottom:20px;
-      right:20px;
-      background:#1e293b;
-      border:1px solid rgba(255,255,255,0.1);
-      padding:12px 16px;
-      border-radius:12px;
-      z-index:9999;
-      box-shadow:0 10px 20px rgba(0,0,0,0.3);
-      color:white;
-      font-size:13px;
-    ">
-      Backup diário criado ✔
-      <br>
-      <button onclick="exportBackupManual()" style="margin-top:6px">Exportar agora</button>
-    </div>
-  `;
-  document.body.appendChild(aviso);
-
-  setTimeout(()=>aviso.remove(), 6000);
+  refreshBackupStatusUi();
 }
-
 
 function getWeekStart(dateObj){
   const d = new Date(dateObj);
-  const day = d.getDay(); // 0 domingo
+  const day = d.getDay();
   const diff = d.getDate() - day;
   d.setHours(0,0,0,0);
   d.setDate(diff);
   return d;
 }
 
-
 function updateBackupWeekIndicator(){
-  const badge = document.getElementById('backupModeBadge') || document.getElementById('backupWeekBadge');
-  const weekStatus = document.getElementById('backupWeekStatus');
-  const lastStatus = document.getElementById('backupLastStatus');
-  const countStatus = document.getElementById('backupCountStatus');
-  const todayStatus = document.getElementById('backupTodayStatus');
-
-  const backups = JSON.parse(localStorage.getItem('dailyAutoBackups') || localStorage.getItem('backupFridayHistory') || localStorage.getItem('weeklyAutoBackups') || '[]');
-  const lastDateIso = localStorage.getItem('dailyAutoBackupLastDate') || localStorage.getItem('backupFridayDone') || localStorage.getItem('weeklyAutoBackupLastDate') || '';
-  const todayIso = new Date().toISOString().split('T')[0];
-  const hasToday = String(lastDateIso || '').slice(0,10) === todayIso;
-
-  if(lastStatus) lastStatus.textContent = lastDateIso ? fmtDate(lastDateIso) : '--';
-  if(countStatus) countStatus.textContent = String(backups.length);
-
-  if(hasToday){
-    if(todayStatus) todayStatus.textContent = 'Feito hoje';
-    if(weekStatus) weekStatus.textContent = 'Backup diário feito';
-    if(badge){
-      badge.textContent = 'Diário OK';
-      badge.classList.remove('warn','error');
-      badge.classList.add('ok');
-    }
-  }else if(lastDateIso){
-    if(todayStatus) todayStatus.textContent = 'Pendente hoje';
-    if(weekStatus) weekStatus.textContent = 'Falta backup hoje';
-    if(badge){
-      badge.textContent = 'Pendente hoje';
-      badge.classList.remove('ok','error');
-      badge.classList.add('warn');
-    }
-  }else{
-    if(todayStatus) todayStatus.textContent = 'Sem backup';
-    if(weekStatus) weekStatus.textContent = 'Sem backup';
-    if(badge){
-      badge.textContent = 'Sem backup';
-      badge.classList.remove('ok','warn');
-      badge.classList.add('error');
-    }
-  }
+  refreshBackupStatusUi();
 }
-
-
 
 function getReportWorkList(){
   const trabalhosLista = window.trabalhos || (typeof trabalhos !== 'undefined' ? trabalhos : []);
@@ -5498,6 +5541,8 @@ function autoBackupInvisible(){
     pagamentos
   };
   localStorage.setItem('ge_invisible_backup', JSON.stringify(payload));
+  try{ localStorage.setItem(PROFESSIONAL_BACKUP_KEYS.latest, JSON.stringify(payload)); }catch(e){}
+  try{ const meta = getProfessionalBackupMeta(); if(!meta.lastBackupAt){ meta.lastBackupAt = payload.exportadoEm; meta.remoteOk = false; setProfessionalBackupMeta(meta); } }catch(e){}
 }
 function setSyncMessage(msg, level='warn'){
   syncMessage = msg;
@@ -7404,69 +7449,16 @@ function renderCalendario(){
 
 function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
-  const emAndamento = trabalhos.filter(t=>['Em curso','Aguardar peça','Em andamento'].includes(normalizeEstado(t.estado))).length;
+  const emAndamento = trabalhos.filter(t=>['Pendente','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
   const concluidos = trabalhos.filter(t=>['Concluído','Pago','Entregue'].includes(normalizeEstado(t.estado))).length;
-  const totalFaturado = trabalhos.reduce((s,t)=>s+Number(t.valorPago ?? t.valor ?? 0),0);
-  const totalRecebido = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
-
-  const clientMap = {};
-  trabalhos.forEach(t=>{
-    const nome = String(t.cliente||'').trim();
-    if(!nome) return;
-    clientMap[nome] = clientMap[nome] || { faturado:0, pago:0, trabalhos:0 };
-    clientMap[nome].faturado += Number(t.valorPago ?? t.valor ?? 0);
-    clientMap[nome].trabalhos += 1;
-  });
-  pagamentos.forEach(p=>{
-    const nome = String(p.cliente||'').trim();
-    if(!nome) return;
-    clientMap[nome] = clientMap[nome] || { faturado:0, pago:0, trabalhos:0 };
-    clientMap[nome].pago += Number(p.valor||0);
-  });
-
-  const clientEntries = Object.entries(clientMap).map(([nome,info])=>({
-    nome,
-    trabalhos: info.trabalhos || 0,
-    faturado: Number(info.faturado||0),
-    pago: Number(info.pago||0),
-    divida: Math.max(Number(info.faturado||0) - Number(info.pago||0), 0)
-  }));
-  const clientesAtivos = clientEntries.length;
-  const clientesComDivida = clientEntries.filter(c=>c.divida > 0.009);
-  const totalDivida = clientesComDivida.reduce((sum,c)=>sum + c.divida, 0);
-  const topCliente = [...clientEntries].sort((a,b)=>b.faturado-a.faturado)[0] || null;
-
-  const hoje = new Date();
-  const currentMonth = hoje.getMonth();
-  const currentYear = hoje.getFullYear();
-  const recebidoMes = pagamentos.reduce((sum,p)=>{
-    if(!p.data) return sum;
-    const d = new Date(p.data);
-    if(isNaN(d)) return sum;
-    return d.getMonth()===currentMonth && d.getFullYear()===currentYear ? sum + Number(p.valor||0) : sum;
-  },0);
-  const faturadoMes = trabalhos.reduce((sum,t)=>{
-    const sourceDate = t.dataFim || t.dataInicio || '';
-    if(!sourceDate) return sum;
-    const d = new Date(sourceDate);
-    if(isNaN(d)) return sum;
-    return d.getMonth()===currentMonth && d.getFullYear()===currentYear ? sum + Number(t.valorPago ?? t.valor ?? 0) : sum;
-  },0);
+  const totalFaturado = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
+  const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
+  const clientesAtivos = new Set(trabalhos.map(t=>(t.cliente||'').trim()).filter(Boolean)).size;
 
   $('statTotalTrabalhos').textContent = totalTrabalhos;
   $('statEmAndamento').textContent = emAndamento;
   $('statConcluidos').textContent = concluidos;
   $('statTotalFaturado').textContent = euro(totalFaturado);
-  $('statTotalRecebido')?.textContent = euro(totalRecebido);
-  $('statTotalDivida')?.textContent = euro(totalDivida);
-  $('heroMesAtual')?.textContent = euro(recebidoMes);
-
-  const heroSummary = $('dashboardHeroSummary');
-  if(heroSummary){
-    heroSummary.textContent = clientesComDivida.length
-      ? `${clientesComDivida.length} cliente(s) com dívida e ${euro(recebidoMes)} recebidos este mês.`
-      : `Sem dívidas em aberto e ${euro(recebidoMes)} recebidos este mês.`;
-  }
 
   const recentWrap=$('recentTrabalhos');
   recentWrap.innerHTML = !trabalhos.length
@@ -7492,36 +7484,6 @@ function renderDashboard(){
   $('monthlyBars').innerHTML = entries.length
     ? entries.map(([m,v])=>`<div class="bar-row"><span>${m}</span><div class="bar-track"><div class="bar-fill" style="width:${(v/max)*100}%"></div></div><strong>${euro(v)}</strong></div>`).join('')
     : '<div class="recent-item">Sem dados mensais ainda.</div>';
-
-  const kpis = $('empresaKpis');
-  if(kpis){
-    kpis.innerHTML = `
-      <div class="kpi-card info"><span>Recebido este mês</span><strong>${euro(recebidoMes)}</strong><small>Entradas registadas no mês atual.</small></div>
-      <div class="kpi-card ${clientesComDivida.length ? 'warn' : 'good'}"><span>Clientes com dívida</span><strong>${clientesComDivida.length}</strong><small>${clientesComDivida.length ? 'Precisam de seguimento financeiro.' : 'Sem clientes com dívida agora.'}</small></div>
-      <div class="kpi-card good"><span>Clientes ativos</span><strong>${clientesAtivos}</strong><small>Clientes com movimento na app.</small></div>
-      <div class="kpi-card ${emAndamento ? 'danger' : 'good'}"><span>Em curso</span><strong>${emAndamento}</strong><small>${emAndamento ? 'Serviços a acompanhar hoje.' : 'Sem trabalhos abertos no momento.'}</small></div>
-      <div class="kpi-card info"><span>Faturado este mês</span><strong>${euro(faturadoMes)}</strong><small>Valor lançado em trabalhos do mês atual.</small></div>
-    `;
-  }
-
-  const dividaWrap = $('clientesDividaList');
-  if(dividaWrap){
-    const sortedDebt = [...clientesComDivida].sort((a,b)=>b.divida-a.divida).slice(0,5);
-    dividaWrap.innerHTML = sortedDebt.length
-      ? sortedDebt.map(c=>`<div class="recent-item"><strong>${escapeHtml(c.nome)}</strong><div class="recent-meta">${c.trabalhos} trabalho(s) • faturado ${euro(c.faturado)} • pago ${euro(c.pago)}</div><div class="recent-meta"><span class="badge" data-state="Pendente">Dívida ${euro(c.divida)}</span></div></div>`).join('')
-      : '<div class="recent-item">Sem clientes com dívida. Excelente sinal.</div>';
-  }
-
-  const resumoWrap = $('empresaResumoCards');
-  if(resumoWrap){
-    const ticketMedio = totalTrabalhos ? totalFaturado / totalTrabalhos : 0;
-    resumoWrap.innerHTML = `
-      <div class="empresa-summary-item"><span>Top cliente</span><strong>${escapeHtml(topCliente?.nome || 'Sem dados')}</strong><small>${topCliente ? `${topCliente.trabalhos} trabalho(s) • ${euro(topCliente.faturado)} faturados` : 'Ainda sem histórico suficiente.'}</small></div>
-      <div class="empresa-summary-item"><span>Ticket médio</span><strong>${euro(ticketMedio)}</strong><small>Valor médio por trabalho registado.</small></div>
-      <div class="empresa-summary-item"><span>Taxa recebida</span><strong>${totalFaturado ? `${Math.round((totalRecebido/totalFaturado)*100)}%` : '0%'}</strong><small>Percentagem do faturado já recebida.</small></div>
-      <div class="empresa-summary-item"><span>Saldo em aberto</span><strong>${euro(totalDivida)}</strong><small>${clientesComDivida.length ? `${clientesComDivida.length} cliente(s) por regularizar.` : 'Tudo regularizado.'}</small></div>
-    `;
-  }
 
   const chip = document.querySelector('.hero-chip strong');
   if(chip){
