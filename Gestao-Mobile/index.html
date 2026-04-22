@@ -4300,6 +4300,7 @@ import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSn
 
 const APP_VERSION = '1.0.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
+const LOGS_COLLECTION = 'logs';
 
 let currentRole = null, currentUsername = null, currentUserEmail = null;
 let currentDeviceType = 'computador';
@@ -5482,6 +5483,33 @@ async function removeRemote(collectionName, id){
   await ensureFirebaseReady();
   await deleteDoc(doc(firestoreDb, collectionName, id));
   return true;
+}
+
+function getAuditActor(){
+  const email = String(currentUserEmail || firebaseAuth?.currentUser?.email || '').trim().toLowerCase();
+  const nome = String(currentUsername || firebaseAuth?.currentUser?.displayName || '').trim();
+  return { email, nome, role: normalizeRoleValue(currentRole || 'user') };
+}
+async function logAction(action, details = {}){
+  try{
+    await ensureFirebaseReady();
+    const actor = getAuditActor();
+    const payload = {
+      id: genId('log'),
+      action: String(action || 'unknown'),
+      timestamp: new Date().toISOString(),
+      actorEmail: actor.email || '',
+      actorName: actor.nome || '',
+      actorRole: actor.role || 'user',
+      details: JSON.parse(JSON.stringify(details || {})),
+      appVersion: APP_VERSION || ''
+    };
+    await setDoc(doc(firestoreDb, LOGS_COLLECTION, payload.id), payload, { merge:false });
+    return true;
+  }catch(err){
+    console.error('Audit log error:', err);
+    return false;
+  }
 }
 
 
@@ -7226,11 +7254,25 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   }
 
   const i=trabalhos.findIndex(x=>x.id===item.id);
+  const previousItem = i >= 0 ? JSON.parse(JSON.stringify(trabalhos[i])) : null;
+  const actionType = previousItem ? 'update_trabalho' : 'create_trabalho';
   if(i>=0) trabalhos[i]=item; else trabalhos.push(item);
   refreshLastTrabIdFromWorks();
 
   saveLocal();
-  try{ await upsertRemote('trabalhos', item); }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
+  try{
+    await upsertRemote('trabalhos', item);
+    await logAction(actionType, {
+      entity: 'trabalho',
+      trabalhoId: item.id,
+      workCode: item.workCode || '',
+      cliente: item.cliente || '',
+      estado: item.estado || '',
+      valor: Number(item.valor || 0),
+      before: previousItem,
+      after: JSON.parse(JSON.stringify(item))
+    });
+  }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
 
   $('trabalhoForm').reset();
   $('trabalhoId').value='';
@@ -7258,9 +7300,22 @@ $('clienteForm')?.addEventListener('submit', async (e)=>{
   };
   if(!item.nome){ alert('Preenche o nome do cliente.'); return; }
   const i=clientes.findIndex(x=>x.id===item.id);
+  const previousItem = i >= 0 ? JSON.parse(JSON.stringify(clientes[i])) : null;
+  const actionType = previousItem ? 'update_cliente' : 'create_cliente';
   if(i>=0) clientes[i]=item; else clientes.push(item);
   saveLocal();
-  try{ await upsertRemote('clientes', item); }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
+  try{
+    await upsertRemote('clientes', item);
+    await logAction(actionType, {
+      entity: 'cliente',
+      clienteId: item.id,
+      nome: item.nome || '',
+      telefone: item.telefone || '',
+      email: item.email || '',
+      before: previousItem,
+      after: JSON.parse(JSON.stringify(item))
+    });
+  }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
   $('clienteForm').reset();
   $('clienteId').value='';
   renderAll();
@@ -7290,7 +7345,9 @@ window.deleteTrabalho = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este trabalho?')) return;
   try{
+    const deletedItem = trabalhos.find(x=>x.id===id);
     await removeRemote('trabalhos', id);
+    await logAction('delete_trabalho', { entity:'trabalho', trabalhoId:id, deleted: deletedItem ? JSON.parse(JSON.stringify(deletedItem)) : null });
     trabalhos = trabalhos.filter(x=>x.id!==id);
     saveLocal();
     refreshVisibleViews();
@@ -7310,7 +7367,9 @@ window.deleteCliente = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este cliente?')) return;
   try{
+    const deletedItem = clientes.find(x=>x.id===id);
     await removeRemote('clientes', id);
+    await logAction('delete_cliente', { entity:'cliente', clienteId:id, deleted: deletedItem ? JSON.parse(JSON.stringify(deletedItem)) : null });
     clientes = clientes.filter(x=>x.id!==id);
     saveLocal();
     refreshVisibleViews();
@@ -7470,6 +7529,16 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
       upsertRemote('trabalhos', updatedTrabalho),
       upsertRemote('pagamentos', pagamento)
     ]);
+    await logAction(existingPagamento ? 'update_pagamento' : 'create_pagamento', {
+      entity: 'pagamento',
+      pagamentoId: pagamento.id,
+      sourceWorkId: updatedTrabalho.id,
+      cliente: updatedTrabalho.cliente || '',
+      metodo: metodo || '',
+      valor: Number(valorFinal || 0),
+      trabalhoAfter: JSON.parse(JSON.stringify(updatedTrabalho)),
+      pagamentoAfter: JSON.parse(JSON.stringify(pagamento))
+    });
 
     Object.assign(t, updatedTrabalho);
     if(existingPagamento){
@@ -7493,7 +7562,9 @@ window.deletePagamento = async function(id){
   if(!adminGuard()) return;
   if(!confirm('Apagar este registo de pagamento?')) return;
   try{
+    const deletedItem = pagamentos.find(x => x.id === id);
     await removeRemote('pagamentos', id);
+    await logAction('delete_pagamento', { entity:'pagamento', pagamentoId:id, deleted: deletedItem ? JSON.parse(JSON.stringify(deletedItem)) : null });
     pagamentos = pagamentos.filter(x => x.id !== id);
     saveLocal();
     refreshVisibleViews();
@@ -7655,6 +7726,7 @@ $('userManagerForm')?.addEventListener('submit', async (e) => {
 
   try{
     await ensureFirebaseCore();
+    const existingManagedUser = managedUsers.find(user => normalizeRoleEmail(user.email) === email) || null;
     await setDoc(doc(firestoreDb, ROLE_COLLECTION, email), {
       nome,
       displayName: nome,
@@ -7664,6 +7736,17 @@ $('userManagerForm')?.addEventListener('submit', async (e) => {
       mobileMode,
       updatedAt: new Date().toISOString()
     }, { merge:true });
+    await logAction(existingManagedUser ? 'update_user_role' : 'create_user_role', {
+      entity: 'user_role',
+      targetEmail: email,
+      targetName: nome || '',
+      requestedRole,
+      finalRole: role,
+      pcMode,
+      mobileMode,
+      before: existingManagedUser ? JSON.parse(JSON.stringify(existingManagedUser)) : null,
+      after: { email, nome, role, pcMode, mobileMode }
+    });
     await loadManagedUsersFromFirestore();
     $('userManagerForm').reset();
     if($('managedDisplayName')) $('managedDisplayName').value = '';
