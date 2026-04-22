@@ -559,6 +559,23 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .client-summary-card.card-saldo-divida strong,.finance-value.finance-negative{color:#fca5a5}
 .client-summary-card.card-saldo-neutro strong,.finance-value.finance-neutral{color:#fde68a}
 .finance-summary-table td:last-child{font-weight:800}
+.client-finance-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;border:1px solid rgba(255,255,255,.08);letter-spacing:.04em}
+.client-finance-badge .icon{font-size:13px;line-height:1}
+.client-finance-badge.badge-ok{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.26);color:#86efac}
+.client-finance-badge.badge-warn{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.26);color:#fde68a}
+.client-finance-badge.badge-danger{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.26);color:#fca5a5}
+.client-finance-badge.badge-info{background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.24);color:#bfdbfe}
+.finance-summary-table tr td:first-child{color:#cbd4f3}
+.finance-icon-label{display:inline-flex;align-items:center;gap:8px}
+.finance-icon-label .icon{font-size:14px}
+.client-money-positive{color:#86efac;font-weight:800}
+.client-money-negative{color:#fca5a5;font-weight:800}
+.client-money-neutral{color:#fde68a;font-weight:800}
+.client-inline-value{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+.client-inline-value .icon{opacity:.95}
+.client-table-compact td{vertical-align:middle}
+.client-table-compact td strong{font-size:14px}
+
 .autobackup-badge{
   display:inline-flex; padding:8px 12px; border-radius:999px; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.22); color:#86efac; font-size:12px;
 }
@@ -7432,6 +7449,9 @@ window.openClientHistory = function(id){
   const saldoLabel = saldo > 0 ? `+${euro(Math.abs(saldo))}` : (saldo < 0 ? `-${euro(Math.abs(saldo))}` : euro(0));
   const saldoCardClass = saldo > 0 ? 'card-saldo-ok' : (saldo < 0 ? 'card-saldo-divida' : 'card-saldo-neutro');
   const saldoValueClass = saldo > 0 ? 'finance-positive' : (saldo < 0 ? 'finance-negative' : 'finance-neutral');
+  const statusBadgeClass = divida > 0 ? 'badge-danger' : (relatedPagamentos.length ? 'badge-ok' : 'badge-warn');
+  const statusBadgeIcon = divida > 0 ? '⚠️' : (relatedPagamentos.length ? '✅' : '🕒');
+  const saldoIcon = saldo > 0 ? '📈' : (saldo < 0 ? '📉' : '⚖️');
 
   $('clientModalTitle').textContent = `Histórico de ${c.nome || 'Cliente'}`;
   $('clientModalContent').innerHTML = `
@@ -7442,14 +7462,14 @@ window.openClientHistory = function(id){
       <div class="client-summary-card ${saldoCardClass}"><span>Dívida / Saldo</span><strong>${saldoLabel}</strong></div>
     </div>
     <section class="panel">
-      <div class="panel-head"><h3>Resumo financeiro</h3><span class="autobackup-badge">${clientHistoryStatus}</span></div>
+      <div class="panel-head"><h3>Resumo financeiro</h3><span class="client-finance-badge ${statusBadgeClass}"><span class="icon">${statusBadgeIcon}</span>${clientHistoryStatus}</span></div>
       <div class="table-wrap">
         <table class="finance-summary-table">
           <tbody>
-            <tr><td><strong>Total faturado</strong></td><td class="finance-value finance-neutral">${euro(totalTrabalhos)}</td></tr>
-            <tr><td><strong>Total recebido</strong></td><td class="finance-value finance-positive">${euro(totalPagamentos)}</td></tr>
-            <tr><td><strong>Em dívida</strong></td><td class="finance-value ${divida > 0 ? 'finance-negative' : 'finance-neutral'}">${euro(divida)}</td></tr>
-            <tr><td><strong>Saldo</strong></td><td class="finance-value ${saldoValueClass}">${saldoLabel}</td></tr>
+            <tr><td><span class="finance-icon-label"><span class="icon">🧰</span><strong>Total faturado</strong></span></td><td class="finance-value finance-neutral">${euro(totalTrabalhos)}</td></tr>
+            <tr><td><span class="finance-icon-label"><span class="icon">💶</span><strong>Total recebido</strong></span></td><td class="finance-value finance-positive">${euro(totalPagamentos)}</td></tr>
+            <tr><td><span class="finance-icon-label"><span class="icon">🧾</span><strong>Em dívida</strong></span></td><td class="finance-value ${divida > 0 ? 'finance-negative' : 'finance-neutral'}">${euro(divida)}</td></tr>
+            <tr><td><span class="finance-icon-label"><span class="icon">${saldoIcon}</span><strong>Saldo</strong></span></td><td class="finance-value ${saldoValueClass}">${saldoLabel}</td></tr>
           </tbody>
         </table>
       </div>
@@ -7471,10 +7491,10 @@ window.openClientHistory = function(id){
     <section class="panel">
       <div class="panel-head"><h3>Trabalhos do cliente</h3></div>
       <div class="table-wrap">
-        <table>
+        <table class="client-table-compact">
           <thead><tr><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th></tr></thead>
           <tbody>
-            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></td></tr>`).join('') : '<tr><td colspan="5">Sem trabalhos registados.</td></tr>'}
+            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td><strong>🔧 ${escapeHtml(t.tipoTrabalho||'-')}</strong></td><td><span class="client-inline-value ${Number(t.valorPago ?? t.valor ?? 0) > 0 ? 'client-money-positive' : 'client-money-neutral'}"><span class="icon">💰</span>${euro(t.valorPago ?? t.valor ?? 0)}</span></td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></td></tr>`).join('') : '<tr><td colspan="5">Sem trabalhos registados.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -7482,10 +7502,10 @@ window.openClientHistory = function(id){
     <section class="panel">
       <div class="panel-head"><h3>Pagamentos do cliente</h3></div>
       <div class="table-wrap">
-        <table>
+        <table class="client-table-compact">
           <thead><tr><th>Referência</th><th>Valor</th><th>Data</th><th>Método</th></tr></thead>
           <tbody>
-            ${relatedPagamentos.length ? relatedPagamentos.slice().reverse().map(p=>`<tr><td>${escapeHtml(p.referencia||'-')}</td><td>${euro(p.valor||0)}</td><td>${fmtDate(p.data)}</td><td>${escapeHtml(p.metodo||'-')}</td></tr>`).join('') : '<tr><td colspan="4">Sem pagamentos registados.</td></tr>'}
+            ${relatedPagamentos.length ? relatedPagamentos.slice().reverse().map(p=>`<tr><td><strong>💶 ${escapeHtml(p.referencia||'-')}</strong></td><td><span class="client-inline-value client-money-positive"><span class="icon">✅</span>${euro(p.valor||0)}</span></td><td>${fmtDate(p.data)}</td><td>${escapeHtml(p.metodo||'-')}</td></tr>`).join('') : '<tr><td colspan="4">Sem pagamentos registados.</td></tr>'}
           </tbody>
         </table>
       </div>
