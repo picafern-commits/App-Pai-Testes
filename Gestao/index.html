@@ -546,6 +546,19 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 .client-summary-card{padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05)}
 .client-summary-card span{display:block;color:#9fabca;font-size:12px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
 .client-summary-card strong{font-size:28px}
+.client-summary-card.card-total{background:linear-gradient(180deg,rgba(111,92,255,.14),rgba(255,255,255,.03));border-color:rgba(111,92,255,.24)}
+.client-summary-card.card-faturado{background:linear-gradient(180deg,rgba(36,200,255,.14),rgba(255,255,255,.03));border-color:rgba(36,200,255,.24)}
+.client-summary-card.card-pago{background:linear-gradient(180deg,rgba(34,197,94,.14),rgba(255,255,255,.03));border-color:rgba(34,197,94,.24)}
+.client-summary-card.card-saldo-ok{background:linear-gradient(180deg,rgba(34,197,94,.16),rgba(255,255,255,.03));border-color:rgba(34,197,94,.26)}
+.client-summary-card.card-saldo-divida{background:linear-gradient(180deg,rgba(239,68,68,.16),rgba(255,255,255,.03));border-color:rgba(239,68,68,.26)}
+.client-summary-card.card-saldo-neutro{background:linear-gradient(180deg,rgba(245,158,11,.15),rgba(255,255,255,.03));border-color:rgba(245,158,11,.24)}
+.client-summary-card.card-pago strong,.finance-value.finance-positive{color:#86efac}
+.client-summary-card.card-faturado strong{color:#7dd3fc}
+.client-summary-card.card-total strong{color:#c4b5fd}
+.client-summary-card.card-saldo-ok strong{color:#86efac}
+.client-summary-card.card-saldo-divida strong,.finance-value.finance-negative{color:#fca5a5}
+.client-summary-card.card-saldo-neutro strong,.finance-value.finance-neutral{color:#fde68a}
+.finance-summary-table td:last-child{font-weight:800}
 .autobackup-badge{
   display:inline-flex; padding:8px 12px; border-radius:999px; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.22); color:#86efac; font-size:12px;
 }
@@ -7416,24 +7429,27 @@ window.openClientHistory = function(id){
   const saldo = totalPagamentos - totalTrabalhos;
   const divida = Math.max(totalTrabalhos - totalPagamentos, 0);
   const clientHistoryStatus = divida > 0 ? 'Com dívida' : (relatedPagamentos.length ? 'Saldo regularizado' : 'Sem pagamentos');
+  const saldoLabel = saldo > 0 ? `+${euro(Math.abs(saldo))}` : (saldo < 0 ? `-${euro(Math.abs(saldo))}` : euro(0));
+  const saldoCardClass = saldo > 0 ? 'card-saldo-ok' : (saldo < 0 ? 'card-saldo-divida' : 'card-saldo-neutro');
+  const saldoValueClass = saldo > 0 ? 'finance-positive' : (saldo < 0 ? 'finance-negative' : 'finance-neutral');
 
   $('clientModalTitle').textContent = `Histórico de ${c.nome || 'Cliente'}`;
   $('clientModalContent').innerHTML = `
     <div class="client-summary-grid">
-      <div class="client-summary-card"><span>Total trabalhos</span><strong>${relatedTrabalhos.length}</strong></div>
-      <div class="client-summary-card"><span>Total faturado</span><strong>${euro(totalTrabalhos)}</strong></div>
-      <div class="client-summary-card"><span>Total pago</span><strong>${euro(totalPagamentos)}</strong></div>
-      <div class="client-summary-card"><span>Dívida / Saldo</span><strong>${saldo >= 0 ? '+' : '-'}${euro(Math.abs(saldo))}</strong></div>
+      <div class="client-summary-card card-total"><span>Total trabalhos</span><strong>${relatedTrabalhos.length}</strong></div>
+      <div class="client-summary-card card-faturado"><span>Total faturado</span><strong>${euro(totalTrabalhos)}</strong></div>
+      <div class="client-summary-card card-pago"><span>Total pago</span><strong>${euro(totalPagamentos)}</strong></div>
+      <div class="client-summary-card ${saldoCardClass}"><span>Dívida / Saldo</span><strong>${saldoLabel}</strong></div>
     </div>
     <section class="panel">
       <div class="panel-head"><h3>Resumo financeiro</h3><span class="autobackup-badge">${clientHistoryStatus}</span></div>
       <div class="table-wrap">
-        <table>
+        <table class="finance-summary-table">
           <tbody>
-            <tr><td><strong>Total faturado</strong></td><td>${euro(totalTrabalhos)}</td></tr>
-            <tr><td><strong>Total recebido</strong></td><td>${euro(totalPagamentos)}</td></tr>
-            <tr><td><strong>Em dívida</strong></td><td>${euro(divida)}</td></tr>
-            <tr><td><strong>Saldo</strong></td><td>${saldo >= 0 ? '+' : '-'}${euro(Math.abs(saldo))}</td></tr>
+            <tr><td><strong>Total faturado</strong></td><td class="finance-value finance-neutral">${euro(totalTrabalhos)}</td></tr>
+            <tr><td><strong>Total recebido</strong></td><td class="finance-value finance-positive">${euro(totalPagamentos)}</td></tr>
+            <tr><td><strong>Em dívida</strong></td><td class="finance-value ${divida > 0 ? 'finance-negative' : 'finance-neutral'}">${euro(divida)}</td></tr>
+            <tr><td><strong>Saldo</strong></td><td class="finance-value ${saldoValueClass}">${saldoLabel}</td></tr>
           </tbody>
         </table>
       </div>
