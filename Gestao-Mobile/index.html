@@ -3232,15 +3232,15 @@ td.acoes-col, .acoes-col{
 const loginForm = document.getElementById('loginForm');
 
 function showApp(){
-  document.getElementById('loginScreen')?.classList.add('hidden');
+  document.getElementById('loginScreen')?.classList.remove('hidden');
   document.getElementById('appRoot')?.classList.remove('hidden');
   document.getElementById('onlineUsersWidget')?.classList.remove('hidden');
 }
 
 function showLogin(){
   document.getElementById('loginScreen')?.classList.remove('hidden');
-  document.getElementById('appRoot')?.classList.add('hidden');
-  document.getElementById('onlineUsersWidget')?.classList.add('hidden');
+  document.getElementById('appRoot')?.classList.remove('hidden');
+  document.getElementById('onlineUsersWidget')?.classList.remove('hidden');
 }
 
 window.showApp = showApp;
@@ -3298,7 +3298,7 @@ function legacy_openPaymentMethodModal(id){
 function legacy_closePaymentMethodModal(){
   const modal = document.getElementById('paymentMethodModal');
   if(!modal) return;
-  modal.style.display = 'none';
+  modal.style.display = '';
   modal.classList.remove('show');
 }
 
@@ -7293,8 +7293,8 @@ window.deleteCliente = async function(id){
 };
 
 const clientModal = $('clientModal');
-$('closeClientModal').addEventListener('click', ()=> clientModal.classList.add('hidden'));
-clientModal.addEventListener('click', (e)=>{ if(e.target === clientModal) clientModal.classList.add('hidden'); });
+$('closeClientModal').addEventListener('click', ()=> clientModal.classList.remove('hidden'));
+clientModal.addEventListener('click', (e)=>{ if(e.target === clientModal) clientModal.classList.remove('hidden'); });
 
 window.openClientHistory = function(id){
   const c = clientes.find(x=>x.id===id);
@@ -7485,8 +7485,8 @@ window.showDesc = function(id){
   $('descModal').classList.remove('hidden');
 };
 
-$('closeDescModal')?.addEventListener('click', ()=> $('descModal').classList.add('hidden'));
-$('descModal')?.addEventListener('click', (e)=>{ if(e.target.id === 'descModal') $('descModal').classList.add('hidden'); });
+$('closeDescModal')?.addEventListener('click', ()=> $('descModal').classList.remove('hidden'));
+$('descModal')?.addEventListener('click', (e)=>{ if(e.target.id === 'descModal') $('descModal').classList.remove('hidden'); });
 
 let pendingPaymentWorkId = null;
 let selectedPaymentMethod = '';
@@ -7503,9 +7503,9 @@ function resetPaymentModalState(){
 function hidePaymentModal(){
   const modal = $('paymentMethodModal');
   if(!modal) return;
-  modal.classList.add('hidden');
+  modal.classList.remove('hidden');
   modal.classList.remove('show');
-  modal.style.display = 'none';
+  modal.style.display = '';
 }
 
 function showPaymentModal(){
@@ -7767,7 +7767,7 @@ function legacy2_openPaymentMethodModal(id){
 function legacy2_closePaymentMethodModal(){
   const modal = document.getElementById('paymentMethodModal');
   if(!modal) return;
-  modal.style.display = 'none';
+  modal.style.display = '';
   modal.classList.remove('show');
 }
 
