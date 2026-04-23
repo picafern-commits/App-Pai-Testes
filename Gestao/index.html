@@ -2642,6 +2642,7 @@ td.acoes-col, .acoes-col{
 .table-sort-btn{background:none;border:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0}
 .table-sort-btn span{opacity:.8}
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
@@ -2792,6 +2793,21 @@ td.acoes-col, .acoes-col{
             <div id="monthlyBars" class="bars"></div>
           </section>
         </div>
+
+        <section class="panel">
+          <div class="panel-head"><h3>Gráficos Empresa</h3></div>
+          <div class="report-grid">
+            <div class="panel" style="background:rgba(255,255,255,.03)">
+              <div class="panel-head"><h3>Faturação por mês</h3></div>
+              <canvas id="graficoFaturacaoMensal" height="120"></canvas>
+            </div>
+            <div class="panel" style="background:rgba(255,255,255,.03)">
+              <div class="panel-head"><h3>Recebido vs Dívida</h3></div>
+              <canvas id="graficoResumoFinanceiro" height="120"></canvas>
+            </div>
+          </div>
+        </section>
+
       </section>
 
       
@@ -7445,6 +7461,85 @@ function renderDashboard(){
   if(chip){
     chip.textContent = totalTrabalhos ? 'Empresa Ativa' : 'Online';
     chip.className = totalTrabalhos ? 'status-ok' : 'status-warn';
+  }
+  renderDashboardCharts();
+}
+
+
+
+let dashboardCharts = { faturacao:null, resumo:null };
+
+function buildDashboardChartData(){
+  const trabalhosLista = Array.isArray(trabalhos) ? trabalhos : [];
+  const pagamentosLista = Array.isArray(pagamentos) ? pagamentos : [];
+  const monthLabels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const monthValues = Array(12).fill(0);
+
+  trabalhosLista.forEach(t => {
+    const rawDate = t.dataInicio || t.data || t.dataFim || t.dataPagamento || '';
+    if(!rawDate) return;
+    const d = new Date(rawDate);
+    if(Number.isNaN(d.getTime())) return;
+    monthValues[d.getMonth()] += Number(t.valor || t.valorPago || 0) || 0;
+  });
+
+  const totalFaturado = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
+  const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
+  const totalDivida = Math.max(totalFaturado - totalRecebido, 0);
+
+  return { monthLabels, monthValues, totalRecebido, totalDivida };
+}
+
+function destroyDashboardCharts(){
+  try{ if(dashboardCharts.faturacao){ dashboardCharts.faturacao.destroy(); dashboardCharts.faturacao = null; } }catch(e){}
+  try{ if(dashboardCharts.resumo){ dashboardCharts.resumo.destroy(); dashboardCharts.resumo = null; } }catch(e){}
+}
+
+function renderDashboardCharts(){
+  try{
+    if(typeof Chart === 'undefined') return;
+    const faturacaoCanvas = document.getElementById('graficoFaturacaoMensal');
+    const resumoCanvas = document.getElementById('graficoResumoFinanceiro');
+    if(!faturacaoCanvas || !resumoCanvas) return;
+
+    const { monthLabels, monthValues, totalRecebido, totalDivida } = buildDashboardChartData();
+    destroyDashboardCharts();
+
+    dashboardCharts.faturacao = new Chart(faturacaoCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: monthLabels,
+        datasets: [{
+          label: 'Faturação (€)',
+          data: monthValues
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true } },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    dashboardCharts.resumo = new Chart(resumoCanvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Recebido', 'Em dívida'],
+        datasets: [{
+          data: [totalRecebido, totalDivida]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true } }
+      }
+    });
+  }catch(err){
+    console.warn('Falha ao renderizar gráficos do dashboard:', err);
   }
 }
 
