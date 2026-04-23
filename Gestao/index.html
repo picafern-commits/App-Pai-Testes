@@ -2641,18 +2641,17 @@ td.acoes-col, .acoes-col{
 
 .table-sort-btn{background:none;border:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0}
 .table-sort-btn span{opacity:.8}
-
-.firebase-backups-panel{margin-top:16px;padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
-.firebase-backups-list{display:grid;gap:10px;max-height:260px;overflow:auto;margin-top:12px}
-.firebase-backup-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
-.firebase-backup-meta{display:grid;gap:4px}
-.firebase-backup-meta strong{font-size:14px}
-.firebase-backup-meta span{font-size:12px;color:var(--muted)}
-.firebase-backup-actions{display:flex;gap:8px;flex-wrap:wrap}
-.firebase-backup-preview{margin-top:12px;padding:14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
-
 </style>
   
+
+<style>
+@media (max-width: 900px){
+  .bottom-nav{
+    display:none !important;
+  }
+}
+</style>
+
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
@@ -4097,7 +4096,16 @@ function buildProfessionalReportHtml(){
 }
 
 </style>
-    </head>
+    
+<style>
+@media (max-width: 900px){
+  .bottom-nav{
+    display:none !important;
+  }
+}
+</style>
+
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
@@ -4511,160 +4519,7 @@ function printProfessionalReport(){
     if(typeof importBackupFile === 'function') return importBackupFile(event);
   }
 
-  
-  function getFirebaseBackupSnapshotData(raw){
-    if(!raw || typeof raw !== 'object') return { trabalhos:[], clientes:[], pagamentos:[], ts:'' };
-    const snapshot = raw.snapshot && typeof raw.snapshot === 'object' ? raw.snapshot : raw;
-    return {
-      trabalhos: Array.isArray(snapshot.trabalhos) ? snapshot.trabalhos : [],
-      clientes: Array.isArray(snapshot.clientes) ? snapshot.clientes : [],
-      pagamentos: Array.isArray(snapshot.pagamentos) ? snapshot.pagamentos : [],
-      ts: snapshot.dataBackup || raw.createdAt || raw.ts || ''
-    };
-  }
-
-  async function loadFirebaseBackupsList(forceOpen = false){
-    const panel = document.getElementById('firebaseBackupsPanelClean');
-    const list = document.getElementById('firebaseBackupsListClean');
-    const preview = document.getElementById('firebaseBackupPreviewClean');
-    if(forceOpen && panel) panel.classList.remove('hidden');
-    if(list) list.innerHTML = '<div class="settings-help">A carregar backups Firebase...</div>';
-    if(preview){ preview.classList.add('hidden'); preview.innerHTML = ''; }
-    try{
-      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
-      if(typeof ensureReady === 'function') await ensureReady();
-      const db = window.firestoreDb;
-      const getDocsFn = window.getDocs;
-      const collectionFn = window.collection;
-      if(!db || typeof getDocsFn !== 'function' || typeof collectionFn !== 'function'){
-        if(list) list.innerHTML = '<div class="settings-help">Firebase indisponível.</div>';
-        return;
-      }
-      const snap = await getDocsFn(collectionFn(db, 'app_backups'));
-      const rows = [];
-      (snap.docs || []).forEach(docSnap => {
-        rows.push({ id: docSnap.id, ...(docSnap.data() || {}) });
-      });
-      rows.sort((a,b) => {
-        const da = new Date((a.createdAt || a.ts || a.dateKey || a.id || '')).getTime() || 0;
-        const dbv = new Date((b.createdAt || b.ts || b.dateKey || b.id || '')).getTime() || 0;
-        return dbv - da;
-      });
-      if(!rows.length){
-        if(list) list.innerHTML = '<div class="settings-help">Ainda não existem backups na Firebase.</div>';
-        return;
-      }
-      if(list){
-        list.innerHTML = rows.map(item => {
-          const snapData = getFirebaseBackupSnapshotData(item);
-          const total = snapData.trabalhos.length + snapData.clientes.length + snapData.pagamentos.length;
-          const when = formatBackupDateSafe(item.createdAt || snapData.ts || item.dateKey || item.id);
-          return `<div class="firebase-backup-item">
-            <div class="firebase-backup-meta">
-              <strong>${when}</strong>
-              <span>${total} registos • Trabalhos ${snapData.trabalhos.length} • Clientes ${snapData.clientes.length} • Pagamentos ${snapData.pagamentos.length}</span>
-            </div>
-            <div class="firebase-backup-actions">
-              <button class="small-btn" type="button" onclick="previewFirebaseBackupClean('${item.id.replace(/'/g,"&#39;")}')">Ver</button>
-              <button class="small-btn" type="button" onclick="restoreFirebaseBackupClean('${item.id.replace(/'/g,"&#39;")}')">Restaurar</button>
-            </div>
-          </div>`;
-        }).join('');
-      }
-    }catch(err){
-      console.error('Erro ao carregar backups Firebase:', err);
-      if(list) list.innerHTML = '<div class="settings-help">Falha ao ler backups Firebase.</div>';
-    }
-  }
-
-  async function previewFirebaseBackupClean(id){
-    const preview = document.getElementById('firebaseBackupPreviewClean');
-    if(!preview) return;
-    preview.classList.remove('hidden');
-    preview.innerHTML = 'A carregar preview...';
-    try{
-      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
-      if(typeof ensureReady === 'function') await ensureReady();
-      const db = window.firestoreDb;
-      const getDocFn = window.getDoc;
-      const docFn = window.doc;
-      if(!db || typeof getDocFn !== 'function' || typeof docFn !== 'function'){
-        preview.innerHTML = 'Firebase indisponível.';
-        return;
-      }
-      const snap = await getDocFn(docFn(db, 'app_backups', id));
-      if(!snap.exists()){
-        preview.innerHTML = 'Backup não encontrado.';
-        return;
-      }
-      const raw = snap.data() || {};
-      const data = getFirebaseBackupSnapshotData(raw);
-      preview.innerHTML = `
-        <div><strong>Backup:</strong> ${id}</div>
-        <div><strong>Data:</strong> ${formatBackupDateSafe(raw.createdAt || data.ts || raw.dateKey || id)}</div>
-        <div><strong>Trabalhos:</strong> ${data.trabalhos.length}</div>
-        <div><strong>Clientes:</strong> ${data.clientes.length}</div>
-        <div><strong>Pagamentos:</strong> ${data.pagamentos.length}</div>
-        <div style="margin-top:10px"><button class="backups-premium-btn" type="button" onclick="restoreFirebaseBackupClean('${id.replace(/'/g,"&#39;")}')">Restaurar este backup</button></div>
-      `;
-    }catch(err){
-      console.error('Erro preview backup Firebase:', err);
-      preview.innerHTML = 'Falha ao abrir preview do backup.';
-    }
-  }
-
-  async function restoreFirebaseBackupClean(id){
-    try{
-      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
-      if(typeof ensureReady === 'function') await ensureReady();
-      const db = window.firestoreDb;
-      const getDocFn = window.getDoc;
-      const docFn = window.doc;
-      if(!db || typeof getDocFn !== 'function' || typeof docFn !== 'function'){
-        alert('Firebase indisponível.');
-        return;
-      }
-      const snap = await getDocFn(docFn(db, 'app_backups', id));
-      if(!snap.exists()){
-        alert('Backup não encontrado.');
-        return;
-      }
-      const raw = snap.data() || {};
-      const data = getFirebaseBackupSnapshotData(raw);
-      if(!confirm(`Restaurar o backup ${id}? Isto vai substituir os dados atuais.`)) return;
-
-      const currentSnapshot = (typeof getAppDataSnapshot === 'function') ? getAppDataSnapshot() : {
-        trabalhos: JSON.parse(localStorage.getItem('trabalhos') || localStorage.getItem('ge_trabalhos') || '[]'),
-        clientes: JSON.parse(localStorage.getItem('clientes') || localStorage.getItem('ge_clientes') || '[]'),
-        pagamentos: JSON.parse(localStorage.getItem('pagamentos') || localStorage.getItem('ge_pagamentos') || '[]'),
-        dataBackup: new Date().toISOString(),
-        versao: 'pre-restore-guard'
-      };
-      localStorage.setItem('backup_restore_guard_snapshot', JSON.stringify(currentSnapshot));
-
-      localStorage.setItem('trabalhos', JSON.stringify(data.trabalhos));
-      localStorage.setItem('clientes', JSON.stringify(data.clientes));
-      localStorage.setItem('pagamentos', JSON.stringify(data.pagamentos));
-      localStorage.setItem('ge_trabalhos', JSON.stringify(data.trabalhos));
-      localStorage.setItem('ge_clientes', JSON.stringify(data.clientes));
-      localStorage.setItem('ge_pagamentos', JSON.stringify(data.pagamentos));
-      setBackupBanner(`Backup Firebase ${id} restaurado.`, 'ok');
-      setTimeout(() => location.reload(), 500);
-    }catch(err){
-      console.error('Erro ao restaurar backup Firebase:', err);
-      alert('Falha ao restaurar backup Firebase.');
-    }
-  }
-
-  function toggleFirebaseBackupsPanel(){
-    const panel = document.getElementById('firebaseBackupsPanelClean');
-    if(!panel) return;
-    const hidden = panel.classList.contains('hidden');
-    panel.classList.toggle('hidden');
-    if(hidden) loadFirebaseBackupsList(true);
-  }
-
-function installCleanBackupPanel(){
+  function installCleanBackupPanel(){
     const page = document.getElementById('configuracoes-page');
     if(!page) return;
     let card = document.getElementById('backupToolsCard');
@@ -4699,33 +4554,20 @@ function installCleanBackupPanel(){
           <button id="backupCreateBtnClean" class="backups-premium-btn export" type="button">Criar Backup Agora</button>
           <button id="backupExportBtnClean" class="backups-premium-btn download" type="button">Exportar JSON</button>
           <button id="backupRestoreBtnClean" class="backups-premium-btn" type="button">Restaurar Backup</button>
-          <button id="backupFirebaseListBtnClean" class="backups-premium-btn" type="button">Ver backups Firebase</button>
           <button id="backupCloudNowBtnClean" class="backups-premium-btn" type="button">Enviar Cloud Agora</button>
           <input id="${BACKUP_FILE_INPUT_ID}" class="backups-hidden-input" type="file" accept=".json,application/json">
         </div>
         <div id="backupCleanMessage" class="settings-help">Ainda não existe backup criado nesta app.</div>
-        <div id="firebaseBackupsPanelClean" class="firebase-backups-panel hidden">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-            <h4 style="margin:0">Backups Firebase</h4>
-            <button id="backupFirebaseRefreshBtnClean" class="backups-premium-btn" type="button">Atualizar lista</button>
-          </div>
-          <div id="firebaseBackupsListClean" class="firebase-backups-list"></div>
-          <div id="firebaseBackupPreviewClean" class="firebase-backup-preview hidden"></div>
-        </div>
       </div>`;
 
     const createBtn = document.getElementById('backupCreateBtnClean');
     const exportBtn = document.getElementById('backupExportBtnClean');
     const restoreBtn = document.getElementById('backupRestoreBtnClean');
-    const firebaseListBtn = document.getElementById('backupFirebaseListBtnClean');
-    const firebaseRefreshBtn = document.getElementById('backupFirebaseRefreshBtnClean');
     const fileInput = document.getElementById(BACKUP_FILE_INPUT_ID);
     const cloudNowBtn = document.getElementById('backupCloudNowBtnClean');
     if(createBtn) createBtn.onclick = createOfficialBackupNow;
     if(exportBtn) exportBtn.onclick = exportOfficialBackupJson;
     if(restoreBtn) restoreBtn.onclick = openRestoreBackupPicker;
-    if(firebaseListBtn) firebaseListBtn.onclick = toggleFirebaseBackupsPanel;
-    if(firebaseRefreshBtn) firebaseRefreshBtn.onclick = () => loadFirebaseBackupsList(true);
     if(cloudNowBtn) cloudNowBtn.onclick = () => createDailyCloudBackupIfDue(true);
     if(fileInput) fileInput.onchange = handleCleanBackupImport;
     renderCleanBackupStatus();
@@ -4736,10 +4578,6 @@ function installCleanBackupPanel(){
   window.exportOfficialBackupJson = exportOfficialBackupJson;
   window.openRestoreBackupPicker = openRestoreBackupPicker;
   window.handleCleanBackupImport = handleCleanBackupImport;
-  window.toggleFirebaseBackupsPanel = toggleFirebaseBackupsPanel;
-  window.loadFirebaseBackupsList = loadFirebaseBackupsList;
-  window.previewFirebaseBackupClean = previewFirebaseBackupClean;
-  window.restoreFirebaseBackupClean = restoreFirebaseBackupClean;
   window.refreshBackupStatusUi = renderCleanBackupStatus;
   window.updateBackupWeekIndicator = function(){};
   window.fazerBackupSexta = function(){};
@@ -4922,7 +4760,6 @@ async function ensureFirebaseCore(){
     window.ensureFirebaseCore = ensureFirebaseCore;
     window.onAuthStateChanged = onAuthStateChanged;
     window.getDocs = getDocs;
-    window.getDoc = getDoc;
     window.collection = collection;
     window.writeBatch = writeBatch;
     window.doc = doc;
@@ -7464,7 +7301,16 @@ td.acoes-col, .acoes-col{
   .online-users-list{padding:10px;max-height:280px;}
 }
 
-</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</style>
+<style>
+@media (max-width: 900px){
+  .bottom-nav{
+    display:none !important;
+  }
+}
+</style>
+
+</head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -9105,7 +8951,16 @@ function buildProfessionalReportHtml(){
 }
 
 </style>
-    </head>
+    
+<style>
+@media (max-width: 900px){
+  .bottom-nav{
+    display:none !important;
+  }
+}
+</style>
+
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
