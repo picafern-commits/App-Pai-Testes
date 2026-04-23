@@ -2644,16 +2644,22 @@ td.acoes-col, .acoes-col{
 </style>
   
 
-<style>
+<style id="android-sidebar-fix">
 @media (max-width: 900px){
-  .bottom-nav{
-    display:none !important;
-  }
+  .bottom-nav{display:none !important;}
+  .mobile-menu-btn{display:inline-flex !important; align-items:center; justify-content:center;}
+  .sidebar{position:fixed !important; left:0; top:0; bottom:0; width:min(82vw,320px) !important; height:100dvh !important; z-index:1200; transform:translateX(-105%); transition:transform .25s ease; overflow-y:auto;}
+  .sidebar.open{transform:translateX(0);} 
+  .mobile-sidebar-backdrop{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1100;}
+  .mobile-sidebar-backdrop.open{display:block;}
+  .app-shell{display:block !important;}
+  .main{width:100% !important; padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important;}
 }
 </style>
 
 </head>
 <body>
+<div id="mobileSidebarBackdrop" class="mobile-sidebar-backdrop"></div>
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
       <div class="login-brand">
@@ -4097,11 +4103,16 @@ function buildProfessionalReportHtml(){
 
 </style>
     
-<style>
+<style id="android-sidebar-fix">
 @media (max-width: 900px){
-  .bottom-nav{
-    display:none !important;
-  }
+  .bottom-nav{display:none !important;}
+  .mobile-menu-btn{display:inline-flex !important; align-items:center; justify-content:center;}
+  .sidebar{position:fixed !important; left:0; top:0; bottom:0; width:min(82vw,320px) !important; height:100dvh !important; z-index:1200; transform:translateX(-105%); transition:transform .25s ease; overflow-y:auto;}
+  .sidebar.open{transform:translateX(0);} 
+  .mobile-sidebar-backdrop{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1100;}
+  .mobile-sidebar-backdrop.open{display:block;}
+  .app-shell{display:block !important;}
+  .main{width:100% !important; padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important;}
 }
 </style>
 
@@ -4138,7 +4149,26 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script id="android-sidebar-fix-js">
+(function(){
+  function setupAndroidSidebar(){
+    const btn=document.getElementById('mobileMenuBtn');
+    const sidebar=document.querySelector('.sidebar');
+    const backdrop=document.getElementById('mobileSidebarBackdrop');
+    if(!btn || !sidebar || !backdrop) return;
+    const closeSidebar=()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('open'); document.body.classList.remove('sidebar-open'); };
+    const openSidebar=()=>{ sidebar.classList.add('open'); backdrop.classList.add('open'); document.body.classList.add('sidebar-open'); };
+    btn.addEventListener('click', function(e){ e.preventDefault(); sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); });
+    backdrop.addEventListener('click', closeSidebar);
+    sidebar.querySelectorAll('button,a').forEach(el=>el.addEventListener('click', ()=>{ if(window.innerWidth<=900) setTimeout(closeSidebar, 50); }));
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', setupAndroidSidebar); }
+  else{ setupAndroidSidebar(); }
+})();
+</script>
+
+</body>
   </html>`;
 }
 
@@ -7302,15 +7332,39 @@ td.acoes-col, .acoes-col{
 }
 
 </style>
-<style>
+<style id="android-sidebar-fix">
 @media (max-width: 900px){
-  .bottom-nav{
-    display:none !important;
-  }
+  .bottom-nav{display:none !important;}
+  .mobile-menu-btn{display:inline-flex !important; align-items:center; justify-content:center;}
+  .sidebar{position:fixed !important; left:0; top:0; bottom:0; width:min(82vw,320px) !important; height:100dvh !important; z-index:1200; transform:translateX(-105%); transition:transform .25s ease; overflow-y:auto;}
+  .sidebar.open{transform:translateX(0);} 
+  .mobile-sidebar-backdrop{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1100;}
+  .mobile-sidebar-backdrop.open{display:block;}
+  .app-shell{display:block !important;}
+  .main{width:100% !important; padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important;}
 }
 </style>
 
-</head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</head><body>${bodyHtml}
+<script id="android-sidebar-fix-js">
+(function(){
+  function setupAndroidSidebar(){
+    const btn=document.getElementById('mobileMenuBtn');
+    const sidebar=document.querySelector('.sidebar');
+    const backdrop=document.getElementById('mobileSidebarBackdrop');
+    if(!btn || !sidebar || !backdrop) return;
+    const closeSidebar=()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('open'); document.body.classList.remove('sidebar-open'); };
+    const openSidebar=()=>{ sidebar.classList.add('open'); backdrop.classList.add('open'); document.body.classList.add('sidebar-open'); };
+    btn.addEventListener('click', function(e){ e.preventDefault(); sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); });
+    backdrop.addEventListener('click', closeSidebar);
+    sidebar.querySelectorAll('button,a').forEach(el=>el.addEventListener('click', ()=>{ if(window.innerWidth<=900) setTimeout(closeSidebar, 50); }));
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', setupAndroidSidebar); }
+  else{ setupAndroidSidebar(); }
+})();
+</script>
+
+</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -8952,11 +9006,16 @@ function buildProfessionalReportHtml(){
 
 </style>
     
-<style>
+<style id="android-sidebar-fix">
 @media (max-width: 900px){
-  .bottom-nav{
-    display:none !important;
-  }
+  .bottom-nav{display:none !important;}
+  .mobile-menu-btn{display:inline-flex !important; align-items:center; justify-content:center;}
+  .sidebar{position:fixed !important; left:0; top:0; bottom:0; width:min(82vw,320px) !important; height:100dvh !important; z-index:1200; transform:translateX(-105%); transition:transform .25s ease; overflow-y:auto;}
+  .sidebar.open{transform:translateX(0);} 
+  .mobile-sidebar-backdrop{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1100;}
+  .mobile-sidebar-backdrop.open{display:block;}
+  .app-shell{display:block !important;}
+  .main{width:100% !important; padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important;}
 }
 </style>
 
@@ -8993,7 +9052,26 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script id="android-sidebar-fix-js">
+(function(){
+  function setupAndroidSidebar(){
+    const btn=document.getElementById('mobileMenuBtn');
+    const sidebar=document.querySelector('.sidebar');
+    const backdrop=document.getElementById('mobileSidebarBackdrop');
+    if(!btn || !sidebar || !backdrop) return;
+    const closeSidebar=()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('open'); document.body.classList.remove('sidebar-open'); };
+    const openSidebar=()=>{ sidebar.classList.add('open'); backdrop.classList.add('open'); document.body.classList.add('sidebar-open'); };
+    btn.addEventListener('click', function(e){ e.preventDefault(); sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); });
+    backdrop.addEventListener('click', closeSidebar);
+    sidebar.querySelectorAll('button,a').forEach(el=>el.addEventListener('click', ()=>{ if(window.innerWidth<=900) setTimeout(closeSidebar, 50); }));
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', setupAndroidSidebar); }
+  else{ setupAndroidSidebar(); }
+})();
+</script>
+
+</body>
   </html>`;
 }
 
@@ -9073,5 +9151,72 @@ function printProfessionalReport(){
     </div>
   </div>
 
+
+<script id="android-sidebar-fix-js">
+(function(){
+  function setupAndroidSidebar(){
+    const btn=document.getElementById('mobileMenuBtn');
+    const sidebar=document.querySelector('.sidebar');
+    const backdrop=document.getElementById('mobileSidebarBackdrop');
+    if(!btn || !sidebar || !backdrop) return;
+    const closeSidebar=()=>{ sidebar.classList.remove('open'); backdrop.classList.remove('open'); document.body.classList.remove('sidebar-open'); };
+    const openSidebar=()=>{ sidebar.classList.add('open'); backdrop.classList.add('open'); document.body.classList.add('sidebar-open'); };
+    btn.addEventListener('click', function(e){ e.preventDefault(); sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); });
+    backdrop.addEventListener('click', closeSidebar);
+    sidebar.querySelectorAll('button,a').forEach(el=>el.addEventListener('click', ()=>{ if(window.innerWidth<=900) setTimeout(closeSidebar, 50); }));
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', setupAndroidSidebar); }
+  else{ setupAndroidSidebar(); }
+})();
+</script>
+
 </body>
 </html>
+<!-- FIREBASE BACKUPS SAFE -->
+<script type="module">
+import { collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+async function abrirBackupsFirebase(){
+ try{
+  const snap = await getDocs(collection(window.firestoreDb,"app_backups"));
+  let html="";
+  snap.forEach(d=>{
+    html += `<div onclick="verBackupFirebase('${d.id}')">📦 ${d.id}</div>`;
+  });
+  document.getElementById("firebaseBackupsList").innerHTML = html;
+ }catch(e){console.warn(e);}
+}
+
+async function verBackupFirebase(id){
+ const snap = await getDoc(doc(window.firestoreDb,"app_backups",id));
+ const data = snap.data();
+ document.getElementById("firebasePreview").innerHTML = `
+  Trabalhos: ${data.trabalhos?.length||0}<br>
+  Clientes: ${data.clientes?.length||0}<br>
+  Pagamentos: ${data.pagamentos?.length||0}<br>
+  <button onclick="restaurarBackupFirebase('${id}')">Restaurar</button>
+ `;
+}
+
+async function restaurarBackupFirebase(id){
+ if(!confirm("Restaurar backup?")) return;
+ const snap = await getDoc(doc(window.firestoreDb,"app_backups",id));
+ const data = snap.data();
+
+ window.trabalhos = data.trabalhos || [];
+ window.clientes = data.clientes || [];
+ window.pagamentos = data.pagamentos || [];
+
+ localStorage.setItem("trabalhos",JSON.stringify(window.trabalhos));
+ localStorage.setItem("clientes",JSON.stringify(window.clientes));
+ localStorage.setItem("pagamentos",JSON.stringify(window.pagamentos));
+
+ location.reload();
+}
+</script>
+
+<div style="margin-top:15px;">
+<button onclick="abrirBackupsFirebase()">Ver backups Firebase</button>
+<div id="firebaseBackupsList"></div>
+<div id="firebasePreview"></div>
+</div>
