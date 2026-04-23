@@ -4153,6 +4153,10 @@ function printProfessionalReport(){
   const BACKUP_STATUS_DOC = 'global_status';
   let backupGlobalStatusUnsub = null;
   let autoBackupPublishTimer = null;
+  const DAILY_CLOUD_BACKUP_HOUR = 19;
+  const DAILY_CLOUD_BACKUP_MINUTE = 30;
+  const DAILY_CLOUD_BACKUP_INTERVAL_MS = 5 * 60 * 1000;
+  let dailyCloudBackupInterval = null;
 
   function formatBackupDateSafe(value){
     if(!value) return '--';
@@ -4329,7 +4333,8 @@ function printProfessionalReport(){
           firebaseSyncAt: data.firebaseSyncAt || current.firebaseSyncAt || '',
           state: data.state || current.state || '',
           lastBackupBy: data.lastBackupBy || current.lastBackupBy || '--',
-          lastTrigger: data.trigger || current.lastTrigger || ''
+          lastTrigger: data.trigger || current.lastTrigger || '',
+          lastDailyCloudDate: data.lastDailyCloudDate || current.lastDailyCloudDate || ''
         });
         renderCleanBackupStatus();
       }, (err) => {
@@ -4337,6 +4342,83 @@ function printProfessionalReport(){
       });
     }catch(err){
       console.warn('Erro ao subscrever estado global do backup:', err);
+    }
+  }
+
+
+  function getTodayBackupKey(dateObj = new Date()){
+    return new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000)).toISOString().slice(0,10);
+  }
+
+  function shouldRunDailyCloudBackup(meta = {}, now = new Date()){
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    if(hour < DAILY_CLOUD_BACKUP_HOUR) return false;
+    if(hour === DAILY_CLOUD_BACKUP_HOUR && minute < DAILY_CLOUD_BACKUP_MINUTE) return false;
+    const todayKey = getTodayBackupKey(now);
+    return String(meta.lastDailyCloudDate || '') !== todayKey;
+  }
+
+  async function runDailyCloudBackupIfDue(trigger = 'daily-check'){
+    try{
+      const meta = readBackupMeta();
+      if(!shouldRunDailyCloudBackup(meta)) return false;
+      const record = buildOfficialBackupRecord();
+      record.origin = 'daily-auto';
+      const history = readBackupHistory();
+      history.push(record);
+      while(history.length > 20) history.shift();
+      writeBackupHistory(history);
+
+      const cloud = await syncOfficialBackupToFirebase(record);
+      const todayKey = getTodayBackupKey();
+      const nextMeta = {
+        ...readBackupMeta(),
+        lastBackupAt: record.createdAt,
+        lastCount: record.count,
+        historyCount: history.length,
+        storageLabel: cloud.ok ? 'Local + Firebase' : 'Local',
+        stateLabel: cloud.ok ? 'Backup diário enviado para Firebase' : 'Backup local OK',
+        firebaseSyncAt: cloud.ok ? new Date().toISOString() : (meta.firebaseSyncAt || ''),
+        state: cloud.ok ? 'ok-firebase' : 'ok-local',
+        lastBackupId: record.id,
+        lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || meta.lastBackupBy || 'auto').trim().toLowerCase(),
+        lastTrigger: 'daily-cloud',
+        lastDailyCloudDate: cloud.ok ? todayKey : (meta.lastDailyCloudDate || '')
+      };
+      if(!cloud.ok) nextMeta.cloudReason = cloud.reason || '';
+      writeBackupMeta(nextMeta);
+      renderCleanBackupStatus();
+      await publishGlobalBackupStatus({
+        lastBackupAt: nextMeta.lastBackupAt,
+        lastBackupBy: nextMeta.lastBackupBy || 'auto',
+        storage: nextMeta.storageLabel || (cloud.ok ? 'Local + Firebase' : 'Local'),
+        status: nextMeta.stateLabel || (cloud.ok ? 'Backup diário enviado para Firebase' : 'Backup local OK'),
+        state: nextMeta.state || (cloud.ok ? 'ok-firebase' : 'ok-local'),
+        records: record.count,
+        trigger: 'daily-cloud',
+        firebaseSyncAt: nextMeta.firebaseSyncAt || '',
+        lastDailyCloudDate: nextMeta.lastDailyCloudDate || ''
+      });
+      if(cloud.ok){
+        setBackupBanner('Backup diário enviado para Firebase.', 'ok');
+      }
+      return cloud.ok;
+    }catch(err){
+      console.warn('Falha no backup diário para Firebase:', err);
+      return false;
+    }
+  }
+
+  function startDailyCloudBackupWatcher(){
+    try{
+      if(dailyCloudBackupInterval) clearInterval(dailyCloudBackupInterval);
+      setTimeout(() => { runDailyCloudBackupIfDue('startup-check'); }, 2500);
+      dailyCloudBackupInterval = setInterval(() => {
+        runDailyCloudBackupIfDue('interval-check');
+      }, DAILY_CLOUD_BACKUP_INTERVAL_MS);
+    }catch(err){
+      console.warn('Falha ao iniciar watcher do backup diário:', err);
     }
   }
 
@@ -4373,7 +4455,8 @@ function printProfessionalReport(){
           status: 'Auto OK',
           state: 'ok-local',
           records: count,
-          trigger
+          trigger,
+          lastDailyCloudDate: current.lastDailyCloudDate || ''
         });
       }catch(err){
         console.warn('Auto backup seguro falhou:', err);
@@ -4444,7 +4527,8 @@ function printProfessionalReport(){
           state: 'ok-firebase',
           lastBackupId: record.id,
           lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || 'desconhecido').trim().toLowerCase(),
-          lastTrigger: 'manual'
+          lastTrigger: 'manual',
+          lastDailyCloudDate: readBackupMeta().lastDailyCloudDate || ''
         });
       }else{
         writeBackupMeta({
@@ -4458,7 +4542,8 @@ function printProfessionalReport(){
           lastBackupId: record.id,
           cloudReason: cloud.reason || '',
           lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || 'desconhecido').trim().toLowerCase(),
-          lastTrigger: 'manual'
+          lastTrigger: 'manual',
+          lastDailyCloudDate: readBackupMeta().lastDailyCloudDate || ''
         });
       }
       const metaAfter = readBackupMeta();
@@ -4470,7 +4555,8 @@ function printProfessionalReport(){
         state: metaAfter.state || (cloud.ok ? 'ok-firebase' : 'ok-local'),
         records: record.count,
         trigger: 'manual',
-        firebaseSyncAt: metaAfter.firebaseSyncAt || ''
+        firebaseSyncAt: metaAfter.firebaseSyncAt || '',
+        lastDailyCloudDate: metaAfter.lastDailyCloudDate || ''
       });
       renderCleanBackupStatus();
     }catch(err){
@@ -4553,6 +4639,7 @@ function printProfessionalReport(){
     if(fileInput) fileInput.onchange = handleCleanBackupImport;
     renderCleanBackupStatus();
     subscribeGlobalBackupStatus();
+    startDailyCloudBackupWatcher();
   }
 
   window.createOfficialBackupNow = createOfficialBackupNow;
