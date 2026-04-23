@@ -2778,46 +2778,9 @@ td.acoes-col, .acoes-col{
 .orc-btn.delete{background:linear-gradient(135deg,rgba(127,29,29,.45),rgba(239,68,68,.16));border-color:rgba(239,68,68,.32);color:#fff}
 
 
-/* ===== ALERTAS + PERFORMANCE ===== */
-.alerts-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px;
-  margin:14px 0 18px;
-}
-.alert-pill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 12px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:700;
-  letter-spacing:.02em;
-}
-.alert-pill.warn{background:rgba(245,158,11,.12);color:#fcd34d;border:1px solid rgba(245,158,11,.22)}
-.alert-pill.danger{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.22)}
-.alert-pill.ok{background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.22)}
-.alert-card-premium{
-  padding:16px;
-  border-radius:20px;
-  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.025));
-  border:1px solid rgba(255,255,255,.06);
-}
-.alert-card-premium strong{
-  display:block;
-  font-size:24px;
-  margin:6px 0 8px;
-}
-.alert-card-premium small{
-  color:var(--muted);
-  line-height:1.45;
-}
-.perf-note{
-  color:var(--muted);
-  font-size:12px;
-  margin-top:8px;
-}
+/* ALERTAS SAFE */
+.alert-card strong{display:block;font-size:28px;margin:6px 0 8px}
+.alert-card p{margin:0;color:var(--muted);line-height:1.45}
 
 </style>
   
@@ -2954,18 +2917,7 @@ td.acoes-col, .acoes-col{
         <section class="panel">
           <div class="panel-head"><h3>Alertas e prioridades</h3></div>
           <div id="alertCards" class="alert-grid"></div>
-        
-
-<div id="dashboardAlertasWrap" class="panel" style="margin-bottom:18px;">
-  <div class="panel-head">
-    <h3>Alertas</h3>
-    <span id="dashboardAlertasResumo" class="alert-pill ok">Sem alertas críticos</span>
-  </div>
-  <div id="dashboardAlertas" class="alerts-grid"></div>
-  <div class="perf-note">Os alertas são atualizados automaticamente com base em trabalhos, pagamentos e orçamentos.</div>
-</div>
-
-</section>
+        </section>
 
         <div class="empresa-smart-grid">
           <section class="panel">
@@ -4354,133 +4306,7 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    <script>
-
-/* ===== ALERTAS + PERFORMANCE ===== */
-let __dashboardRenderScheduled = false;
-let __dashboardLastSignature = "";
-
-function __safeArray(v){ return Array.isArray(v) ? v : []; }
-
-function computeDashboardSignature(){
-  const t = __safeArray(window.trabalhos);
-  const c = __safeArray(window.clientes);
-  const p = __safeArray(window.pagamentos);
-  const o = __safeArray(window.orcamentos);
-  return JSON.stringify([
-    t.length, c.length, p.length, o.length,
-    t.map(x => x && (x.id || x.data || x.cliente || x.valor || x.estado || "")).slice(-8),
-    p.map(x => x && (x.id || x.data || x.cliente || x.valor || x.estado || "")).slice(-8),
-    o.map(x => x && (x.id || x.data || x.cliente || x.valor || x.estado || "")).slice(-8)
-  ]);
-}
-
-function getDashboardAlertsData(){
-  const trabalhos = __safeArray(window.trabalhos);
-  const pagamentos = __safeArray(window.pagamentos);
-  const orcamentos = __safeArray(window.orcamentos);
-
-  const totalTrabalhos = trabalhos.reduce((s,t)=>s + Number((t && (t.valorPago ?? t.valor ?? 0)) || 0),0);
-  const totalPagamentos = pagamentos.reduce((s,p)=>s + Number((p && (p.valor ?? 0)) || 0),0);
-  const divida = Math.max(0, totalTrabalhos - totalPagamentos);
-
-  const orcPendentes = orcamentos.filter(o => String((o && o.estado) || '').toLowerCase() === 'pendente');
-  const trabalhosPendentes = trabalhos.filter(t => {
-    const st = String((t && (t.paymentStatus || t.estado || ''))).toLowerCase();
-    return st.includes('pend') || st.includes('andamento') || st === '';
-  });
-
-  const clientesComDividaMap = new Map();
-  trabalhos.forEach(t => {
-    const cliente = String((t && (t.clienteNome || t.cliente || t.nomeCliente || t.clientName || t.nome)) || 'Sem Cliente').trim();
-    const valor = Number((t && (t.valorPago ?? t.valor ?? 0)) || 0);
-    clientesComDividaMap.set(cliente, (clientesComDividaMap.get(cliente) || 0) + valor);
-  });
-  pagamentos.forEach(p => {
-    const cliente = String((p && (p.cliente || p.nomeCliente || p.clientName || p.nome)) || 'Sem Cliente').trim();
-    const valor = Number((p && (p.valor ?? 0)) || 0);
-    clientesComDividaMap.set(cliente, (clientesComDividaMap.get(cliente) || 0) - valor);
-  });
-  const clientesComDivida = [...clientesComDividaMap.entries()].filter(([,v]) => v > 0.009);
-
-  return {
-    divida,
-    orcPendentes: orcPendentes.length,
-    trabalhosPendentes: trabalhosPendentes.length,
-    clientesComDivida: clientesComDivida.length
-  };
-}
-
-function renderDashboardAlertas(){
-  const wrap = document.getElementById('dashboardAlertasWrap');
-  const container = document.getElementById('dashboardAlertas');
-  const resumo = document.getElementById('dashboardAlertasResumo');
-  if(!wrap || !container || !resumo) return;
-
-  const data = getDashboardAlertsData();
-  const cards = [];
-
-  if(data.orcPendentes > 0){
-    cards.push(`<div class="alert-card-premium"><span class="alert-pill warn">Orçamentos</span><strong>${data.orcPendentes}</strong><small>Orçamentos pendentes a precisar de decisão.</small></div>`);
-  }
-  if(data.trabalhosPendentes > 0){
-    cards.push(`<div class="alert-card-premium"><span class="alert-pill warn">Trabalhos</span><strong>${data.trabalhosPendentes}</strong><small>Trabalhos pendentes ou em andamento.</small></div>`);
-  }
-  if(data.clientesComDivida > 0){
-    cards.push(`<div class="alert-card-premium"><span class="alert-pill danger">Clientes</span><strong>${data.clientesComDivida}</strong><small>Clientes com valor em dívida.</small></div>`);
-  }
-  if(data.divida > 0){
-    cards.push(`<div class="alert-card-premium"><span class="alert-pill danger">Dívida</span><strong>${data.divida.toFixed(2)}€</strong><small>Valor global ainda por receber.</small></div>`);
-  }
-
-  if(!cards.length){
-    container.innerHTML = `<div class="alert-card-premium"><span class="alert-pill ok">Tudo em dia</span><strong>0</strong><small>Sem alertas críticos neste momento.</small></div>`;
-    resumo.textContent = 'Sem alertas críticos';
-    resumo.className = 'alert-pill ok';
-  }else{
-    container.innerHTML = cards.join('');
-    const critical = (data.divida > 0 || data.clientesComDivida > 0);
-    resumo.textContent = critical ? 'Existem alertas importantes' : 'Existem alertas pendentes';
-    resumo.className = 'alert-pill ' + (critical ? 'danger' : 'warn');
-  }
-}
-
-function scheduleDashboardRefresh(){
-  if(__dashboardRenderScheduled) return;
-  __dashboardRenderScheduled = true;
-  window.requestAnimationFrame(() => {
-    __dashboardRenderScheduled = false;
-    const sig = computeDashboardSignature();
-    if(sig === __dashboardLastSignature) return;
-    __dashboardLastSignature = sig;
-    try{ if(typeof renderDashboardAlertas === 'function') renderDashboardAlertas(); }catch(e){}
-  });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(scheduleDashboardRefresh, 600);
-  setTimeout(scheduleDashboardRefresh, 1800);
-});
-
-/* Hook leve para refresco sem recalcular sempre */
-['push','splice','pop','shift','unshift'].forEach(fn => {
-  const orig = Array.prototype[fn];
-  if(!orig.__alertsWrapped){
-    Array.prototype[fn] = function(...args){
-      const result = orig.apply(this, args);
-      try{
-        if(this === window.trabalhos || this === window.pagamentos || this === window.orcamentos || this === window.clientes){
-          scheduleDashboardRefresh();
-        }
-      }catch(e){}
-      return result;
-    };
-    Array.prototype[fn].__alertsWrapped = false
-  }
-});
-
-</script>
-</body>
+    </body>
   </html>`;
 }
 
@@ -7962,6 +7788,7 @@ function renderDashboardEmpresaSmart(){
   const cliEl = document.getElementById('empresaClientesDivida');
   const cliList = document.getElementById('empresaClientesDividaList');
   const orcList = document.getElementById('empresaOrcamentosPendentesList');
+  const alertCards = document.getElementById('alertCards');
   if(!recebidoEl || !dividaEl || !orcEl || !cliEl || !cliList || !orcList) return;
 
   const trabalhosLista = Array.isArray(trabalhos) ? trabalhos : [];
@@ -8000,6 +7827,27 @@ function renderDashboardEmpresaSmart(){
   dividaEl.textContent = euro(totalDivida);
   orcEl.textContent = String(orcPendentes.length);
   cliEl.textContent = String(clientesDivida.length);
+
+  if(alertCards){
+    const trabalhosPendentes = trabalhosLista.filter(t => {
+      const st = String(normalizeEstado(t.estado || '') || '').toLowerCase();
+      return !st || st.includes('pend') || st.includes('curso') || st.includes('aguardar');
+    }).length;
+    const alertHtml = [];
+    if(orcPendentes.length){
+      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Pendente">Orçamentos</span><strong>${orcPendentes.length}</strong><p>Orçamentos pendentes a precisar de decisão.</p></div>`);
+    }
+    if(trabalhosPendentes){
+      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Em andamento">Trabalhos</span><strong>${trabalhosPendentes}</strong><p>Trabalhos pendentes ou em andamento.</p></div>`);
+    }
+    if(clientesDivida.length){
+      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Pendente">Clientes</span><strong>${clientesDivida.length}</strong><p>Clientes com valores em dívida.</p></div>`);
+    }
+    if(totalDivida > 0.009){
+      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Pendente">Dívida</span><strong>${euro(totalDivida)}</strong><p>Valor global ainda por receber.</p></div>`);
+    }
+    alertCards.innerHTML = alertHtml.length ? alertHtml.join('') : '<div class="alert-card"><span class="badge" data-state="Concluído">Tudo em dia</span><strong>0</strong><p>Sem alertas críticos neste momento.</p></div>';
+  }
 
   cliList.innerHTML = clientesDivida.length ? clientesDivida.map(item => `
     <div class="empresa-item">
