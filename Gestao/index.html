@@ -8958,3 +8958,64 @@ function printProfessionalReport(){
 
 </body>
 </html>
+
+<!-- RESTORE INTEGRADO -->
+<script type="module">
+import { collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+async function loadBackupsList() {
+  try{
+    const q = await getDocs(collection(window.firestoreDb, "app_backups"));
+    let html = "";
+    q.forEach(docSnap => {
+      const id = docSnap.id;
+      html += `<div style="padding:6px;border-bottom:1px solid #333;cursor:pointer" onclick="previewBackup('${id}')">📦 ${id}</div>`;
+    });
+    const el=document.getElementById("listaBackups");
+    if(el) el.innerHTML = html;
+  }catch(e){console.warn(e);}
+}
+
+async function previewBackup(id) {
+  const snap = await getDoc(doc(window.firestoreDb, "app_backups", id));
+  const data = snap.data();
+  const el=document.getElementById("previewBackup");
+  if(!el) return;
+
+  el.innerHTML = `
+    <b>Backup ${id}</b><br>
+    Trabalhos: ${data.trabalhos?.length || 0}<br>
+    Clientes: ${data.clientes?.length || 0}<br>
+    Pagamentos: ${data.pagamentos?.length || 0}<br><br>
+    <button onclick="restoreBackup('${id}')">Restaurar</button>
+  `;
+}
+
+async function restoreBackup(id) {
+  if (!confirm("Restaurar este backup? Isto vai substituir os dados atuais.")) return;
+
+  const snap = await getDoc(doc(window.firestoreDb, "app_backups", id));
+  const data = snap.data();
+
+  window.trabalhos = data.trabalhos || [];
+  window.clientes = data.clientes || [];
+  window.pagamentos = data.pagamentos || [];
+
+  localStorage.setItem("trabalhos", JSON.stringify(window.trabalhos));
+  localStorage.setItem("clientes", JSON.stringify(window.clientes));
+  localStorage.setItem("pagamentos", JSON.stringify(window.pagamentos));
+
+  alert("Backup restaurado com sucesso!");
+  location.reload();
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  setTimeout(loadBackupsList,2000);
+});
+</script>
+
+<div style="margin-top:20px;">
+<h3>Restaurar Backup</h3>
+<div id="listaBackups"></div>
+<div id="previewBackup" style="margin-top:10px;"></div>
+</div>
