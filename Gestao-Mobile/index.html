@@ -2976,7 +2976,7 @@ td.acoes-col, .acoes-col{
 .table-sort-btn{background:none;border:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0}
 .table-sort-btn span{opacity:.8}
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
@@ -3129,20 +3129,6 @@ td.acoes-col, .acoes-col{
             <div id="monthlyBars" class="bars"></div>
           </section>
         </div>
-
-        <section class="panel">
-          <div class="panel-head"><h3>Gráficos Empresa</h3></div>
-          <div class="report-grid">
-            <div class="panel" style="background:rgba(255,255,255,.03)">
-              <div class="panel-head"><h3>Faturação por mês</h3></div>
-              <canvas id="graficoFaturacaoMensal" height="120"></canvas>
-            </div>
-            <div class="panel" style="background:rgba(255,255,255,.03)">
-              <div class="panel-head"><h3>Recebido vs Dívida</h3></div>
-              <canvas id="graficoResumoFinanceiro" height="120"></canvas>
-            </div>
-          </div>
-        </section>
 
       </section>
 
@@ -9451,64 +9437,3 @@ function printProfessionalReport(){
 
 </body>
 </html>
-
-<!-- RESTORE INTEGRADO -->
-<script type="module">
-import { collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-async function loadBackupsList() {
-  try{
-    const q = await getDocs(collection(window.firestoreDb, "app_backups"));
-    let html = "";
-    q.forEach(docSnap => {
-      const id = docSnap.id;
-      html += `<div style="padding:6px;border-bottom:1px solid #333;cursor:pointer" onclick="previewBackup('${id}')">📦 ${id}</div>`;
-    });
-    const el=document.getElementById("listaBackups");
-    if(el) el.innerHTML = html;
-  }catch(e){console.warn(e);}
-}
-
-async function previewBackup(id) {
-  const snap = await getDoc(doc(window.firestoreDb, "app_backups", id));
-  const data = snap.data();
-  const el=document.getElementById("previewBackup");
-  if(!el) return;
-
-  el.innerHTML = `
-    <b>Backup ${id}</b><br>
-    Trabalhos: ${data.trabalhos?.length || 0}<br>
-    Clientes: ${data.clientes?.length || 0}<br>
-    Pagamentos: ${data.pagamentos?.length || 0}<br><br>
-    <button onclick="restoreBackup('${id}')">Restaurar</button>
-  `;
-}
-
-async function restoreBackup(id) {
-  if (!confirm("Restaurar este backup? Isto vai substituir os dados atuais.")) return;
-
-  const snap = await getDoc(doc(window.firestoreDb, "app_backups", id));
-  const data = snap.data();
-
-  window.trabalhos = data.trabalhos || [];
-  window.clientes = data.clientes || [];
-  window.pagamentos = data.pagamentos || [];
-
-  localStorage.setItem("trabalhos", JSON.stringify(window.trabalhos));
-  localStorage.setItem("clientes", JSON.stringify(window.clientes));
-  localStorage.setItem("pagamentos", JSON.stringify(window.pagamentos));
-
-  alert("Backup restaurado com sucesso!");
-  location.reload();
-}
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  setTimeout(loadBackupsList,2000);
-});
-</script>
-
-<div style="margin-top:20px;">
-<h3>Restaurar Backup</h3>
-<div id="listaBackups"></div>
-<div id="previewBackup" style="margin-top:10px;"></div>
-</div>
