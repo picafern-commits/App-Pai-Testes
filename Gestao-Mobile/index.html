@@ -3120,6 +3120,75 @@ td.acoes-col, .acoes-col{
 #trabalhosPerPage{min-width:140px}
 #trabalhosPaginationBar{margin-top:12px}
 
+
+/* ===== PAGINACAO PREMIUM ===== */
+#itensPorPagina{display:none !important;}
+.paginacao-bottom{
+  display:flex;
+  justify-content:center;
+  margin-top:14px;
+  margin-bottom:4px;
+}
+.paginacao-controls{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(255,255,255,.035);
+  padding:6px 10px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 8px 18px rgba(0,0,0,.12);
+  backdrop-filter:blur(8px);
+}
+.paginacao-controls button{
+  min-height:auto !important;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.06);
+  padding:5px 9px;
+  border-radius:9px;
+  cursor:pointer;
+  font-size:12px;
+  line-height:1;
+}
+.paginacao-controls button:hover{
+  background:rgba(255,255,255,.08);
+}
+.paginacao-controls span{
+  font-size:12px;
+  color:var(--muted,#b8c6e6);
+  white-space:nowrap;
+}
+.paginacao-controls select{
+  min-height:auto !important;
+  width:auto !important;
+  font-size:11px;
+  padding:4px 8px;
+  border-radius:8px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.06);
+  color:var(--text,#fff);
+}
+@media (max-width: 900px){
+  .paginacao-bottom{
+    margin-top:10px;
+  }
+  .paginacao-controls{
+    gap:6px;
+    padding:5px 8px;
+  }
+  .paginacao-controls span{
+    font-size:11px;
+  }
+  .paginacao-controls button{
+    padding:4px 8px;
+    font-size:11px;
+  }
+  .paginacao-controls select{
+    font-size:10px;
+    padding:3px 6px;
+  }
+}
+
 </style>
   
 </head>
@@ -4648,7 +4717,71 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<div class="paginacao-bottom">
+  <div class="paginacao-controls">
+    <button type="button" onclick="paginaAnterior()">‹</button>
+    <span id="paginaInfoBottom">Página 1</span>
+    <button type="button" onclick="paginaSeguinte()">›</button>
+    <select id="itensPorPaginaBottom" onchange="alterarItensPorPagina(this.value)">
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  function syncPaginacaoBottom(){
+    const top = document.getElementById('itensPorPagina');
+    const bottom = document.getElementById('itensPorPaginaBottom');
+    const infoTop = document.getElementById('paginaInfo');
+    const infoBottom = document.getElementById('paginaInfoBottom');
+    if(top && bottom) bottom.value = top.value;
+    if(infoTop && infoBottom) infoBottom.textContent = infoTop.textContent || infoBottom.textContent;
+  }
+
+  const oldAlterar = window.alterarItensPorPagina;
+  if(typeof oldAlterar === 'function' && !window.__paginacaoPremiumWrapped){
+    window.alterarItensPorPagina = function(v){
+      const result = oldAlterar.call(this, v);
+      setTimeout(syncPaginacaoBottom, 0);
+      return result;
+    };
+    window.__paginacaoPremiumWrapped = true;
+  }
+
+  const oldAnterior = window.paginaAnterior;
+  if(typeof oldAnterior === 'function' && !window.__paginacaoPremiumAnterior){
+    window.paginaAnterior = function(){
+      const result = oldAnterior.call(this);
+      setTimeout(syncPaginacaoBottom, 0);
+      return result;
+    };
+    window.__paginacaoPremiumAnterior = true;
+  }
+
+  const oldSeguinte = window.paginaSeguinte;
+  if(typeof oldSeguinte === 'function' && !window.__paginacaoPremiumSeguinte){
+    window.paginaSeguinte = function(){
+      const result = oldSeguinte.call(this);
+      setTimeout(syncPaginacaoBottom, 0);
+      return result;
+    };
+    window.__paginacaoPremiumSeguinte = true;
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(syncPaginacaoBottom, 500);
+    setTimeout(syncPaginacaoBottom, 1500);
+  });
+})();
+</script>
+
+</body>
   </html>`;
 }
 
