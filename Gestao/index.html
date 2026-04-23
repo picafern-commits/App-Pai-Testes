@@ -2913,17 +2913,7 @@ td.acoes-col, .acoes-col{
           <div class="stat-card panel green"><span>Concluídos</span><strong id="statConcluidos">0</strong><small>Fechados ou pagos</small></div>
           <div class="stat-card panel gold"><span>Total faturado</span><strong id="statTotalFaturado">0 €</strong><small>Soma dos valores</small></div>
         </div>
-		
-        <section class="panel" id="dashboardEmpresaSmartSection">
-          <div class="panel-head"><h3>Resumo empresa</h3></div>
-          <div class="empresa-kpi-grid">
-            <div class="empresa-kpi"><span>Total recebido</span><strong id="empresaTotalRecebido">0 €</strong><small>Pagamentos registados</small></div>
-            <div class="empresa-kpi"><span>Em dívida</span><strong id="empresaTotalDivida">0 €</strong><small>Valor em aberto</small></div>
-            <div class="empresa-kpi"><span>Orçamentos pendentes</span><strong id="empresaOrcPendentes">0</strong><small>A aguardar decisão</small></div>
-            <div class="empresa-kpi"><span>Clientes com dívida</span><strong id="empresaClientesDivida">0</strong><small>Prioridade do dia</small></div>
-          </div>
-        </section>
-		
+
         <section class="panel">
           <div class="panel-head"><h3>Alertas e prioridades</h3></div>
           <div id="alertCards" class="alert-grid"></div>
@@ -2942,10 +2932,26 @@ td.acoes-col, .acoes-col{
 
         <div class="dashboard-grid">
           <section class="panel">
+            <div class="panel-head"><h3>Trabalhos recentes</h3></div>
+            <div id="recentTrabalhos" class="list-stack"></div>
+          </section>
+
+          <section class="panel">
             <div class="panel-head"><h3>Receitas por mês</h3></div>
             <div id="monthlyBars" class="bars"></div>
           </section>
         </div>
+
+
+        <section class="panel" id="dashboardEmpresaSmartSection">
+          <div class="panel-head"><h3>Resumo empresa</h3></div>
+          <div class="empresa-kpi-grid">
+            <div class="empresa-kpi"><span>Total recebido</span><strong id="empresaTotalRecebido">0 €</strong><small>Pagamentos registados</small></div>
+            <div class="empresa-kpi"><span>Em dívida</span><strong id="empresaTotalDivida">0 €</strong><small>Valor em aberto</small></div>
+            <div class="empresa-kpi"><span>Orçamentos pendentes</span><strong id="empresaOrcPendentes">0</strong><small>A aguardar decisão</small></div>
+            <div class="empresa-kpi"><span>Clientes com dívida</span><strong id="empresaClientesDivida">0</strong><small>Prioridade do dia</small></div>
+          </div>
+        </section>
       </section>
 
 <section class="page" id="adicionar-page">
