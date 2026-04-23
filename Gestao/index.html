@@ -2845,6 +2845,40 @@ td.acoes-col, .acoes-col{
   }
 }
 
+
+/* ===== MOBILE NAV TOGGLE ===== */
+@media (max-width: 900px){
+  body.nav-mobile-sidebar .bottom-nav{ display:none !important; }
+  body.nav-mobile-sidebar #mobileMenuBtn,
+  body.nav-mobile-sidebar .mobile-menu-btn{ display:inline-flex !important; }
+
+  body.nav-mobile-bottom .bottom-nav{ display:grid !important; }
+  body.nav-mobile-bottom #mobileMenuBtn,
+  body.nav-mobile-bottom .mobile-menu-btn{ display:none !important; }
+  body.nav-mobile-bottom .mobileSidebarBackdrop{ display:none !important; }
+  body.nav-mobile-bottom .sidebar{
+    position:static !important;
+    left:auto !important;
+    transform:none !important;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+}
+.mobile-nav-setting-card{ margin-top:14px; }
+.mobile-nav-setting-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.mobile-nav-setting-row select{ width:auto !important; min-width:190px; }
+.mobile-nav-setting-help{
+  color:var(--muted,#9fabca);
+  margin-top:8px;
+  font-size:12px;
+}
+
 </style>
   
 </head>
@@ -4382,7 +4416,99 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<div class="settings-card mobile-nav-setting-card" id="mobileNavModeCard">
+  <strong>Navegação mobile</strong>
+  <div class="mobile-nav-setting-row" style="margin-top:10px;">
+    <label for="mobileNavModeSelect">Escolher modo</label>
+    <select id="mobileNavModeSelect">
+      <option value="sidebar">Sidebar escondida</option>
+      <option value="bottom">Botões em baixo</option>
+    </select>
+  </div>
+  <div class="mobile-nav-setting-help">A app memoriza esta opção neste dispositivo.</div>
+</div>
+
+
+<script>
+(function(){
+  const KEY = 'mobileNavMode';
+
+  function getMode(){
+    const saved = localStorage.getItem(KEY);
+    return saved === 'bottom' ? 'bottom' : 'sidebar';
+  }
+
+  function applyMobileNavMode(mode){
+    const body = document.body;
+    if(!body) return;
+    body.classList.remove('nav-mobile-sidebar', 'nav-mobile-bottom');
+    body.classList.add(mode === 'bottom' ? 'nav-mobile-bottom' : 'nav-mobile-sidebar');
+
+    const select = document.getElementById('mobileNavModeSelect');
+    if(select) select.value = mode;
+
+    const bottomNav = document.querySelector('.bottom-nav');
+    const menuBtn = document.getElementById('mobileMenuBtn') || document.querySelector('.mobile-menu-btn');
+    const backdrop = document.querySelector('.mobileSidebarBackdrop');
+
+    if(window.innerWidth <= 900){
+      if(mode === 'bottom'){
+        if(bottomNav) bottomNav.style.display = 'grid';
+        if(menuBtn) menuBtn.style.display = 'none';
+        if(backdrop) backdrop.style.display = 'none';
+        document.body.classList.remove('mobile-sidebar-open');
+      }else{
+        if(bottomNav) bottomNav.style.display = 'none';
+        if(menuBtn) menuBtn.style.display = 'inline-flex';
+      }
+    }else{
+      if(bottomNav) bottomNav.style.display = '';
+      if(menuBtn) menuBtn.style.display = '';
+    }
+  }
+
+  function saveMobileNavMode(mode){
+    localStorage.setItem(KEY, mode === 'bottom' ? 'bottom' : 'sidebar');
+    applyMobileNavMode(mode);
+  }
+
+  function placeSettingsCard(){
+    const card = document.getElementById('mobileNavModeCard');
+    if(!card) return;
+
+    const ids = [
+      'pagina-configuracoes','page-configuracoes','configuracoesPage','settingsPage'
+    ];
+    let host = null;
+    for(const id of ids){
+      const el = document.getElementById(id);
+      if(el){ host = el; break; }
+    }
+    if(!host){
+      const all = Array.from(document.querySelectorAll('section, .page, .panel, div'));
+      host = all.find(el => /config|defini|setting/i.test((el.id||'') + ' ' + (el.className||''))) || null;
+    }
+    if(host && !host.contains(card)) host.appendChild(card);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    placeSettingsCard();
+    const select = document.getElementById('mobileNavModeSelect');
+    if(select){
+      select.value = getMode();
+      select.addEventListener('change', function(e){ saveMobileNavMode(e.target.value); });
+    }
+    applyMobileNavMode(getMode());
+    window.addEventListener('resize', function(){ applyMobileNavMode(getMode()); });
+  });
+
+  window.applyMobileNavMode = applyMobileNavMode;
+  window.saveMobileNavMode = saveMobileNavMode;
+})();
+</script>
+
+</body>
   </html>`;
 }
 
