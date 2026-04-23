@@ -4474,6 +4474,10 @@ function printProfessionalReport(){
   const BACKUP_HISTORY_KEY = 'ge_official_backups';
   const BACKUP_META_KEY = 'ge_official_backup_meta';
   const BACKUP_FILE_INPUT_ID = 'backupRestoreInputClean';
+  const BACKUP_STATUS_COLLECTION = 'app_backup_status';
+  const BACKUP_STATUS_DOC = 'global_status';
+  let backupGlobalStatusUnsub = null;
+  let autoBackupPublishTimer = null;
 
   function formatBackupDateSafe(value){
     if(!value) return '--';
@@ -4597,69 +4601,109 @@ function printProfessionalReport(){
   }
 
 
-  function applyGlobalBackupStatus(data){
-    if(!data || typeof data !== 'object') return;
-    const merged = {
-      ...readBackupMeta(),
-      lastBackupAt: data.lastBackupAt || '',
-      lastCount: Number(data.records || 0) || 0,
-      storageLabel: data.storage || 'Local',
-      stateLabel: data.statusLabel || data.status || 'Backup local OK',
-      firebaseSyncAt: data.firebaseSyncAt || '',
-      state: data.state || 'ok-local',
-      lastBackupId: data.lastBackupId || '',
-      lastBackupBy: data.lastBackupBy || '--'
-    };
-    writeBackupMeta(merged);
-    renderCleanBackupStatus();
-  }
-
-  async function saveGlobalBackupStatus(data){
+  async function publishGlobalBackupStatus(payload = {}){
     try{
       const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
       if(typeof ensureReady === 'function') await ensureReady();
       const db = window.firestoreDb;
       const setDocFn = window.setDoc;
       const docFn = window.doc;
-      if(!db || typeof setDocFn !== 'function' || typeof docFn !== 'function') return false;
-      await setDocFn(docFn(db, 'app_backup_status', 'global_status'), {
-        lastBackupAt: data.lastBackupAt || new Date().toISOString(),
-        lastBackupBy: data.lastBackupBy || String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || '').trim().toLowerCase() || 'desconhecido',
-        storage: data.storage || 'Local',
-        status: data.status || 'Backup local OK',
-        statusLabel: data.statusLabel || data.status || 'Backup local OK',
-        records: Number(data.records || 0) || 0,
-        firebaseSyncAt: data.firebaseSyncAt || '',
-        state: data.state || 'ok-local',
-        lastBackupId: data.lastBackupId || '',
-        updatedAt: new Date().toISOString()
-      }, { merge:true });
-      return true;
+      if(!db || typeof setDocFn !== 'function' || typeof docFn !== 'function'){
+        return { ok:false, reason:'firebase-indisponivel' };
+      }
+      const totalRecords = Number(payload.records);
+      const data = {
+        lastBackupAt: payload.lastBackupAt || new Date().toISOString(),
+        lastBackupBy: String(payload.lastBackupBy || window.currentUserEmail || window.firebaseAuth?.currentUser?.email || 'desconhecido').trim().toLowerCase(),
+        storage: String(payload.storage || 'Local'),
+        status: String(payload.status || 'OK'),
+        state: String(payload.state || '').trim() || (String(payload.status || '').toLowerCase().includes('firebase') ? 'ok-firebase' : 'ok-local'),
+        records: Number.isFinite(totalRecords) ? totalRecords : 0,
+        trigger: String(payload.trigger || 'manual'),
+        firebaseSyncAt: payload.firebaseSyncAt || '',
+        updatedAt: new Date().toISOString(),
+        appVersion: window.APP_VERSION || ''
+      };
+      await setDocFn(docFn(db, BACKUP_STATUS_COLLECTION, BACKUP_STATUS_DOC), data, { merge:true });
+      return { ok:true, data };
     }catch(err){
-      console.warn('Falha ao guardar estado global do backup:', err);
-      return false;
+      console.warn('Falha ao publicar estado global do backup:', err);
+      return { ok:false, reason: err?.code || err?.message || 'backup-status-failed' };
     }
   }
 
-  function startGlobalBackupStatusListener(attempts = 0){
+  function subscribeGlobalBackupStatus(retries = 0){
     try{
-      const db = window.firestoreDb;
-      const docFn = window.doc;
-      const onSnapshotFn = window.onSnapshot;
-      if(!db || typeof docFn !== 'function' || typeof onSnapshotFn !== 'function'){
-        if(attempts < 20) setTimeout(() => startGlobalBackupStatusListener(attempts + 1), 1000);
+      if(backupGlobalStatusUnsub || !window.firestoreDb || typeof window.doc !== 'function' || typeof window.onSnapshot !== 'function'){
+        if(!backupGlobalStatusUnsub && retries < 10 && (!window.firestoreDb || typeof window.onSnapshot !== 'function')){
+          setTimeout(() => subscribeGlobalBackupStatus(retries + 1), 1200);
+        }
         return;
       }
-      if(window.__backupStatusUnsub){ return; }
-      window.__backupStatusUnsub = onSnapshotFn(docFn(db, 'app_backup_status', 'global_status'), snap => {
+      const ref = window.doc(window.firestoreDb, BACKUP_STATUS_COLLECTION, BACKUP_STATUS_DOC);
+      backupGlobalStatusUnsub = window.onSnapshot(ref, (snap) => {
         if(!snap || !snap.exists()) return;
-        try{ applyGlobalBackupStatus(snap.data() || {}); }catch(e){ console.warn('Falha a aplicar estado global do backup:', e); }
-      }, err => {
-        console.warn('Realtime backup indisponível:', err);
+        const data = snap.data() || {};
+        const current = readBackupMeta();
+        writeBackupMeta({
+          ...current,
+          lastBackupAt: data.lastBackupAt || current.lastBackupAt || '',
+          lastCount: Number(data.records || current.lastCount || 0) || 0,
+          storageLabel: data.storage || current.storageLabel || '--',
+          stateLabel: data.status || current.stateLabel || 'Sem backup',
+          firebaseSyncAt: data.firebaseSyncAt || current.firebaseSyncAt || '',
+          state: data.state || current.state || '',
+          lastBackupBy: data.lastBackupBy || current.lastBackupBy || '--',
+          lastTrigger: data.trigger || current.lastTrigger || ''
+        });
+        renderCleanBackupStatus();
+      }, (err) => {
+        console.warn('Falha no listener global de backup:', err);
       });
     }catch(err){
-      if(attempts < 20) setTimeout(() => startGlobalBackupStatusListener(attempts + 1), 1000);
+      console.warn('Erro ao subscrever estado global do backup:', err);
     }
+  }
+
+  function scheduleSafeAutomaticBackup(trigger = 'auto'){
+    clearTimeout(autoBackupPublishTimer);
+    autoBackupPublishTimer = setTimeout(async () => {
+      try{
+        const payload = (typeof getAppDataSnapshot === 'function') ? getAppDataSnapshot() : {
+          trabalhos: Array.isArray(window.trabalhos) ? window.trabalhos : [],
+          clientes: Array.isArray(window.clientes) ? window.clientes : [],
+          pagamentos: Array.isArray(window.pagamentos) ? window.pagamentos : [],
+          dataBackup: new Date().toISOString(),
+          versao: 'backup-auto-safe-v1'
+        };
+        localStorage.setItem('ge_invisible_backup', JSON.stringify(payload));
+        const count = getBackupRecordCount(payload);
+        const current = readBackupMeta();
+        writeBackupMeta({
+          ...current,
+          lastBackupAt: payload.dataBackup || new Date().toISOString(),
+          lastCount: count,
+          storageLabel: 'Local',
+          stateLabel: 'Auto OK',
+          state: 'ok-local',
+          firebaseSyncAt: current.firebaseSyncAt || '',
+          lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || current.lastBackupBy || 'auto').trim().toLowerCase(),
+          lastTrigger: trigger
+        });
+        renderCleanBackupStatus();
+        await publishGlobalBackupStatus({
+          lastBackupAt: payload.dataBackup || new Date().toISOString(),
+          lastBackupBy: window.currentUserEmail || window.firebaseAuth?.currentUser?.email || 'auto',
+          storage: 'Local',
+          status: 'Auto OK',
+          state: 'ok-local',
+          records: count,
+          trigger
+        });
+      }catch(err){
+        console.warn('Auto backup seguro falhou:', err);
+      }
+    }, 1200);
   }
 
   async function syncOfficialBackupToFirebase(record){
@@ -4708,20 +4752,10 @@ function printProfessionalReport(){
         firebaseSyncAt: '',
         state: 'ok-local',
         lastBackupId: record.id,
-        lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || '').trim().toLowerCase() || 'desconhecido'
+        lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || 'desconhecido').trim().toLowerCase(),
+        lastTrigger: 'manual'
       });
       renderCleanBackupStatus();
-      await saveGlobalBackupStatus({
-        lastBackupAt: record.createdAt,
-        lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || '').trim().toLowerCase() || 'desconhecido',
-        storage: 'Local',
-        status: 'Backup local OK',
-        statusLabel: 'Backup local OK',
-        records: record.count,
-        firebaseSyncAt: '',
-        state: 'ok-local',
-        lastBackupId: record.id
-      });
 
       const cloud = await syncOfficialBackupToFirebase(record);
       if(cloud.ok){
@@ -4734,18 +4768,8 @@ function printProfessionalReport(){
           firebaseSyncAt: new Date().toISOString(),
           state: 'ok-firebase',
           lastBackupId: record.id,
-          lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || '').trim().toLowerCase() || 'desconhecido'
-        });
-        await saveGlobalBackupStatus({
-          lastBackupAt: record.createdAt,
-          lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || '').trim().toLowerCase() || 'desconhecido',
-          storage: 'Local + Firebase',
-          status: 'Backup local + Firebase',
-          statusLabel: 'Backup local + Firebase',
-          records: record.count,
-          firebaseSyncAt: new Date().toISOString(),
-          state: 'ok-firebase',
-          lastBackupId: record.id
+          lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || 'desconhecido').trim().toLowerCase(),
+          lastTrigger: 'manual'
         });
       }else{
         writeBackupMeta({
@@ -4757,21 +4781,22 @@ function printProfessionalReport(){
           firebaseSyncAt: '',
           state: 'ok-local',
           lastBackupId: record.id,
-          lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || '').trim().toLowerCase() || 'desconhecido',
-          cloudReason: cloud.reason || ''
-        });
-        await saveGlobalBackupStatus({
-          lastBackupAt: record.createdAt,
-          lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || '').trim().toLowerCase() || 'desconhecido',
-          storage: 'Local',
-          status: 'Backup local OK',
-          statusLabel: 'Backup local OK',
-          records: record.count,
-          firebaseSyncAt: '',
-          state: 'ok-local',
-          lastBackupId: record.id
+          cloudReason: cloud.reason || '',
+          lastBackupBy: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || 'desconhecido').trim().toLowerCase(),
+          lastTrigger: 'manual'
         });
       }
+      const metaAfter = readBackupMeta();
+      await publishGlobalBackupStatus({
+        lastBackupAt: record.createdAt,
+        lastBackupBy: metaAfter.lastBackupBy || window.currentUserEmail || window.firebaseAuth?.currentUser?.email || 'desconhecido',
+        storage: metaAfter.storageLabel || (cloud.ok ? 'Local + Firebase' : 'Local'),
+        status: metaAfter.stateLabel || (cloud.ok ? 'Backup local + Firebase' : 'Backup local OK'),
+        state: metaAfter.state || (cloud.ok ? 'ok-firebase' : 'ok-local'),
+        records: record.count,
+        trigger: 'manual',
+        firebaseSyncAt: metaAfter.firebaseSyncAt || ''
+      });
       renderCleanBackupStatus();
     }catch(err){
       console.error('Erro ao criar backup limpo:', err);
@@ -4833,7 +4858,6 @@ function printProfessionalReport(){
           <div class="backups-premium-stat"><span class="label">Armazenamento</span><span id="backupStorageStatusClean" class="value">--</span></div>
           <div class="backups-premium-stat"><span class="label">Estado</span><span id="backupStateStatusClean" class="value">Sem backup</span></div>
           <div class="backups-premium-stat"><span class="label">Última sync Firebase</span><span id="backupFirebaseStatusClean" class="value">Não confirmado</span></div>
-          <div class="backups-premium-stat"><span class="label">Último backup por</span><span id="backupAuthorStatusClean" class="value">--</span></div>
         </div>
         <div class="backups-premium-actions">
           <button id="backupCreateBtnClean" class="backups-premium-btn export" type="button">Criar Backup Agora</button>
@@ -4853,10 +4877,11 @@ function printProfessionalReport(){
     if(restoreBtn) restoreBtn.onclick = openRestoreBackupPicker;
     if(fileInput) fileInput.onchange = handleCleanBackupImport;
     renderCleanBackupStatus();
-    startGlobalBackupStatusListener();
+    subscribeGlobalBackupStatus();
   }
 
   window.createOfficialBackupNow = createOfficialBackupNow;
+  window.scheduleSafeAutomaticBackup = scheduleSafeAutomaticBackup;
   window.exportOfficialBackupJson = exportOfficialBackupJson;
   window.openRestoreBackupPicker = openRestoreBackupPicker;
   window.handleCleanBackupImport = handleCleanBackupImport;
@@ -5046,7 +5071,6 @@ async function ensureFirebaseCore(){
     window.writeBatch = writeBatch;
     window.doc = doc;
     window.setDoc = setDoc;
-    window.onSnapshot = onSnapshot;
     window.deleteDoc = deleteDoc;
   }
   return true;
@@ -5875,6 +5899,11 @@ function autoBackupInvisible(){
     pagamentos
   };
   localStorage.setItem('ge_invisible_backup', JSON.stringify(payload));
+  try{
+    if(typeof scheduleSafeAutomaticBackup === 'function') scheduleSafeAutomaticBackup('auto-save');
+  }catch(e){
+    console.warn('Falha no auto backup seguro:', e);
+  }
 }
 function setSyncMessage(msg, level='warn'){
   syncMessage = msg;
