@@ -2826,9 +2826,9 @@ td.acoes-col, .acoes-col{
         <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">◈</span><span>Dashboard</span></button>
         <button class="nav-btn" data-tab="adicionar"><span class="nav-icon">＋</span><span>Adicionar Trabalho</span></button>
         <button class="nav-btn" data-tab="trabalhos"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
+        <button class="nav-btn" data-tab="orcamentos"><span class="nav-icon">📝</span><span>Orçamentos</span></button>
         <button class="nav-btn" data-tab="clientes"><span class="nav-icon">◉</span><span>Clientes</span></button>
         <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">€</span><span>Pagamentos</span></button>
-        <button class="nav-btn" data-tab="orcamentos"><span class="nav-icon">📝</span><span>Orçamentos</span></button>
         <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">▣</span><span>Relatórios</span></button>
         <button class="nav-btn admin-only" data-tab="logs"><span class="nav-icon">🧾</span><span>Auditoria</span></button>
         <button class="nav-btn" data-tab="configuracoes"><span class="nav-icon">⚙</span><span>Configurações</span></button>
@@ -2892,10 +2892,17 @@ td.acoes-col, .acoes-col{
           <div id="alertCards" class="alert-grid"></div>
         </section>
 
-        <section class="panel">
-          <div class="panel-head">
-          <div id="dashboardAgendaWrap" class="agenda-smart-grid"></div>
-        </section>
+        <div class="empresa-smart-grid">
+          <section class="panel">
+            <div class="panel-head"><h3>Clientes com dívida</h3></div>
+            <div id="empresaClientesDividaList" class="empresa-list"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>Orçamentos pendentes</h3></div>
+            <div id="empresaOrcamentosPendentesList" class="empresa-list"></div>
+          </section>
+        </div>
+      </section>
 
         <div class="dashboard-grid">
           <section class="panel">
@@ -2919,20 +2926,6 @@ td.acoes-col, .acoes-col{
             <div class="empresa-kpi"><span>Clientes com dívida</span><strong id="empresaClientesDivida">0</strong><small>Prioridade do dia</small></div>
           </div>
         </section>
-
-        <div class="empresa-smart-grid">
-          <section class="panel">
-            <div class="panel-head"><h3>Clientes com dívida</h3></div>
-            <div id="empresaClientesDividaList" class="empresa-list"></div>
-          </section>
-          <section class="panel">
-            <div class="panel-head"><h3>Orçamentos pendentes</h3></div>
-            <div id="empresaOrcamentosPendentesList" class="empresa-list"></div>
-          </section>
-        </div>
-
-
-      </section>
 
       
 <section class="page" id="adicionar-page">
