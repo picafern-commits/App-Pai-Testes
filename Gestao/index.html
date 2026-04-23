@@ -2735,6 +2735,26 @@ td.acoes-col, .acoes-col{
   }
 }
 
+
+/* ===== DASHBOARD EMPRESA SMART ===== */
+.empresa-smart-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:14px}
+.empresa-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.empresa-kpi{padding:16px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.07)}
+.empresa-kpi span{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}
+.empresa-kpi strong{display:block;font-size:26px;line-height:1.05;margin-bottom:6px}
+.empresa-kpi small{color:#c9d6f5}
+.empresa-list{display:grid;gap:10px}
+.empresa-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.empresa-item .meta{display:grid;gap:4px}
+.empresa-item .title{font-weight:700}
+.empresa-pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.empresa-pill.warn{background:rgba(245,158,11,.14);color:#fde68a;border:1px solid rgba(245,158,11,.22)}
+.empresa-pill.good{background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.22)}
+.empresa-pill.danger{background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.22)}
+.empresa-empty{padding:16px;border-radius:18px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.08);color:var(--muted)}
+@media (max-width:1100px){.empresa-smart-grid{grid-template-columns:1fr}.empresa-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.empresa-kpi-grid{grid-template-columns:1fr}}
+
 </style>
   
 </head>
@@ -2888,6 +2908,29 @@ td.acoes-col, .acoes-col{
             <div id="monthlyBars" class="bars"></div>
           </section>
         </div>
+
+
+        <section class="panel" id="dashboardEmpresaSmartSection">
+          <div class="panel-head"><h3>Resumo empresa</h3></div>
+          <div class="empresa-kpi-grid">
+            <div class="empresa-kpi"><span>Total recebido</span><strong id="empresaTotalRecebido">0 €</strong><small>Pagamentos registados</small></div>
+            <div class="empresa-kpi"><span>Em dívida</span><strong id="empresaTotalDivida">0 €</strong><small>Valor em aberto</small></div>
+            <div class="empresa-kpi"><span>Orçamentos pendentes</span><strong id="empresaOrcPendentes">0</strong><small>A aguardar decisão</small></div>
+            <div class="empresa-kpi"><span>Clientes com dívida</span><strong id="empresaClientesDivida">0</strong><small>Prioridade do dia</small></div>
+          </div>
+        </section>
+
+        <div class="empresa-smart-grid">
+          <section class="panel">
+            <div class="panel-head"><h3>Clientes com dívida</h3></div>
+            <div id="empresaClientesDividaList" class="empresa-list"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h3>Orçamentos pendentes</h3></div>
+            <div id="empresaOrcamentosPendentesList" class="empresa-list"></div>
+          </section>
+        </div>
+
 
       </section>
 
@@ -7705,6 +7748,92 @@ function renderCalendario(){
   }).join('');
 }
 
+
+function getDashboardOrcamentosLista(){
+  const lista = window.orcamentos || [];
+  if(Array.isArray(lista) && lista.length) return lista;
+  try{
+    const raw = localStorage.getItem('ge_orcamentos');
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function renderDashboardEmpresaSmart(){
+  const recebidoEl = document.getElementById('empresaTotalRecebido');
+  const dividaEl = document.getElementById('empresaTotalDivida');
+  const orcEl = document.getElementById('empresaOrcPendentes');
+  const cliEl = document.getElementById('empresaClientesDivida');
+  const cliList = document.getElementById('empresaClientesDividaList');
+  const orcList = document.getElementById('empresaOrcamentosPendentesList');
+  if(!recebidoEl || !dividaEl || !orcEl || !cliEl || !cliList || !orcList) return;
+
+  const trabalhosLista = Array.isArray(trabalhos) ? trabalhos : [];
+  const pagamentosLista = Array.isArray(pagamentos) ? pagamentos : [];
+  const orcamentosLista = getDashboardOrcamentosLista();
+
+  const totalFaturado = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
+  const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
+  const totalDivida = Math.max(totalFaturado - totalRecebido, 0);
+
+  const clientTotals = {};
+  trabalhosLista.forEach(t => {
+    const nome = String(t.cliente || t.clienteNome || '').trim();
+    if(!nome) return;
+    clientTotals[nome] = clientTotals[nome] || { faturado:0, pago:0 };
+    clientTotals[nome].faturado += Number(t.valor || t.valorPago || 0) || 0;
+  });
+  pagamentosLista.forEach(p => {
+    const nome = String(p.cliente || p.clienteNome || '').trim();
+    if(!nome) return;
+    clientTotals[nome] = clientTotals[nome] || { faturado:0, pago:0 };
+    clientTotals[nome].pago += Number(p.valor || p.valorPago || 0) || 0;
+  });
+  const clientesDivida = Object.entries(clientTotals)
+    .map(([nome, vals]) => ({ nome, divida: Math.max((vals.faturado||0) - (vals.pago||0), 0) }))
+    .filter(item => item.divida > 0.009)
+    .sort((a,b) => b.divida - a.divida)
+    .slice(0,6);
+
+  const orcPendentes = orcamentosLista
+    .filter(o => String(o.estado || '').toLowerCase().includes('pend'))
+    .sort((a,b) => String(b.data || '').localeCompare(String(a.data || '')))
+    .slice(0,6);
+
+  recebidoEl.textContent = euro(totalRecebido);
+  dividaEl.textContent = euro(totalDivida);
+  orcEl.textContent = String(orcPendentes.length);
+  cliEl.textContent = String(clientesDivida.length);
+
+  cliList.innerHTML = clientesDivida.length ? clientesDivida.map(item => `
+    <div class="empresa-item">
+      <div class="meta">
+        <span class="title">${escapeHtml(item.nome)}</span>
+        <span class="sub">Cliente com valor em aberto</span>
+      </div>
+      <div style="display:grid;justify-items:end;gap:6px;">
+        <span class="empresa-pill danger">Dívida</span>
+        <strong>${euro(item.divida)}</strong>
+      </div>
+    </div>
+  `).join('') : '<div class="empresa-empty">Sem clientes com dívida neste momento.</div>';
+
+  orcList.innerHTML = orcPendentes.length ? orcPendentes.map(item => `
+    <div class="empresa-item">
+      <div class="meta">
+        <span class="title">${escapeHtml(item.cliente || 'Sem cliente')}</span>
+        <span class="sub">${escapeHtml(item.descricao || item.tipoTrabalho || 'Orçamento pendente')}</span>
+      </div>
+      <div style="display:grid;justify-items:end;gap:6px;">
+        <span class="empresa-pill warn">Pendente</span>
+        <strong>${euro(Number(item.valor || 0) || 0)}</strong>
+      </div>
+    </div>
+  `).join('') : '<div class="empresa-empty">Sem orçamentos pendentes.</div>';
+}
+
 function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
   const emAndamento = trabalhos.filter(t=>['Pendente','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
@@ -7748,7 +7877,8 @@ function renderDashboard(){
     chip.textContent = totalTrabalhos ? 'Empresa Ativa' : 'Online';
     chip.className = totalTrabalhos ? 'status-ok' : 'status-warn';
   }
-  renderDashboardCharts();
+  try{ renderDashboardEmpresaSmart(); }catch(e){}
+  try{ renderDashboardCharts(); }catch(e){}
 }
 
 
