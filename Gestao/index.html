@@ -2642,21 +2642,14 @@ td.acoes-col, .acoes-col{
 .table-sort-btn{background:none;border:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0}
 .table-sort-btn span{opacity:.8}
 
-/* ==== PATCH: BACKUPS FIREBASE + MOBILE SIDEBAR ==== */
-.firebase-backups-panel{margin-top:16px;padding:14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
-.firebase-backups-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.firebase-backups-list{display:grid;gap:8px;max-height:280px;overflow:auto}
-.firebase-backup-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
-.firebase-backup-meta{display:grid;gap:4px;min-width:0}
-.firebase-backup-meta strong{font-size:13px}
-.firebase-backup-meta small{color:var(--muted)}
-.firebase-preview-box{margin-top:12px;padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
-.firebase-preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
-.firebase-preview-grid .mini{padding:10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
-@media (max-width:700px){
-  .firebase-backup-row{grid-template-columns:1fr;align-items:stretch}
-  .firebase-preview-grid{grid-template-columns:1fr}
-}
+.firebase-backups-panel{margin-top:16px;padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.firebase-backups-list{display:grid;gap:10px;max-height:260px;overflow:auto;margin-top:12px}
+.firebase-backup-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.firebase-backup-meta{display:grid;gap:4px}
+.firebase-backup-meta strong{font-size:14px}
+.firebase-backup-meta span{font-size:12px;color:var(--muted)}
+.firebase-backup-actions{display:flex;gap:8px;flex-wrap:wrap}
+.firebase-backup-preview{margin-top:12px;padding:14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
 
 </style>
   
@@ -4137,198 +4130,7 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    
-<script>
-(function(){
-  function qs(id){ return document.getElementById(id); }
-
-  async function waitFirebaseReady(timeoutMs=12000){
-    const start = Date.now();
-    while(Date.now()-start < timeoutMs){
-      if(window.firestoreDb && window.getDocs && window.getDoc && window.collection && window.doc) return true;
-      await new Promise(r=>setTimeout(r,250));
-    }
-    return false;
-  }
-
-  function normalizeBackupDoc(id, data){
-    const snap = data && data.snapshot && typeof data.snapshot === 'object' ? data.snapshot : data || {};
-    const ts = snap.ts || data.createdAt || data.dataBackup || id;
-    const trabalhos = Array.isArray(snap.trabalhos) ? snap.trabalhos : [];
-    const clientes = Array.isArray(snap.clientes) ? snap.clientes : [];
-    const pagamentos = Array.isArray(snap.pagamentos) ? snap.pagamentos : [];
-    return { id, ts, trabalhos, clientes, pagamentos, raw:data||{} };
-  }
-
-  async function listFirebaseBackups(){
-    const ok = await waitFirebaseReady();
-    if(!ok) throw new Error('firebase-indisponivel');
-    const snap = await window.getDocs(window.collection(window.firestoreDb, 'app_backups'));
-    const rows = [];
-    (snap.docs || []).forEach(docSnap => rows.push(normalizeBackupDoc(docSnap.id, docSnap.data())));
-    rows.sort((a,b) => String(b.ts||'').localeCompare(String(a.ts||'')));
-    return rows;
-  }
-
-  async function getFirebaseBackup(id){
-    const ok = await waitFirebaseReady();
-    if(!ok) throw new Error('firebase-indisponivel');
-    const snap = await window.getDoc(window.doc(window.firestoreDb,'app_backups',id));
-    if(!snap.exists()) return null;
-    return normalizeBackupDoc(id, snap.data());
-  }
-
-  function backupDateLabel(v){
-    if(!v) return '--';
-    try{ return new Date(v).toLocaleString('pt-PT'); }catch(e){ return String(v); }
-  }
-
-  async function restoreFirebaseBackup(id){
-    const data = await getFirebaseBackup(id);
-    if(!data) return alert('Backup não encontrado.');
-    if(!confirm(`Restaurar o backup ${id}? Isto vai substituir os dados atuais.`)) return;
-
-    try{
-      const before = {
-        trabalhos: Array.isArray(window.trabalhos) ? window.trabalhos : [],
-        clientes: Array.isArray(window.clientes) ? window.clientes : [],
-        pagamentos: Array.isArray(window.pagamentos) ? window.pagamentos : [],
-        ts: new Date().toISOString(),
-        source: 'before-restore'
-      };
-      localStorage.setItem('backup_before_restore', JSON.stringify(before));
-    }catch(e){}
-
-    window.trabalhos = Array.isArray(data.trabalhos) ? data.trabalhos : [];
-    window.clientes = Array.isArray(data.clientes) ? data.clientes : [];
-    window.pagamentos = Array.isArray(data.pagamentos) ? data.pagamentos : [];
-
-    localStorage.setItem('trabalhos', JSON.stringify(window.trabalhos));
-    localStorage.setItem('clientes', JSON.stringify(window.clientes));
-    localStorage.setItem('pagamentos', JSON.stringify(window.pagamentos));
-    localStorage.setItem('ge_trabalhos', JSON.stringify(window.trabalhos));
-    localStorage.setItem('ge_clientes', JSON.stringify(window.clientes));
-    localStorage.setItem('ge_pagamentos', JSON.stringify(window.pagamentos));
-
-    alert('Backup Firebase restaurado com sucesso.');
-    location.reload();
-  }
-
-  function renderFirebasePreview(data){
-    const box = qs('firebaseBackupPreview');
-    if(!box) return;
-    if(!data){
-      box.innerHTML = '<div class="settings-help">Escolhe um backup para veres o preview.</div>';
-      return;
-    }
-    box.innerHTML = `
-      <div><strong>Backup:</strong> ${data.id}</div>
-      <div class="settings-help">Data: ${backupDateLabel(data.ts)}</div>
-      <div class="firebase-preview-grid">
-        <div class="mini"><div class="mini-label">Trabalhos</div><strong>${data.trabalhos.length}</strong></div>
-        <div class="mini"><div class="mini-label">Clientes</div><strong>${data.clientes.length}</strong></div>
-        <div class="mini"><div class="mini-label">Pagamentos</div><strong>${data.pagamentos.length}</strong></div>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="backups-premium-btn" id="firebaseRestoreNowBtn">Restaurar este backup</button>
-      </div>`;
-    const btn = qs('firebaseRestoreNowBtn');
-    if(btn) btn.onclick = ()=>restoreFirebaseBackup(data.id);
-  }
-
-  async function renderFirebaseBackups(){
-    const list = qs('firebaseBackupsList');
-    const info = qs('firebaseBackupsInfo');
-    if(!list) return;
-    list.innerHTML = '<div class="settings-help">A carregar backups Firebase...</div>';
-    renderFirebasePreview(null);
-    try{
-      const rows = await listFirebaseBackups();
-      if(info) info.textContent = rows.length ? `${rows.length} backup(s) encontrado(s)` : 'Sem backups na Firebase';
-      if(!rows.length){
-        list.innerHTML = '<div class="settings-help">Ainda não existe nenhum backup diário na Firebase.</div>';
-        return;
-      }
-      list.innerHTML = rows.map(row => `
-        <div class="firebase-backup-row">
-          <div class="firebase-backup-meta">
-            <strong>${row.id}</strong>
-            <small>${backupDateLabel(row.ts)} • T:${row.trabalhos.length} • C:${row.clientes.length} • P:${row.pagamentos.length}</small>
-          </div>
-          <button type="button" class="backups-premium-btn" data-firebase-preview="${row.id}">Ver</button>
-          <button type="button" class="backups-premium-btn" data-firebase-restore="${row.id}">Restaurar</button>
-        </div>`).join('');
-      list.querySelectorAll('[data-firebase-preview]').forEach(btn=>{
-        btn.onclick = async ()=> renderFirebasePreview(await getFirebaseBackup(btn.getAttribute('data-firebase-preview')));
-      });
-      list.querySelectorAll('[data-firebase-restore]').forEach(btn=>{
-        btn.onclick = ()=> restoreFirebaseBackup(btn.getAttribute('data-firebase-restore'));
-      });
-      renderFirebasePreview(rows[0]);
-    }catch(err){
-      console.error('Falha ao carregar backups Firebase:', err);
-      if(info) info.textContent = 'Erro ao ler backups';
-      list.innerHTML = '<div class="settings-help">Não foi possível ler os backups da Firebase.</div>';
-    }
-  }
-
-  function mountFirebaseBackupsPanel(){
-    const card = qs('backupToolsCard');
-    if(!card || qs('firebaseBackupsPanel')) return;
-    const wrap = document.createElement('div');
-    wrap.id = 'firebaseBackupsPanel';
-    wrap.className = 'firebase-backups-panel';
-    wrap.innerHTML = `
-      <div class="firebase-backups-head">
-        <div>
-          <h3 style="margin:0 0 4px">Backups Firebase</h3>
-          <div id="firebaseBackupsInfo" class="settings-help">A preparar ligação...</div>
-        </div>
-        <button type="button" class="backups-premium-btn" id="firebaseBackupsRefreshBtn">Atualizar lista</button>
-      </div>
-      <div id="firebaseBackupsList" class="firebase-backups-list"></div>
-      <div id="firebaseBackupPreview" class="firebase-preview-box"><div class="settings-help">Escolhe um backup para veres o preview.</div></div>
-    `;
-    card.appendChild(wrap);
-    const refreshBtn = qs('firebaseBackupsRefreshBtn');
-    if(refreshBtn) refreshBtn.onclick = renderFirebaseBackups;
-    renderFirebaseBackups();
-  }
-
-  function afterBackupPanelMounted(){
-    mountFirebaseBackupsPanel();
-    const restoreBtn = qs('backupRestoreBtnClean');
-    if(restoreBtn){
-      restoreBtn.textContent = 'Ver backups Firebase';
-      restoreBtn.onclick = function(){
-        mountFirebaseBackupsPanel();
-        const panel = qs('firebaseBackupsPanel');
-        if(panel) panel.scrollIntoView({behavior:'smooth', block:'start'});
-      };
-    }
-  }
-
-  const origInstall = window.installCleanBackupPanel;
-  if(typeof origInstall === 'function'){
-    window.installCleanBackupPanel = function(){
-      const res = origInstall.apply(this, arguments);
-      setTimeout(afterBackupPanelMounted, 50);
-      return res;
-    };
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(afterBackupPanelMounted, 1200);
-  });
-
-  window.renderFirebaseBackups = renderFirebaseBackups;
-  window.restoreFirebaseBackup = restoreFirebaseBackup;
-  window.previewFirebaseBackup = async function(id){ renderFirebasePreview(await getFirebaseBackup(id)); };
-
-  
-})();
-</script>
-
-</body>
+    </body>
   </html>`;
 }
 
@@ -4709,7 +4511,160 @@ function printProfessionalReport(){
     if(typeof importBackupFile === 'function') return importBackupFile(event);
   }
 
-  function installCleanBackupPanel(){
+  
+  function getFirebaseBackupSnapshotData(raw){
+    if(!raw || typeof raw !== 'object') return { trabalhos:[], clientes:[], pagamentos:[], ts:'' };
+    const snapshot = raw.snapshot && typeof raw.snapshot === 'object' ? raw.snapshot : raw;
+    return {
+      trabalhos: Array.isArray(snapshot.trabalhos) ? snapshot.trabalhos : [],
+      clientes: Array.isArray(snapshot.clientes) ? snapshot.clientes : [],
+      pagamentos: Array.isArray(snapshot.pagamentos) ? snapshot.pagamentos : [],
+      ts: snapshot.dataBackup || raw.createdAt || raw.ts || ''
+    };
+  }
+
+  async function loadFirebaseBackupsList(forceOpen = false){
+    const panel = document.getElementById('firebaseBackupsPanelClean');
+    const list = document.getElementById('firebaseBackupsListClean');
+    const preview = document.getElementById('firebaseBackupPreviewClean');
+    if(forceOpen && panel) panel.classList.remove('hidden');
+    if(list) list.innerHTML = '<div class="settings-help">A carregar backups Firebase...</div>';
+    if(preview){ preview.classList.add('hidden'); preview.innerHTML = ''; }
+    try{
+      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
+      if(typeof ensureReady === 'function') await ensureReady();
+      const db = window.firestoreDb;
+      const getDocsFn = window.getDocs;
+      const collectionFn = window.collection;
+      if(!db || typeof getDocsFn !== 'function' || typeof collectionFn !== 'function'){
+        if(list) list.innerHTML = '<div class="settings-help">Firebase indisponível.</div>';
+        return;
+      }
+      const snap = await getDocsFn(collectionFn(db, 'app_backups'));
+      const rows = [];
+      (snap.docs || []).forEach(docSnap => {
+        rows.push({ id: docSnap.id, ...(docSnap.data() || {}) });
+      });
+      rows.sort((a,b) => {
+        const da = new Date((a.createdAt || a.ts || a.dateKey || a.id || '')).getTime() || 0;
+        const dbv = new Date((b.createdAt || b.ts || b.dateKey || b.id || '')).getTime() || 0;
+        return dbv - da;
+      });
+      if(!rows.length){
+        if(list) list.innerHTML = '<div class="settings-help">Ainda não existem backups na Firebase.</div>';
+        return;
+      }
+      if(list){
+        list.innerHTML = rows.map(item => {
+          const snapData = getFirebaseBackupSnapshotData(item);
+          const total = snapData.trabalhos.length + snapData.clientes.length + snapData.pagamentos.length;
+          const when = formatBackupDateSafe(item.createdAt || snapData.ts || item.dateKey || item.id);
+          return `<div class="firebase-backup-item">
+            <div class="firebase-backup-meta">
+              <strong>${when}</strong>
+              <span>${total} registos • Trabalhos ${snapData.trabalhos.length} • Clientes ${snapData.clientes.length} • Pagamentos ${snapData.pagamentos.length}</span>
+            </div>
+            <div class="firebase-backup-actions">
+              <button class="small-btn" type="button" onclick="previewFirebaseBackupClean('${item.id.replace(/'/g,"&#39;")}')">Ver</button>
+              <button class="small-btn" type="button" onclick="restoreFirebaseBackupClean('${item.id.replace(/'/g,"&#39;")}')">Restaurar</button>
+            </div>
+          </div>`;
+        }).join('');
+      }
+    }catch(err){
+      console.error('Erro ao carregar backups Firebase:', err);
+      if(list) list.innerHTML = '<div class="settings-help">Falha ao ler backups Firebase.</div>';
+    }
+  }
+
+  async function previewFirebaseBackupClean(id){
+    const preview = document.getElementById('firebaseBackupPreviewClean');
+    if(!preview) return;
+    preview.classList.remove('hidden');
+    preview.innerHTML = 'A carregar preview...';
+    try{
+      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
+      if(typeof ensureReady === 'function') await ensureReady();
+      const db = window.firestoreDb;
+      const getDocFn = window.getDoc;
+      const docFn = window.doc;
+      if(!db || typeof getDocFn !== 'function' || typeof docFn !== 'function'){
+        preview.innerHTML = 'Firebase indisponível.';
+        return;
+      }
+      const snap = await getDocFn(docFn(db, 'app_backups', id));
+      if(!snap.exists()){
+        preview.innerHTML = 'Backup não encontrado.';
+        return;
+      }
+      const raw = snap.data() || {};
+      const data = getFirebaseBackupSnapshotData(raw);
+      preview.innerHTML = `
+        <div><strong>Backup:</strong> ${id}</div>
+        <div><strong>Data:</strong> ${formatBackupDateSafe(raw.createdAt || data.ts || raw.dateKey || id)}</div>
+        <div><strong>Trabalhos:</strong> ${data.trabalhos.length}</div>
+        <div><strong>Clientes:</strong> ${data.clientes.length}</div>
+        <div><strong>Pagamentos:</strong> ${data.pagamentos.length}</div>
+        <div style="margin-top:10px"><button class="backups-premium-btn" type="button" onclick="restoreFirebaseBackupClean('${id.replace(/'/g,"&#39;")}')">Restaurar este backup</button></div>
+      `;
+    }catch(err){
+      console.error('Erro preview backup Firebase:', err);
+      preview.innerHTML = 'Falha ao abrir preview do backup.';
+    }
+  }
+
+  async function restoreFirebaseBackupClean(id){
+    try{
+      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
+      if(typeof ensureReady === 'function') await ensureReady();
+      const db = window.firestoreDb;
+      const getDocFn = window.getDoc;
+      const docFn = window.doc;
+      if(!db || typeof getDocFn !== 'function' || typeof docFn !== 'function'){
+        alert('Firebase indisponível.');
+        return;
+      }
+      const snap = await getDocFn(docFn(db, 'app_backups', id));
+      if(!snap.exists()){
+        alert('Backup não encontrado.');
+        return;
+      }
+      const raw = snap.data() || {};
+      const data = getFirebaseBackupSnapshotData(raw);
+      if(!confirm(`Restaurar o backup ${id}? Isto vai substituir os dados atuais.`)) return;
+
+      const currentSnapshot = (typeof getAppDataSnapshot === 'function') ? getAppDataSnapshot() : {
+        trabalhos: JSON.parse(localStorage.getItem('trabalhos') || localStorage.getItem('ge_trabalhos') || '[]'),
+        clientes: JSON.parse(localStorage.getItem('clientes') || localStorage.getItem('ge_clientes') || '[]'),
+        pagamentos: JSON.parse(localStorage.getItem('pagamentos') || localStorage.getItem('ge_pagamentos') || '[]'),
+        dataBackup: new Date().toISOString(),
+        versao: 'pre-restore-guard'
+      };
+      localStorage.setItem('backup_restore_guard_snapshot', JSON.stringify(currentSnapshot));
+
+      localStorage.setItem('trabalhos', JSON.stringify(data.trabalhos));
+      localStorage.setItem('clientes', JSON.stringify(data.clientes));
+      localStorage.setItem('pagamentos', JSON.stringify(data.pagamentos));
+      localStorage.setItem('ge_trabalhos', JSON.stringify(data.trabalhos));
+      localStorage.setItem('ge_clientes', JSON.stringify(data.clientes));
+      localStorage.setItem('ge_pagamentos', JSON.stringify(data.pagamentos));
+      setBackupBanner(`Backup Firebase ${id} restaurado.`, 'ok');
+      setTimeout(() => location.reload(), 500);
+    }catch(err){
+      console.error('Erro ao restaurar backup Firebase:', err);
+      alert('Falha ao restaurar backup Firebase.');
+    }
+  }
+
+  function toggleFirebaseBackupsPanel(){
+    const panel = document.getElementById('firebaseBackupsPanelClean');
+    if(!panel) return;
+    const hidden = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden');
+    if(hidden) loadFirebaseBackupsList(true);
+  }
+
+function installCleanBackupPanel(){
     const page = document.getElementById('configuracoes-page');
     if(!page) return;
     let card = document.getElementById('backupToolsCard');
@@ -4744,20 +4699,33 @@ function printProfessionalReport(){
           <button id="backupCreateBtnClean" class="backups-premium-btn export" type="button">Criar Backup Agora</button>
           <button id="backupExportBtnClean" class="backups-premium-btn download" type="button">Exportar JSON</button>
           <button id="backupRestoreBtnClean" class="backups-premium-btn" type="button">Restaurar Backup</button>
+          <button id="backupFirebaseListBtnClean" class="backups-premium-btn" type="button">Ver backups Firebase</button>
           <button id="backupCloudNowBtnClean" class="backups-premium-btn" type="button">Enviar Cloud Agora</button>
           <input id="${BACKUP_FILE_INPUT_ID}" class="backups-hidden-input" type="file" accept=".json,application/json">
         </div>
         <div id="backupCleanMessage" class="settings-help">Ainda não existe backup criado nesta app.</div>
+        <div id="firebaseBackupsPanelClean" class="firebase-backups-panel hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <h4 style="margin:0">Backups Firebase</h4>
+            <button id="backupFirebaseRefreshBtnClean" class="backups-premium-btn" type="button">Atualizar lista</button>
+          </div>
+          <div id="firebaseBackupsListClean" class="firebase-backups-list"></div>
+          <div id="firebaseBackupPreviewClean" class="firebase-backup-preview hidden"></div>
+        </div>
       </div>`;
 
     const createBtn = document.getElementById('backupCreateBtnClean');
     const exportBtn = document.getElementById('backupExportBtnClean');
     const restoreBtn = document.getElementById('backupRestoreBtnClean');
+    const firebaseListBtn = document.getElementById('backupFirebaseListBtnClean');
+    const firebaseRefreshBtn = document.getElementById('backupFirebaseRefreshBtnClean');
     const fileInput = document.getElementById(BACKUP_FILE_INPUT_ID);
     const cloudNowBtn = document.getElementById('backupCloudNowBtnClean');
     if(createBtn) createBtn.onclick = createOfficialBackupNow;
     if(exportBtn) exportBtn.onclick = exportOfficialBackupJson;
     if(restoreBtn) restoreBtn.onclick = openRestoreBackupPicker;
+    if(firebaseListBtn) firebaseListBtn.onclick = toggleFirebaseBackupsPanel;
+    if(firebaseRefreshBtn) firebaseRefreshBtn.onclick = () => loadFirebaseBackupsList(true);
     if(cloudNowBtn) cloudNowBtn.onclick = () => createDailyCloudBackupIfDue(true);
     if(fileInput) fileInput.onchange = handleCleanBackupImport;
     renderCleanBackupStatus();
@@ -4768,6 +4736,10 @@ function printProfessionalReport(){
   window.exportOfficialBackupJson = exportOfficialBackupJson;
   window.openRestoreBackupPicker = openRestoreBackupPicker;
   window.handleCleanBackupImport = handleCleanBackupImport;
+  window.toggleFirebaseBackupsPanel = toggleFirebaseBackupsPanel;
+  window.loadFirebaseBackupsList = loadFirebaseBackupsList;
+  window.previewFirebaseBackupClean = previewFirebaseBackupClean;
+  window.restoreFirebaseBackupClean = restoreFirebaseBackupClean;
   window.refreshBackupStatusUi = renderCleanBackupStatus;
   window.updateBackupWeekIndicator = function(){};
   window.fazerBackupSexta = function(){};
@@ -4950,6 +4922,7 @@ async function ensureFirebaseCore(){
     window.ensureFirebaseCore = ensureFirebaseCore;
     window.onAuthStateChanged = onAuthStateChanged;
     window.getDocs = getDocs;
+    window.getDoc = getDoc;
     window.collection = collection;
     window.writeBatch = writeBatch;
     window.doc = doc;
@@ -7491,198 +7464,7 @@ td.acoes-col, .acoes-col{
   .online-users-list{padding:10px;max-height:280px;}
 }
 
-</style></head><body>${bodyHtml}
-<script>
-(function(){
-  function qs(id){ return document.getElementById(id); }
-
-  async function waitFirebaseReady(timeoutMs=12000){
-    const start = Date.now();
-    while(Date.now()-start < timeoutMs){
-      if(window.firestoreDb && window.getDocs && window.getDoc && window.collection && window.doc) return true;
-      await new Promise(r=>setTimeout(r,250));
-    }
-    return false;
-  }
-
-  function normalizeBackupDoc(id, data){
-    const snap = data && data.snapshot && typeof data.snapshot === 'object' ? data.snapshot : data || {};
-    const ts = snap.ts || data.createdAt || data.dataBackup || id;
-    const trabalhos = Array.isArray(snap.trabalhos) ? snap.trabalhos : [];
-    const clientes = Array.isArray(snap.clientes) ? snap.clientes : [];
-    const pagamentos = Array.isArray(snap.pagamentos) ? snap.pagamentos : [];
-    return { id, ts, trabalhos, clientes, pagamentos, raw:data||{} };
-  }
-
-  async function listFirebaseBackups(){
-    const ok = await waitFirebaseReady();
-    if(!ok) throw new Error('firebase-indisponivel');
-    const snap = await window.getDocs(window.collection(window.firestoreDb, 'app_backups'));
-    const rows = [];
-    (snap.docs || []).forEach(docSnap => rows.push(normalizeBackupDoc(docSnap.id, docSnap.data())));
-    rows.sort((a,b) => String(b.ts||'').localeCompare(String(a.ts||'')));
-    return rows;
-  }
-
-  async function getFirebaseBackup(id){
-    const ok = await waitFirebaseReady();
-    if(!ok) throw new Error('firebase-indisponivel');
-    const snap = await window.getDoc(window.doc(window.firestoreDb,'app_backups',id));
-    if(!snap.exists()) return null;
-    return normalizeBackupDoc(id, snap.data());
-  }
-
-  function backupDateLabel(v){
-    if(!v) return '--';
-    try{ return new Date(v).toLocaleString('pt-PT'); }catch(e){ return String(v); }
-  }
-
-  async function restoreFirebaseBackup(id){
-    const data = await getFirebaseBackup(id);
-    if(!data) return alert('Backup não encontrado.');
-    if(!confirm(`Restaurar o backup ${id}? Isto vai substituir os dados atuais.`)) return;
-
-    try{
-      const before = {
-        trabalhos: Array.isArray(window.trabalhos) ? window.trabalhos : [],
-        clientes: Array.isArray(window.clientes) ? window.clientes : [],
-        pagamentos: Array.isArray(window.pagamentos) ? window.pagamentos : [],
-        ts: new Date().toISOString(),
-        source: 'before-restore'
-      };
-      localStorage.setItem('backup_before_restore', JSON.stringify(before));
-    }catch(e){}
-
-    window.trabalhos = Array.isArray(data.trabalhos) ? data.trabalhos : [];
-    window.clientes = Array.isArray(data.clientes) ? data.clientes : [];
-    window.pagamentos = Array.isArray(data.pagamentos) ? data.pagamentos : [];
-
-    localStorage.setItem('trabalhos', JSON.stringify(window.trabalhos));
-    localStorage.setItem('clientes', JSON.stringify(window.clientes));
-    localStorage.setItem('pagamentos', JSON.stringify(window.pagamentos));
-    localStorage.setItem('ge_trabalhos', JSON.stringify(window.trabalhos));
-    localStorage.setItem('ge_clientes', JSON.stringify(window.clientes));
-    localStorage.setItem('ge_pagamentos', JSON.stringify(window.pagamentos));
-
-    alert('Backup Firebase restaurado com sucesso.');
-    location.reload();
-  }
-
-  function renderFirebasePreview(data){
-    const box = qs('firebaseBackupPreview');
-    if(!box) return;
-    if(!data){
-      box.innerHTML = '<div class="settings-help">Escolhe um backup para veres o preview.</div>';
-      return;
-    }
-    box.innerHTML = `
-      <div><strong>Backup:</strong> ${data.id}</div>
-      <div class="settings-help">Data: ${backupDateLabel(data.ts)}</div>
-      <div class="firebase-preview-grid">
-        <div class="mini"><div class="mini-label">Trabalhos</div><strong>${data.trabalhos.length}</strong></div>
-        <div class="mini"><div class="mini-label">Clientes</div><strong>${data.clientes.length}</strong></div>
-        <div class="mini"><div class="mini-label">Pagamentos</div><strong>${data.pagamentos.length}</strong></div>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="backups-premium-btn" id="firebaseRestoreNowBtn">Restaurar este backup</button>
-      </div>`;
-    const btn = qs('firebaseRestoreNowBtn');
-    if(btn) btn.onclick = ()=>restoreFirebaseBackup(data.id);
-  }
-
-  async function renderFirebaseBackups(){
-    const list = qs('firebaseBackupsList');
-    const info = qs('firebaseBackupsInfo');
-    if(!list) return;
-    list.innerHTML = '<div class="settings-help">A carregar backups Firebase...</div>';
-    renderFirebasePreview(null);
-    try{
-      const rows = await listFirebaseBackups();
-      if(info) info.textContent = rows.length ? `${rows.length} backup(s) encontrado(s)` : 'Sem backups na Firebase';
-      if(!rows.length){
-        list.innerHTML = '<div class="settings-help">Ainda não existe nenhum backup diário na Firebase.</div>';
-        return;
-      }
-      list.innerHTML = rows.map(row => `
-        <div class="firebase-backup-row">
-          <div class="firebase-backup-meta">
-            <strong>${row.id}</strong>
-            <small>${backupDateLabel(row.ts)} • T:${row.trabalhos.length} • C:${row.clientes.length} • P:${row.pagamentos.length}</small>
-          </div>
-          <button type="button" class="backups-premium-btn" data-firebase-preview="${row.id}">Ver</button>
-          <button type="button" class="backups-premium-btn" data-firebase-restore="${row.id}">Restaurar</button>
-        </div>`).join('');
-      list.querySelectorAll('[data-firebase-preview]').forEach(btn=>{
-        btn.onclick = async ()=> renderFirebasePreview(await getFirebaseBackup(btn.getAttribute('data-firebase-preview')));
-      });
-      list.querySelectorAll('[data-firebase-restore]').forEach(btn=>{
-        btn.onclick = ()=> restoreFirebaseBackup(btn.getAttribute('data-firebase-restore'));
-      });
-      renderFirebasePreview(rows[0]);
-    }catch(err){
-      console.error('Falha ao carregar backups Firebase:', err);
-      if(info) info.textContent = 'Erro ao ler backups';
-      list.innerHTML = '<div class="settings-help">Não foi possível ler os backups da Firebase.</div>';
-    }
-  }
-
-  function mountFirebaseBackupsPanel(){
-    const card = qs('backupToolsCard');
-    if(!card || qs('firebaseBackupsPanel')) return;
-    const wrap = document.createElement('div');
-    wrap.id = 'firebaseBackupsPanel';
-    wrap.className = 'firebase-backups-panel';
-    wrap.innerHTML = `
-      <div class="firebase-backups-head">
-        <div>
-          <h3 style="margin:0 0 4px">Backups Firebase</h3>
-          <div id="firebaseBackupsInfo" class="settings-help">A preparar ligação...</div>
-        </div>
-        <button type="button" class="backups-premium-btn" id="firebaseBackupsRefreshBtn">Atualizar lista</button>
-      </div>
-      <div id="firebaseBackupsList" class="firebase-backups-list"></div>
-      <div id="firebaseBackupPreview" class="firebase-preview-box"><div class="settings-help">Escolhe um backup para veres o preview.</div></div>
-    `;
-    card.appendChild(wrap);
-    const refreshBtn = qs('firebaseBackupsRefreshBtn');
-    if(refreshBtn) refreshBtn.onclick = renderFirebaseBackups;
-    renderFirebaseBackups();
-  }
-
-  function afterBackupPanelMounted(){
-    mountFirebaseBackupsPanel();
-    const restoreBtn = qs('backupRestoreBtnClean');
-    if(restoreBtn){
-      restoreBtn.textContent = 'Ver backups Firebase';
-      restoreBtn.onclick = function(){
-        mountFirebaseBackupsPanel();
-        const panel = qs('firebaseBackupsPanel');
-        if(panel) panel.scrollIntoView({behavior:'smooth', block:'start'});
-      };
-    }
-  }
-
-  const origInstall = window.installCleanBackupPanel;
-  if(typeof origInstall === 'function'){
-    window.installCleanBackupPanel = function(){
-      const res = origInstall.apply(this, arguments);
-      setTimeout(afterBackupPanelMounted, 50);
-      return res;
-    };
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(afterBackupPanelMounted, 1200);
-  });
-
-  window.renderFirebaseBackups = renderFirebaseBackups;
-  window.restoreFirebaseBackup = restoreFirebaseBackup;
-  window.previewFirebaseBackup = async function(id){ renderFirebasePreview(await getFirebaseBackup(id)); };
-
-  
-})();
-</script>
-
-</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -9356,198 +9138,7 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    
-<script>
-(function(){
-  function qs(id){ return document.getElementById(id); }
-
-  async function waitFirebaseReady(timeoutMs=12000){
-    const start = Date.now();
-    while(Date.now()-start < timeoutMs){
-      if(window.firestoreDb && window.getDocs && window.getDoc && window.collection && window.doc) return true;
-      await new Promise(r=>setTimeout(r,250));
-    }
-    return false;
-  }
-
-  function normalizeBackupDoc(id, data){
-    const snap = data && data.snapshot && typeof data.snapshot === 'object' ? data.snapshot : data || {};
-    const ts = snap.ts || data.createdAt || data.dataBackup || id;
-    const trabalhos = Array.isArray(snap.trabalhos) ? snap.trabalhos : [];
-    const clientes = Array.isArray(snap.clientes) ? snap.clientes : [];
-    const pagamentos = Array.isArray(snap.pagamentos) ? snap.pagamentos : [];
-    return { id, ts, trabalhos, clientes, pagamentos, raw:data||{} };
-  }
-
-  async function listFirebaseBackups(){
-    const ok = await waitFirebaseReady();
-    if(!ok) throw new Error('firebase-indisponivel');
-    const snap = await window.getDocs(window.collection(window.firestoreDb, 'app_backups'));
-    const rows = [];
-    (snap.docs || []).forEach(docSnap => rows.push(normalizeBackupDoc(docSnap.id, docSnap.data())));
-    rows.sort((a,b) => String(b.ts||'').localeCompare(String(a.ts||'')));
-    return rows;
-  }
-
-  async function getFirebaseBackup(id){
-    const ok = await waitFirebaseReady();
-    if(!ok) throw new Error('firebase-indisponivel');
-    const snap = await window.getDoc(window.doc(window.firestoreDb,'app_backups',id));
-    if(!snap.exists()) return null;
-    return normalizeBackupDoc(id, snap.data());
-  }
-
-  function backupDateLabel(v){
-    if(!v) return '--';
-    try{ return new Date(v).toLocaleString('pt-PT'); }catch(e){ return String(v); }
-  }
-
-  async function restoreFirebaseBackup(id){
-    const data = await getFirebaseBackup(id);
-    if(!data) return alert('Backup não encontrado.');
-    if(!confirm(`Restaurar o backup ${id}? Isto vai substituir os dados atuais.`)) return;
-
-    try{
-      const before = {
-        trabalhos: Array.isArray(window.trabalhos) ? window.trabalhos : [],
-        clientes: Array.isArray(window.clientes) ? window.clientes : [],
-        pagamentos: Array.isArray(window.pagamentos) ? window.pagamentos : [],
-        ts: new Date().toISOString(),
-        source: 'before-restore'
-      };
-      localStorage.setItem('backup_before_restore', JSON.stringify(before));
-    }catch(e){}
-
-    window.trabalhos = Array.isArray(data.trabalhos) ? data.trabalhos : [];
-    window.clientes = Array.isArray(data.clientes) ? data.clientes : [];
-    window.pagamentos = Array.isArray(data.pagamentos) ? data.pagamentos : [];
-
-    localStorage.setItem('trabalhos', JSON.stringify(window.trabalhos));
-    localStorage.setItem('clientes', JSON.stringify(window.clientes));
-    localStorage.setItem('pagamentos', JSON.stringify(window.pagamentos));
-    localStorage.setItem('ge_trabalhos', JSON.stringify(window.trabalhos));
-    localStorage.setItem('ge_clientes', JSON.stringify(window.clientes));
-    localStorage.setItem('ge_pagamentos', JSON.stringify(window.pagamentos));
-
-    alert('Backup Firebase restaurado com sucesso.');
-    location.reload();
-  }
-
-  function renderFirebasePreview(data){
-    const box = qs('firebaseBackupPreview');
-    if(!box) return;
-    if(!data){
-      box.innerHTML = '<div class="settings-help">Escolhe um backup para veres o preview.</div>';
-      return;
-    }
-    box.innerHTML = `
-      <div><strong>Backup:</strong> ${data.id}</div>
-      <div class="settings-help">Data: ${backupDateLabel(data.ts)}</div>
-      <div class="firebase-preview-grid">
-        <div class="mini"><div class="mini-label">Trabalhos</div><strong>${data.trabalhos.length}</strong></div>
-        <div class="mini"><div class="mini-label">Clientes</div><strong>${data.clientes.length}</strong></div>
-        <div class="mini"><div class="mini-label">Pagamentos</div><strong>${data.pagamentos.length}</strong></div>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="backups-premium-btn" id="firebaseRestoreNowBtn">Restaurar este backup</button>
-      </div>`;
-    const btn = qs('firebaseRestoreNowBtn');
-    if(btn) btn.onclick = ()=>restoreFirebaseBackup(data.id);
-  }
-
-  async function renderFirebaseBackups(){
-    const list = qs('firebaseBackupsList');
-    const info = qs('firebaseBackupsInfo');
-    if(!list) return;
-    list.innerHTML = '<div class="settings-help">A carregar backups Firebase...</div>';
-    renderFirebasePreview(null);
-    try{
-      const rows = await listFirebaseBackups();
-      if(info) info.textContent = rows.length ? `${rows.length} backup(s) encontrado(s)` : 'Sem backups na Firebase';
-      if(!rows.length){
-        list.innerHTML = '<div class="settings-help">Ainda não existe nenhum backup diário na Firebase.</div>';
-        return;
-      }
-      list.innerHTML = rows.map(row => `
-        <div class="firebase-backup-row">
-          <div class="firebase-backup-meta">
-            <strong>${row.id}</strong>
-            <small>${backupDateLabel(row.ts)} • T:${row.trabalhos.length} • C:${row.clientes.length} • P:${row.pagamentos.length}</small>
-          </div>
-          <button type="button" class="backups-premium-btn" data-firebase-preview="${row.id}">Ver</button>
-          <button type="button" class="backups-premium-btn" data-firebase-restore="${row.id}">Restaurar</button>
-        </div>`).join('');
-      list.querySelectorAll('[data-firebase-preview]').forEach(btn=>{
-        btn.onclick = async ()=> renderFirebasePreview(await getFirebaseBackup(btn.getAttribute('data-firebase-preview')));
-      });
-      list.querySelectorAll('[data-firebase-restore]').forEach(btn=>{
-        btn.onclick = ()=> restoreFirebaseBackup(btn.getAttribute('data-firebase-restore'));
-      });
-      renderFirebasePreview(rows[0]);
-    }catch(err){
-      console.error('Falha ao carregar backups Firebase:', err);
-      if(info) info.textContent = 'Erro ao ler backups';
-      list.innerHTML = '<div class="settings-help">Não foi possível ler os backups da Firebase.</div>';
-    }
-  }
-
-  function mountFirebaseBackupsPanel(){
-    const card = qs('backupToolsCard');
-    if(!card || qs('firebaseBackupsPanel')) return;
-    const wrap = document.createElement('div');
-    wrap.id = 'firebaseBackupsPanel';
-    wrap.className = 'firebase-backups-panel';
-    wrap.innerHTML = `
-      <div class="firebase-backups-head">
-        <div>
-          <h3 style="margin:0 0 4px">Backups Firebase</h3>
-          <div id="firebaseBackupsInfo" class="settings-help">A preparar ligação...</div>
-        </div>
-        <button type="button" class="backups-premium-btn" id="firebaseBackupsRefreshBtn">Atualizar lista</button>
-      </div>
-      <div id="firebaseBackupsList" class="firebase-backups-list"></div>
-      <div id="firebaseBackupPreview" class="firebase-preview-box"><div class="settings-help">Escolhe um backup para veres o preview.</div></div>
-    `;
-    card.appendChild(wrap);
-    const refreshBtn = qs('firebaseBackupsRefreshBtn');
-    if(refreshBtn) refreshBtn.onclick = renderFirebaseBackups;
-    renderFirebaseBackups();
-  }
-
-  function afterBackupPanelMounted(){
-    mountFirebaseBackupsPanel();
-    const restoreBtn = qs('backupRestoreBtnClean');
-    if(restoreBtn){
-      restoreBtn.textContent = 'Ver backups Firebase';
-      restoreBtn.onclick = function(){
-        mountFirebaseBackupsPanel();
-        const panel = qs('firebaseBackupsPanel');
-        if(panel) panel.scrollIntoView({behavior:'smooth', block:'start'});
-      };
-    }
-  }
-
-  const origInstall = window.installCleanBackupPanel;
-  if(typeof origInstall === 'function'){
-    window.installCleanBackupPanel = function(){
-      const res = origInstall.apply(this, arguments);
-      setTimeout(afterBackupPanelMounted, 50);
-      return res;
-    };
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(afterBackupPanelMounted, 1200);
-  });
-
-  window.renderFirebaseBackups = renderFirebaseBackups;
-  window.restoreFirebaseBackup = restoreFirebaseBackup;
-  window.previewFirebaseBackup = async function(id){ renderFirebasePreview(await getFirebaseBackup(id)); };
-
-  
-})();
-</script>
-
-</body>
+    </body>
   </html>`;
 }
 
@@ -9626,197 +9217,6 @@ function printProfessionalReport(){
       </div>
     </div>
   </div>
-
-
-<script>
-(function(){
-  function qs(id){ return document.getElementById(id); }
-
-  async function waitFirebaseReady(timeoutMs=12000){
-    const start = Date.now();
-    while(Date.now()-start < timeoutMs){
-      if(window.firestoreDb && window.getDocs && window.getDoc && window.collection && window.doc) return true;
-      await new Promise(r=>setTimeout(r,250));
-    }
-    return false;
-  }
-
-  function normalizeBackupDoc(id, data){
-    const snap = data && data.snapshot && typeof data.snapshot === 'object' ? data.snapshot : data || {};
-    const ts = snap.ts || data.createdAt || data.dataBackup || id;
-    const trabalhos = Array.isArray(snap.trabalhos) ? snap.trabalhos : [];
-    const clientes = Array.isArray(snap.clientes) ? snap.clientes : [];
-    const pagamentos = Array.isArray(snap.pagamentos) ? snap.pagamentos : [];
-    return { id, ts, trabalhos, clientes, pagamentos, raw:data||{} };
-  }
-
-  async function listFirebaseBackups(){
-    const ok = await waitFirebaseReady();
-    if(!ok) throw new Error('firebase-indisponivel');
-    const snap = await window.getDocs(window.collection(window.firestoreDb, 'app_backups'));
-    const rows = [];
-    (snap.docs || []).forEach(docSnap => rows.push(normalizeBackupDoc(docSnap.id, docSnap.data())));
-    rows.sort((a,b) => String(b.ts||'').localeCompare(String(a.ts||'')));
-    return rows;
-  }
-
-  async function getFirebaseBackup(id){
-    const ok = await waitFirebaseReady();
-    if(!ok) throw new Error('firebase-indisponivel');
-    const snap = await window.getDoc(window.doc(window.firestoreDb,'app_backups',id));
-    if(!snap.exists()) return null;
-    return normalizeBackupDoc(id, snap.data());
-  }
-
-  function backupDateLabel(v){
-    if(!v) return '--';
-    try{ return new Date(v).toLocaleString('pt-PT'); }catch(e){ return String(v); }
-  }
-
-  async function restoreFirebaseBackup(id){
-    const data = await getFirebaseBackup(id);
-    if(!data) return alert('Backup não encontrado.');
-    if(!confirm(`Restaurar o backup ${id}? Isto vai substituir os dados atuais.`)) return;
-
-    try{
-      const before = {
-        trabalhos: Array.isArray(window.trabalhos) ? window.trabalhos : [],
-        clientes: Array.isArray(window.clientes) ? window.clientes : [],
-        pagamentos: Array.isArray(window.pagamentos) ? window.pagamentos : [],
-        ts: new Date().toISOString(),
-        source: 'before-restore'
-      };
-      localStorage.setItem('backup_before_restore', JSON.stringify(before));
-    }catch(e){}
-
-    window.trabalhos = Array.isArray(data.trabalhos) ? data.trabalhos : [];
-    window.clientes = Array.isArray(data.clientes) ? data.clientes : [];
-    window.pagamentos = Array.isArray(data.pagamentos) ? data.pagamentos : [];
-
-    localStorage.setItem('trabalhos', JSON.stringify(window.trabalhos));
-    localStorage.setItem('clientes', JSON.stringify(window.clientes));
-    localStorage.setItem('pagamentos', JSON.stringify(window.pagamentos));
-    localStorage.setItem('ge_trabalhos', JSON.stringify(window.trabalhos));
-    localStorage.setItem('ge_clientes', JSON.stringify(window.clientes));
-    localStorage.setItem('ge_pagamentos', JSON.stringify(window.pagamentos));
-
-    alert('Backup Firebase restaurado com sucesso.');
-    location.reload();
-  }
-
-  function renderFirebasePreview(data){
-    const box = qs('firebaseBackupPreview');
-    if(!box) return;
-    if(!data){
-      box.innerHTML = '<div class="settings-help">Escolhe um backup para veres o preview.</div>';
-      return;
-    }
-    box.innerHTML = `
-      <div><strong>Backup:</strong> ${data.id}</div>
-      <div class="settings-help">Data: ${backupDateLabel(data.ts)}</div>
-      <div class="firebase-preview-grid">
-        <div class="mini"><div class="mini-label">Trabalhos</div><strong>${data.trabalhos.length}</strong></div>
-        <div class="mini"><div class="mini-label">Clientes</div><strong>${data.clientes.length}</strong></div>
-        <div class="mini"><div class="mini-label">Pagamentos</div><strong>${data.pagamentos.length}</strong></div>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="backups-premium-btn" id="firebaseRestoreNowBtn">Restaurar este backup</button>
-      </div>`;
-    const btn = qs('firebaseRestoreNowBtn');
-    if(btn) btn.onclick = ()=>restoreFirebaseBackup(data.id);
-  }
-
-  async function renderFirebaseBackups(){
-    const list = qs('firebaseBackupsList');
-    const info = qs('firebaseBackupsInfo');
-    if(!list) return;
-    list.innerHTML = '<div class="settings-help">A carregar backups Firebase...</div>';
-    renderFirebasePreview(null);
-    try{
-      const rows = await listFirebaseBackups();
-      if(info) info.textContent = rows.length ? `${rows.length} backup(s) encontrado(s)` : 'Sem backups na Firebase';
-      if(!rows.length){
-        list.innerHTML = '<div class="settings-help">Ainda não existe nenhum backup diário na Firebase.</div>';
-        return;
-      }
-      list.innerHTML = rows.map(row => `
-        <div class="firebase-backup-row">
-          <div class="firebase-backup-meta">
-            <strong>${row.id}</strong>
-            <small>${backupDateLabel(row.ts)} • T:${row.trabalhos.length} • C:${row.clientes.length} • P:${row.pagamentos.length}</small>
-          </div>
-          <button type="button" class="backups-premium-btn" data-firebase-preview="${row.id}">Ver</button>
-          <button type="button" class="backups-premium-btn" data-firebase-restore="${row.id}">Restaurar</button>
-        </div>`).join('');
-      list.querySelectorAll('[data-firebase-preview]').forEach(btn=>{
-        btn.onclick = async ()=> renderFirebasePreview(await getFirebaseBackup(btn.getAttribute('data-firebase-preview')));
-      });
-      list.querySelectorAll('[data-firebase-restore]').forEach(btn=>{
-        btn.onclick = ()=> restoreFirebaseBackup(btn.getAttribute('data-firebase-restore'));
-      });
-      renderFirebasePreview(rows[0]);
-    }catch(err){
-      console.error('Falha ao carregar backups Firebase:', err);
-      if(info) info.textContent = 'Erro ao ler backups';
-      list.innerHTML = '<div class="settings-help">Não foi possível ler os backups da Firebase.</div>';
-    }
-  }
-
-  function mountFirebaseBackupsPanel(){
-    const card = qs('backupToolsCard');
-    if(!card || qs('firebaseBackupsPanel')) return;
-    const wrap = document.createElement('div');
-    wrap.id = 'firebaseBackupsPanel';
-    wrap.className = 'firebase-backups-panel';
-    wrap.innerHTML = `
-      <div class="firebase-backups-head">
-        <div>
-          <h3 style="margin:0 0 4px">Backups Firebase</h3>
-          <div id="firebaseBackupsInfo" class="settings-help">A preparar ligação...</div>
-        </div>
-        <button type="button" class="backups-premium-btn" id="firebaseBackupsRefreshBtn">Atualizar lista</button>
-      </div>
-      <div id="firebaseBackupsList" class="firebase-backups-list"></div>
-      <div id="firebaseBackupPreview" class="firebase-preview-box"><div class="settings-help">Escolhe um backup para veres o preview.</div></div>
-    `;
-    card.appendChild(wrap);
-    const refreshBtn = qs('firebaseBackupsRefreshBtn');
-    if(refreshBtn) refreshBtn.onclick = renderFirebaseBackups;
-    renderFirebaseBackups();
-  }
-
-  function afterBackupPanelMounted(){
-    mountFirebaseBackupsPanel();
-    const restoreBtn = qs('backupRestoreBtnClean');
-    if(restoreBtn){
-      restoreBtn.textContent = 'Ver backups Firebase';
-      restoreBtn.onclick = function(){
-        mountFirebaseBackupsPanel();
-        const panel = qs('firebaseBackupsPanel');
-        if(panel) panel.scrollIntoView({behavior:'smooth', block:'start'});
-      };
-    }
-  }
-
-  const origInstall = window.installCleanBackupPanel;
-  if(typeof origInstall === 'function'){
-    window.installCleanBackupPanel = function(){
-      const res = origInstall.apply(this, arguments);
-      setTimeout(afterBackupPanelMounted, 50);
-      return res;
-    };
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(afterBackupPanelMounted, 1200);
-  });
-
-  window.renderFirebaseBackups = renderFirebaseBackups;
-  window.restoreFirebaseBackup = restoreFirebaseBackup;
-  window.previewFirebaseBackup = async function(id){ renderFirebasePreview(await getFirebaseBackup(id)); };
-
-  
-})();
-</script>
 
 </body>
 </html>
