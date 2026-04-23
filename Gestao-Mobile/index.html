@@ -3336,7 +3336,7 @@ td.acoes-col, .acoes-col{
               <div class="field"><label>Descrição</label><input id="orcamentoDescricao" type="text" placeholder="Serviço / orçamento" required /></div>
               <div class="field"><label>Valor</label><input id="orcamentoValor" type="number" step="0.01" min="0" /></div>
               <div class="field"><label>Data</label><input id="orcamentoData" type="date" /></div>
-              <div class="field"><label>Estado</label><select id="orcamentoEstado"><option value="pendente">Pendente</option><option value="aprovado">Aprovado</option><option value="rejeitado">Rejeitado</option></select></div>
+              <div class="field"><label>Estado</label><select id="orcamentoEstado"><option value="pendente">Pendente</option><option value="aprovado">Aprovado</option><option value="rejeitado">Rejeitado</option><option value="rejeitado">Rejeitado</option></select></div>
               <div class="field field-span-2"><label>Notas</label><textarea id="orcamentoNotas" rows="4"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar orçamento</button><button type="button" class="btn btn-secondary" id="clearOrcamentoBtn">Limpar</button></div></div>
             </form>
@@ -9705,7 +9705,7 @@ function renderOrcamentos(){
       <td>${euro(o.valor||0)}</td>
       <td>${fmtDate(o.data||'')}</td>
       <td><span class="badge" data-state="${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}">${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}</span></td>
-      <td><div class="row-actions">${isAdminLike()?`<button class="small-btn" onclick="editOrcamento('${o.id}')">Editar</button><button class="small-btn" onclick="approveOrcamento('${o.id}')">Aprovar</button><button class="small-btn danger" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
+      <td><div class="row-actions">${isAdminLike()?`<button class="small-btn" onclick="editOrcamento('${o.id}')">Editar</button><button class="small-btn" onclick="approveOrcamento('${o.id}')">Pend.</button><button class="small-btn" onclick="approveOrcamentoAsPaid('${o.id}')">Pago</button><button class="small-btn danger" onclick="rejectOrcamento('${o.id}')">Rejeitar</button><button class="small-btn danger" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
     </tr>`).join('') : '<tr><td colspan="7">Sem orçamentos registados.</td></tr>';
 }
 $('searchOrcamentos')?.addEventListener('input', renderOrcamentos);
@@ -9760,7 +9760,7 @@ window.deleteOrcamento = async function(id){
 window.approveOrcamento = async function(id){
   if(!adminGuard()) return;
   const o = orcamentos.find(x=>x.id===id); if(!o) return;
-  if(!confirm('Aprovar orçamento e criar trabalho?')) return;
+  if(!confirm('Aprovar orçamento e criar trabalho pendente?')) return;
   o.estado = 'aprovado';
   const novoTrabalho = {
     id: genId('trab'),
@@ -9778,9 +9778,51 @@ window.approveOrcamento = async function(id){
   trabalhos.push(novoTrabalho);
   saveLocal();
   try{ await upsertRemote('trabalhos', novoTrabalho); }catch(e){ console.error(e); }
-  try{ await logAction('approve_orcamento',{ entity:'orcamento', orcamentoId:o.id, codigo:o.codigo, trabalhoId:novoTrabalho.id, workCode:novoTrabalho.workCode }); }catch(e){}
+  try{ await logAction('approve_orcamento_pendente',{ entity:'orcamento', orcamentoId:o.id, codigo:o.codigo, trabalhoId:novoTrabalho.id, workCode:novoTrabalho.workCode, modo:'pendente' }); }catch(e){}
   renderAll();
   switchTab('trabalhos');
+};
+
+window.approveOrcamentoAsPaid = async function(id){
+  if(!adminGuard()) return;
+  const o = orcamentos.find(x=>x.id===id); if(!o) return;
+  if(!confirm('Aprovar orçamento e criar trabalho já pago?')) return;
+  o.estado = 'aprovado';
+  const novoTrabalho = {
+    id: genId('trab'),
+    workCode: nextTrabalhoId(),
+    cliente: o.cliente || '',
+    contacto: '',
+    tipoTrabalho: o.descricao || 'Orçamento aprovado',
+    valor: Number(o.valor || 0),
+    dataInicio: getTodayLocalDateStr(),
+    dataFim: '',
+    estado: 'Pendente',
+    invoiceType: 'Com Fatura',
+    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}`
+  };
+  trabalhos.push(novoTrabalho);
+  saveLocal();
+  try{ await upsertRemote('trabalhos', novoTrabalho); }catch(e){ console.error(e); }
+  try{
+    if(typeof window.markAsPaid === 'function'){
+      await window.markAsPaid(novoTrabalho.id, 'Orçamento Aprovado', getTodayLocalDateStr(), Number(o.valor || 0));
+    }
+  }catch(e){ console.error(e); }
+  try{ await logAction('approve_orcamento_pago',{ entity:'orcamento', orcamentoId:o.id, codigo:o.codigo, trabalhoId:novoTrabalho.id, workCode:novoTrabalho.workCode, modo:'pago' }); }catch(e){}
+  renderAll();
+  switchTab('pagamentos');
+};
+
+window.rejectOrcamento = async function(id){
+  if(!adminGuard()) return;
+  const o = orcamentos.find(x=>x.id===id); if(!o) return;
+  if(!confirm('Marcar este orçamento como rejeitado?')) return;
+  o.estado = 'rejeitado';
+  saveLocal();
+  try{ await logAction('reject_orcamento',{ entity:'orcamento', orcamentoId:o.id, codigo:o.codigo }); }catch(e){}
+  renderAll();
+  switchTab('orcamentos');
 };
 $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = getTodayLocalDateStr());
 </script>
