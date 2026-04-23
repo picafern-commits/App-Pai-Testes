@@ -3059,6 +3059,7 @@ td.acoes-col, .acoes-col{
         <button class="nav-btn" data-tab="trabalhos"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
         <button class="nav-btn" data-tab="clientes"><span class="nav-icon">◉</span><span>Clientes</span></button>
         <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">€</span><span>Pagamentos</span></button>
+        <button class="nav-btn" data-tab="orcamentos"><span class="nav-icon">📝</span><span>Orçamentos</span></button>
         <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">▣</span><span>Relatórios</span></button>
         <button class="nav-btn admin-only" data-tab="logs"><span class="nav-icon">🧾</span><span>Auditoria</span></button>
         <button class="nav-btn" data-tab="configuracoes"><span class="nav-icon">⚙</span><span>Configurações</span></button>
@@ -3234,6 +3235,35 @@ td.acoes-col, .acoes-col{
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('invoiceType')">Faturação <span id="sortIcon-invoiceType">↕</span></button></th>
 <th>Ações</th></tr></thead>
                 <tbody id="pagamentosTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </section>
+
+
+      <section class="page" id="orcamentos-page">
+        <div class="content-grid">
+          <section class="panel admin-only">
+            <div class="panel-head"><h3>Novo orçamento</h3></div>
+            <form id="orcamentoForm" class="form-grid">
+              <input type="hidden" id="orcamentoId" />
+              <div class="field"><label>Cliente</label><select id="orcamentoCliente"></select></div>
+              <div class="field"><label>Descrição</label><input id="orcamentoDescricao" type="text" placeholder="Serviço / orçamento" required /></div>
+              <div class="field"><label>Valor</label><input id="orcamentoValor" type="number" step="0.01" min="0" /></div>
+              <div class="field"><label>Data</label><input id="orcamentoData" type="date" /></div>
+              <div class="field"><label>Estado</label><select id="orcamentoEstado"><option value="pendente">Pendente</option><option value="aprovado">Aprovado</option><option value="rejeitado">Rejeitado</option></select></div>
+              <div class="field field-span-2"><label>Notas</label><textarea id="orcamentoNotas" rows="4"></textarea></div>
+              <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar orçamento</button><button type="button" class="btn btn-secondary" id="clearOrcamentoBtn">Limpar</button></div></div>
+            </form>
+          </section>
+          <section class="panel wide-panel">
+            <div class="panel-head"><h3>Lista de orçamentos</h3></div>
+            <div class="toolbar"><input id="searchOrcamentos" type="text" placeholder="Pesquisar orçamento" /></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Código</th><th>Cliente</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Estado</th><th>Ações</th></tr></thead>
+                <tbody id="orcamentosTableBody"></tbody>
               </table>
             </div>
           </section>
@@ -5091,7 +5121,7 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPe
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const APP_VERSION = '1.0.6';
-const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
+const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos', orcamentos:'ge_orcamentos', lastTrabId:'ge_last_trab_id' };
 const LOGS_COLLECTION = 'logs';
 
 let currentRole = null, currentUsername = null, currentUserEmail = null;
@@ -5100,7 +5130,7 @@ let currentAccessMode = 'edit';
 let managedUsersCache = [];
 const ROLE_COLLECTION = 'user_roles';
 const MASTER_EMAILS = ['pica.fern@gmail.com'];
-let trabalhos = [], clientes = [], pagamentos = [];
+let trabalhos = [], clientes = [], pagamentos = [], orcamentos = []; if(typeof window !== 'undefined') window.orcamentos = orcamentos;
 let lastTrabId = 0;
 
 let firebaseApp = null;
@@ -5889,6 +5919,8 @@ function loadLocal(){
   try{trabalhos=(JSON.parse(localStorage.getItem(STORAGE_KEYS.trabalhos))||[]).map(normalizeTrabalhoStateShape)}catch{trabalhos=[]}
   try{clientes=JSON.parse(localStorage.getItem(STORAGE_KEYS.clientes))||[]}catch{clientes=[]}
   try{pagamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.pagamentos))||[]}catch{pagamentos=[]}
+  try{orcamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.orcamentos))||[]}catch{orcamentos=[]}
+  if(typeof window !== 'undefined') window.orcamentos = orcamentos;
   try{ lastTrabId = Number(localStorage.getItem(STORAGE_KEYS.lastTrabId) || 0) || 0 }catch{ lastTrabId = 0 }
   normalizeTrabalhosIds();
   refreshLastTrabIdFromWorks();
@@ -5897,7 +5929,9 @@ function saveLocal(){
   localStorage.setItem(STORAGE_KEYS.trabalhos, JSON.stringify(trabalhos));
   localStorage.setItem(STORAGE_KEYS.clientes, JSON.stringify(clientes));
   localStorage.setItem(STORAGE_KEYS.pagamentos, JSON.stringify(pagamentos));
+  localStorage.setItem(STORAGE_KEYS.orcamentos, JSON.stringify(orcamentos));
   localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
+  if(typeof window !== 'undefined'){ window.orcamentos = orcamentos; window.trabalhos = trabalhos; window.clientes = clientes; window.pagamentos = pagamentos; }
   autoBackupInvisible();
 }
 
@@ -6364,6 +6398,7 @@ function switchTab(tab){
   if(tab === 'trabalhos') renderTrabalhos();
   if(tab === 'clientes') renderClientes();
   if(tab === 'pagamentos') renderPagamentos();
+  if(tab === 'orcamentos') renderOrcamentos();
   if(tab === 'relatorios') renderRelatorios();
   if(tab === 'logs') renderAuditLogs(false);
   try{ renderAdvancedReports(); }catch(e){}
@@ -8295,7 +8330,7 @@ function renderRelatorios() {
         .join('')
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
-function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); try{ if(typeof renderDashboardAgenda === 'function') renderDashboardAgenda(); }catch(e){ console.warn('renderDashboardAgenda indisponível:', e); } renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
+function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); populateOrcamentoClientOptions(); renderDashboard(); renderAlerts(); try{ if(typeof renderDashboardAgenda === 'function') renderDashboardAgenda(); }catch(e){ console.warn('renderDashboardAgenda indisponível:', e); } renderTrabalhos(); renderClientes(); renderPagamentos(); renderOrcamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){}
   renderManagedUsers();
   updateWorkCodePreview();
@@ -9560,6 +9595,110 @@ function printProfessionalReport(){
   openProfessionalReportWindow(true);
 }
 
+
+function populateOrcamentoClientOptions(selected=''){
+  const select = $('orcamentoCliente');
+  if(!select) return;
+  const current = selected || select.value || '';
+  const sorted = clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  select.innerHTML = ['<option value="">Selecionar cliente</option>']
+    .concat(sorted.map(c => `<option value="${escapeHtml(c.nome || '')}">${escapeHtml(c.nome || '')}</option>`))
+    .join('');
+  if(current) select.value = current;
+}
+function renderOrcamentos(){
+  const tbody = $('orcamentosTableBody');
+  if(!tbody) return;
+  populateOrcamentoClientOptions();
+  const term = ($('searchOrcamentos')?.value||'').trim().toLowerCase();
+  const rows = orcamentos.filter(o => [o.codigo,o.cliente,o.descricao,o.estado,o.notas].join(' ').toLowerCase().includes(term))
+    .slice().sort((a,b)=> new Date(b.data || 0) - new Date(a.data || 0));
+  tbody.innerHTML = rows.length ? rows.map(o => `
+    <tr>
+      <td><strong>${escapeHtml(o.codigo||'-')}</strong></td>
+      <td>${escapeHtml(o.cliente||'-')}</td>
+      <td>${escapeHtml(o.descricao||'-')}</td>
+      <td>${euro(o.valor||0)}</td>
+      <td>${fmtDate(o.data||'')}</td>
+      <td><span class="badge" data-state="${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}">${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}</span></td>
+      <td><div class="row-actions">${isAdminLike()?`<button class="small-btn" onclick="editOrcamento('${o.id}')">Editar</button><button class="small-btn" onclick="approveOrcamento('${o.id}')">Aprovar</button><button class="small-btn danger" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
+    </tr>`).join('') : '<tr><td colspan="7">Sem orçamentos registados.</td></tr>';
+}
+$('searchOrcamentos')?.addEventListener('input', renderOrcamentos);
+$('orcamentoForm')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!adminGuard()) return;
+  const existingId = $('orcamentoId').value;
+  const current = existingId ? orcamentos.find(x=>x.id===existingId) : null;
+  const item = {
+    id: existingId || genId('orc'),
+    codigo: current?.codigo || `ORC-${String(orcamentos.length + 1).padStart(4,'0')}`,
+    cliente: $('orcamentoCliente').value.trim(),
+    descricao: $('orcamentoDescricao').value.trim(),
+    valor: Number($('orcamentoValor').value || 0),
+    data: $('orcamentoData').value || getTodayLocalDateStr(),
+    estado: $('orcamentoEstado').value || 'pendente',
+    notas: $('orcamentoNotas').value.trim()
+  };
+  if(!item.cliente || !item.descricao){ alert('Preenche cliente e descrição do orçamento.'); return; }
+  const i = orcamentos.findIndex(x=>x.id===item.id);
+  if(i>=0) orcamentos[i] = item; else orcamentos.push(item);
+  saveLocal();
+  try{ await logAction(i>=0?'update_orcamento':'create_orcamento',{ entity:'orcamento', orcamentoId:item.id, codigo:item.codigo, cliente:item.cliente, valor:item.valor, estado:item.estado }); }catch(e){}
+  $('orcamentoForm').reset();
+  if($('orcamentoId')) $('orcamentoId').value='';
+  if($('orcamentoEstado')) $('orcamentoEstado').value='pendente';
+  if($('orcamentoData')) $('orcamentoData').value = getTodayLocalDateStr();
+  renderAll();
+  switchTab('orcamentos');
+});
+window.editOrcamento = function(id){
+  if(!adminGuard()) return;
+  const o = orcamentos.find(x=>x.id===id); if(!o) return;
+  $('orcamentoId').value = o.id;
+  populateOrcamentoClientOptions(o.cliente || '');
+  $('orcamentoDescricao').value = o.descricao || '';
+  $('orcamentoValor').value = o.valor || '';
+  $('orcamentoData').value = o.data || getTodayLocalDateStr();
+  $('orcamentoEstado').value = o.estado || 'pendente';
+  $('orcamentoNotas').value = o.notas || '';
+  switchTab('orcamentos');
+};
+window.deleteOrcamento = async function(id){
+  if(!adminGuard()) return;
+  if(!confirm('Apagar este orçamento?')) return;
+  orcamentos = orcamentos.filter(x=>x.id!==id);
+  if(typeof window !== 'undefined') window.orcamentos = orcamentos;
+  saveLocal();
+  try{ await logAction('delete_orcamento',{ entity:'orcamento', orcamentoId:id }); }catch(e){}
+  renderAll();
+};
+window.approveOrcamento = async function(id){
+  if(!adminGuard()) return;
+  const o = orcamentos.find(x=>x.id===id); if(!o) return;
+  if(!confirm('Aprovar orçamento e criar trabalho?')) return;
+  o.estado = 'aprovado';
+  const novoTrabalho = {
+    id: genId('trab'),
+    workCode: nextTrabalhoId(),
+    cliente: o.cliente || '',
+    contacto: '',
+    tipoTrabalho: o.descricao || 'Orçamento aprovado',
+    valor: Number(o.valor || 0),
+    dataInicio: getTodayLocalDateStr(),
+    dataFim: '',
+    estado: 'Pendente',
+    invoiceType: 'Com Fatura',
+    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}`
+  };
+  trabalhos.push(novoTrabalho);
+  saveLocal();
+  try{ await upsertRemote('trabalhos', novoTrabalho); }catch(e){ console.error(e); }
+  try{ await logAction('approve_orcamento',{ entity:'orcamento', orcamentoId:o.id, codigo:o.codigo, trabalhoId:novoTrabalho.id, workCode:novoTrabalho.workCode }); }catch(e){}
+  renderAll();
+  switchTab('trabalhos');
+};
+$('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = getTodayLocalDateStr());
 </script>
 
   <div id="clientModal" class="modal hidden">
