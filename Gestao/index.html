@@ -2782,10 +2782,6 @@ td.acoes-col, .acoes-col{
 .alert-card strong{display:block;font-size:28px;margin:6px 0 8px}
 .alert-card p{margin:0;color:var(--muted);line-height:1.45}
 
-
-#trabalhosPerPage{min-width:140px}
-#trabalhosPaginationBar{margin-top:12px}
-
 </style>
   
 </head>
@@ -2993,26 +2989,13 @@ td.acoes-col, .acoes-col{
             <div class="toolbar">
               <input id="searchTrabalhos" type="text" placeholder="Pesquisar por cliente, ID ou tipo de trabalho" />
               <select id="filterEstado">
-                <option value="">Todos os estados</option><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option></select>
-              <select id="trabalhosPerPage" title="Trabalhos por página">
-                <option value="10">10 / página</option>
-                <option value="20" selected>20 / página</option>
-                <option value="50">50 / página</option>
-                <option value="100">100 / página</option>
-              </select>
+                <option value="">Todos os estados</option>                <option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option></select>
             </div>
             <div id="trabalhosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
                 <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th><th>Faturação</th><th>Ações</th></tr></thead>
                 <tbody id="trabalhosTableBody"></tbody>
               </table>
-            </div>
-            <div class="toolbar" id="trabalhosPaginationBar" style="justify-content:space-between;align-items:center;">
-              <div id="trabalhosPageInfo" class="recent-meta">Página 1 de 1</div>
-              <div class="inline-actions">
-                <button type="button" class="btn btn-secondary" id="trabalhosPrevBtn">Anterior</button>
-                <button type="button" class="btn btn-secondary" id="trabalhosNextBtn">Seguinte</button>
-              </div>
             </div>
           </section>
         </div>
@@ -8067,10 +8050,6 @@ function pagamentoActions(p){
   const pdf=`<button class="small-btn" onclick="pdfPagamento('${p.id}')">PDF</button>`;
   return !isAdminLike() ? pdf : `${pdf}<button class="small-btn" onclick="editPagamento('${p.id}')">Editar</button><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button>`;
 }
-let trabalhosCurrentPage = 1;
-function getTrabalhosPerPage(){ const el = $('trabalhosPerPage'); const v = Number(el?.value || 20); return Number.isFinite(v) && v > 0 ? v : 20; }
-function updateTrabalhosPagination(totalRows){ const perPage = getTrabalhosPerPage(); const totalPages = Math.max(1, Math.ceil(totalRows / perPage)); if(trabalhosCurrentPage > totalPages) trabalhosCurrentPage = totalPages; if(trabalhosCurrentPage < 1) trabalhosCurrentPage = 1; const info = $('trabalhosPageInfo'); if(info) info.textContent = `Página ${trabalhosCurrentPage} de ${totalPages} • ${totalRows} trabalhos`; const prev = $('trabalhosPrevBtn'); const next = $('trabalhosNextBtn'); if(prev) prev.disabled = trabalhosCurrentPage <= 1; if(next) next.disabled = trabalhosCurrentPage >= totalPages; return { perPage, totalPages, start:(trabalhosCurrentPage-1)*perPage, end:trabalhosCurrentPage*perPage }; }
-
 function renderTrabalhos(){
   const term=$('searchTrabalhos').value.trim().toLowerCase();
   const globalTerm=($('globalSearch')?.value||'').trim().toLowerCase();
@@ -8079,9 +8058,7 @@ function renderTrabalhos(){
     const hay=[t.workCode,t.cliente,t.tipoTrabalho,t.contacto,t.descricao,t.estado,t.invoiceType].join(' ').toLowerCase();
     return (!term||hay.includes(term))&&(!globalTerm||hay.includes(globalTerm))&&(!estado||t.estado===estado);
   }).sort((a,b)=>getWorkCodeNumber(b.workCode)-getWorkCodeNumber(a.workCode));
-  const page = updateTrabalhosPagination(rows.length);
-  const pageRows = rows.slice(page.start, page.end);
-  $('trabalhosTableBody').innerHTML = pageRows.length ? pageRows.map(t=>{
+  $('trabalhosTableBody').innerHTML = rows.length ? rows.map(t=>{
     const invoiceType = t.invoiceType || 'Com Fatura';
     const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
     const effectiveEstado = t.paymentStatus === 'Pago' ? 'Pago' : (t.estado || '-');
@@ -8219,11 +8196,8 @@ function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOption
   renderMobileCards();
   applyDeviceAccessRestrictions(); }
 
-$('searchTrabalhos')?.addEventListener('input', ()=>{ trabalhosCurrentPage = 1; renderTrabalhos(); renderMobileCards(); });
-$('filterEstado')?.addEventListener('change', ()=>{ trabalhosCurrentPage = 1; renderTrabalhos(); renderMobileCards(); });
-$('trabalhosPerPage')?.addEventListener('change', ()=>{ trabalhosCurrentPage = 1; renderTrabalhos(); });
-$('trabalhosPrevBtn')?.addEventListener('click', ()=>{ if(trabalhosCurrentPage > 1){ trabalhosCurrentPage--; renderTrabalhos(); } });
-$('trabalhosNextBtn')?.addEventListener('click', ()=>{ const totalRows = trabalhos.filter(t=>{ const term=$('searchTrabalhos').value.trim().toLowerCase(); const globalTerm=($('globalSearch')?.value||'').trim().toLowerCase(); const estado=$('filterEstado').value; const hay=[t.workCode,t.cliente,t.tipoTrabalho,t.contacto,t.descricao,t.estado,t.invoiceType].join(' ').toLowerCase(); return (!term||hay.includes(term))&&(!globalTerm||hay.includes(globalTerm))&&(!estado||t.estado===estado); }).length; const totalPages = Math.max(1, Math.ceil(totalRows / getTrabalhosPerPage())); if(trabalhosCurrentPage < totalPages){ trabalhosCurrentPage++; renderTrabalhos(); } });
+$('searchTrabalhos')?.addEventListener('input', ()=>{ renderTrabalhos(); renderMobileCards(); });
+$('filterEstado')?.addEventListener('change', ()=>{ renderTrabalhos(); renderMobileCards(); });
 $('searchClientes')?.addEventListener('input', ()=>{ renderClientes(); renderMobileCards(); });
 $('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){} renderMobileCards(); });
@@ -9573,11 +9547,10 @@ window.approveOrcamento = async function(id){
     tipoTrabalho: o.descricao || 'Orçamento aprovado',
     valor: Number(o.valor || 0),
     dataInicio: getTodayLocalDateStr(),
-    dataOrcamento: o.data || '',
     dataFim: '',
     estado: 'Pendente',
     invoiceType: 'Com Fatura',
-    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' • Data do orçamento: ' + o.data : ''}`
+    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}`
   };
   trabalhos.push(novoTrabalho);
   saveLocal();
@@ -9601,11 +9574,10 @@ window.approveOrcamentoAsPaid = async function(id){
     tipoTrabalho: o.descricao || 'Orçamento aprovado',
     valor: Number(o.valor || 0),
     dataInicio: getTodayLocalDateStr(),
-    dataOrcamento: o.data || '',
     dataFim: '',
     estado: 'Pendente',
     invoiceType: 'Com Fatura',
-    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' • Data do orçamento: ' + o.data : ''}`
+    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}`
   };
   trabalhos.push(novoTrabalho);
   saveLocal();
