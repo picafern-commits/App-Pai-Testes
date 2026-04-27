@@ -3290,6 +3290,77 @@ body{
   color:#fff !important;
 }
 
+
+/* ===== ESTADO / HISTORICO MAIS PERCEPTIVEL ===== */
+.status-cell-inline{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:120px;
+}
+.estado-pill-plus{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 11px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.01em;
+  border:1px solid rgba(255,255,255,.08);
+  white-space:nowrap;
+}
+.estado-pill-plus::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:currentColor;
+  box-shadow:0 0 0 4px rgba(255,255,255,.04);
+}
+.estado-pill-plus.pendente{
+  background:rgba(245,158,11,.14);
+  color:#fcd34d;
+  border-color:rgba(245,158,11,.28);
+}
+.estado-pill-plus.em-curso,
+.estado-pill-plus.andamento{
+  background:rgba(14,165,233,.14);
+  color:#7dd3fc;
+  border-color:rgba(14,165,233,.28);
+}
+.estado-pill-plus.concluido,
+.estado-pill-plus.entregue,
+.estado-pill-plus.pago{
+  background:rgba(34,197,94,.14);
+  color:#86efac;
+  border-color:rgba(34,197,94,.28);
+}
+.estado-pill-plus.cancelado,
+.estado-pill-plus.rejeitado{
+  background:rgba(239,68,68,.14);
+  color:#fca5a5;
+  border-color:rgba(239,68,68,.28);
+}
+.data-criacao-mini{
+  display:block;
+  margin-top:4px;
+  color:var(--muted,#9fabca);
+  font-size:11px;
+}
+.orc-actions .orc-btn{
+  min-height:auto !important;
+  padding:8px 10px !important;
+  border-radius:11px !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+}
+.orc-btn.approved{
+  background:linear-gradient(135deg,rgba(245,158,11,.9),rgba(34,197,94,.9)) !important;
+  color:white !important;
+  border-color:rgba(255,255,255,.14) !important;
+}
+
 </style>
   
 
@@ -8763,7 +8834,9 @@ function renderTrabalhos(){
     const invoiceType = t.invoiceType || 'Com Fat';
     const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
     const effectiveEstado = t.paymentStatus === 'Pago' ? 'Pago' : (t.estado || '-');
-    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(effectiveEstado)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
+    const estadoClass = String(effectiveEstado || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+    const dataCriacao = t.dataCriacao || t.dataAdicionado || t.createdAt || t.dataInicio || '';
+    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong><span class="data-criacao-mini">Criado: ${fmtDate(dataCriacao)}</span></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="estado-pill-plus ${escapeHtml(estadoClass)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
   }).join('') : '<tr><td colspan="9">Sem resultados.</td></tr>';
 }
 function renderClientes(){
@@ -10234,7 +10307,7 @@ function renderOrcamentos(){
       <td>${euro(o.valor||0)}</td>
       <td>${fmtDate(o.data||'')}</td>
       <td><span class="badge" data-state="${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}">${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}</span></td>
-      <td><div class="orc-actions">${isAdminLike()?`<button class="orc-btn edit" onclick="editOrcamento('${o.id}')">Editar</button><button class="orc-btn approved" onclick="approveOrcamento('${o.id}')">Aprovado</button><button class="orc-btn paid" onclick="approveOrcamentoAsPaid('${o.id}')">Pago</button><button class="orc-btn reject" onclick="rejectOrcamento('${o.id}')">Rejeitar</button><button class="orc-btn delete" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
+      <td><div class="orc-actions">${isAdminLike()?`<button class="orc-btn edit" onclick="editOrcamento('${o.id}')">Editar</button><button class="orc-btn approved" onclick="approveOrcamento('${o.id}')">Aprovado</button><button class="orc-btn reject" onclick="rejectOrcamento('${o.id}')">Rejeitar</button><button class="orc-btn delete" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
     </tr>`).join('') : '<tr><td colspan="7">Sem orçamentos registados.</td></tr>';
 }
 $('searchOrcamentos')?.addEventListener('input', renderOrcamentos);
@@ -10302,6 +10375,8 @@ window.approveOrcamento = async function(id){
     tipoTrabalho: o.descricao || 'Orçamento aprovado',
     valor: Number(o.valor || 0),
     dataInicio: getTodayLocalDateStr(),
+    dataCriacao: new Date().toISOString(),
+    dataAdicionado: new Date().toISOString(),
     dataOrcamento: o.data || '',
     dataFim: '',
     estado: 'Pendente',
@@ -10330,6 +10405,8 @@ window.approveOrcamentoAsPaid = async function(id){
     tipoTrabalho: o.descricao || 'Orçamento aprovado',
     valor: Number(o.valor || 0),
     dataInicio: getTodayLocalDateStr(),
+    dataCriacao: new Date().toISOString(),
+    dataAdicionado: new Date().toISOString(),
     dataOrcamento: o.data || '',
     dataFim: '',
     estado: 'Pendente',
