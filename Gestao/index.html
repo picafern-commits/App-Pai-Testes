@@ -2482,7 +2482,7 @@ td.acoes-col, .acoes-col{
 }
 
 
-/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
+/* CAMPOS AVANÇADOS NO ADICIONAR */
 .master-edit-only.is-hidden-by-role{
   display:none !important;
 }
@@ -2889,14 +2889,73 @@ body{
 }
 
 
-/* FINAL UI HISTORICO */
-.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin-bottom:10px}
-.hist-top{display:flex;justify-content:space-between;font-weight:700}
-.hist-desc{opacity:.8;margin-top:6px}
-.hist-bottom{font-size:12px;opacity:.7;margin-top:8px;display:flex;justify-content:space-between}
-.badge{padding:4px 8px;border-radius:999px;font-size:11px}
-.badge.pendente{background:orange;color:#000}
-.badge.pago{background:green;color:#fff}
+/* ===== HISTORICO TABLE PREMIUM SAFE ===== */
+#trabalhos-page .table-wrap{
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.07);
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));
+  box-shadow:0 18px 42px rgba(0,0,0,.16);
+}
+#trabalhos-page table{
+  border-collapse:separate;
+  border-spacing:0;
+}
+#trabalhos-page thead th{
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:rgba(9,13,24,.96);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-size:11px;
+  color:#b8c6e6;
+}
+#trabalhos-page tbody tr{
+  background:rgba(255,255,255,.018);
+  transition:background .15s ease, transform .15s ease;
+}
+#trabalhos-page tbody tr:hover{
+  background:rgba(255,255,255,.045);
+}
+#trabalhos-page tbody td{
+  vertical-align:middle;
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+#trabalhos-page tbody td:nth-child(1) strong{
+  display:inline-flex;
+  padding:7px 10px;
+  border-radius:12px;
+  background:rgba(255,255,255,.055);
+}
+#trabalhos-page tbody td:nth-child(4){
+  font-size:16px;
+  font-weight:900;
+  color:#86efac;
+  white-space:nowrap;
+}
+#trabalhos-page .actions-cell .row-actions,
+#trabalhos-page .actions-cell{
+  gap:6px;
+}
+#trabalhos-page .small-btn{
+  min-height:auto !important;
+  padding:7px 9px !important;
+  border-radius:10px !important;
+  font-size:11px !important;
+}
+@media (max-width:900px){
+  #trabalhos-page table{min-width:980px}
+  #trabalhos-page .table-wrap{
+    margin-left:-2px;
+    margin-right:-2px;
+  }
+}
+.orc-btn.approved{
+  background:linear-gradient(135deg,#f59e0b,#22c55e) !important;
+  border-color:rgba(255,255,255,.12) !important;
+  color:#fff !important;
+}
+
 </style>
   
 
@@ -4252,7 +4311,7 @@ function buildProfessionalReportHtml(){
         th,td{border:1px solid #e2e8f0;padding:10px;text-align:left}
         th{background:#f5f3ff;color:#4c1d95}
       
-/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
+/* CAMPOS AVANÇADOS NO ADICIONAR */
 .master-edit-only.is-hidden-by-role{
   display:none !important;
 }
@@ -4451,15 +4510,6 @@ body{
   }
 }
 
-
-/* FINAL UI HISTORICO */
-.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin-bottom:10px}
-.hist-top{display:flex;justify-content:space-between;font-weight:700}
-.hist-desc{opacity:.8;margin-top:6px}
-.hist-bottom{font-size:12px;opacity:.7;margin-top:8px;display:flex;justify-content:space-between}
-.badge{padding:4px 8px;border-radius:999px;font-size:11px}
-.badge.pendente{background:orange;color:#000}
-.badge.pago{background:green;color:#fff}
 </style>
     
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -4502,73 +4552,7 @@ body{
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    
-<script>
-function isAdmin(){return (window.currentUser?.role||'').includes('admin');}
-
-function addValorField(){
- const form=document.querySelector('form');
- if(!form||document.getElementById('valorTrabalho'))return;
- const div=document.createElement('div');
- div.innerHTML='<input id="valorTrabalho" type="number" placeholder="Valor (€)">';
- form.appendChild(div);
-}
-document.addEventListener('submit',e=>{
- const v=document.getElementById('valorTrabalho');
- if(v&&isAdmin()){
-   setTimeout(()=>{
-     let t=window.trabalhos||[];
-     if(t.length){
-       t[t.length-1].valor=Number(v.value)||0;
-       localStorage.setItem('ge_trabalhos',JSON.stringify(t));
-     }
-   },500);
- }
-});
-
-function aprovarOrc(id){
- let o=(window.orcamentos||[]).find(x=>x.id==id);
- if(!o)return;
- o.estado='aprovado';
- let t={
-  id:'T'+Date.now(),
-  cliente:o.cliente,
-  descricao:o.descricao,
-  valor:o.valor,
-  estado:'pendente',
-  data:new Date().toISOString()
- };
- window.trabalhos=window.trabalhos||[];
- window.trabalhos.push(t);
- localStorage.setItem('ge_trabalhos',JSON.stringify(window.trabalhos));
- alert('Aprovado e enviado para histórico');
-}
-
-function renderHist(){
- let el=document.getElementById('historico');
- if(!el)return;
- let t=window.trabalhos||[];
- el.innerHTML=t.reverse().map(x=>`
-  <div class="hist-card">
-    <div class="hist-top">
-      <span>${x.cliente||''}</span>
-      <span>${x.valor||0}€</span>
-    </div>
-    <div class="hist-desc">${x.descricao||''}</div>
-    <div class="hist-bottom">
-      <span>${x.data||''}</span>
-      <span class="badge ${x.estado}">${x.estado}</span>
-    </div>
-  </div>
- `).join('');
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
- addValorField();
- setTimeout(renderHist,1000);
-});
-</script>
-</body>
+    </body>
   </html>`;
 }
 
@@ -5718,7 +5702,7 @@ function applyDeviceAccessRestrictions(){
 
 function updateTrabalhoAdvancedFields(){
   const isEditing = !!($('trabalhoId') && $('trabalhoId').value);
-  const canSee = isMasterAdmin() || isEditing;
+  const canSee = isAdminLike() || isEditing;
   document.querySelectorAll('.master-edit-only').forEach(el => {
     el.classList.toggle('is-hidden-by-role', !canSee);
   });
@@ -7752,7 +7736,7 @@ td.acoes-col, .acoes-col{
 }
 
 
-/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
+/* CAMPOS AVANÇADOS NO ADICIONAR */
 .master-edit-only.is-hidden-by-role{
   display:none !important;
 }
@@ -7951,15 +7935,6 @@ body{
   }
 }
 
-
-/* FINAL UI HISTORICO */
-.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin-bottom:10px}
-.hist-top{display:flex;justify-content:space-between;font-weight:700}
-.hist-desc{opacity:.8;margin-top:6px}
-.hist-bottom{font-size:12px;opacity:.7;margin-top:8px;display:flex;justify-content:space-between}
-.badge{padding:4px 8px;border-radius:999px;font-size:11px}
-.badge.pendente{background:orange;color:#000}
-.badge.pago{background:green;color:#fff}
 </style>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -7968,73 +7943,7 @@ body{
 <meta name="theme-color" content="#0b1020">
 <link rel="manifest" href="manifest.json">
 
-</head><body>${bodyHtml}
-<script>
-function isAdmin(){return (window.currentUser?.role||'').includes('admin');}
-
-function addValorField(){
- const form=document.querySelector('form');
- if(!form||document.getElementById('valorTrabalho'))return;
- const div=document.createElement('div');
- div.innerHTML='<input id="valorTrabalho" type="number" placeholder="Valor (€)">';
- form.appendChild(div);
-}
-document.addEventListener('submit',e=>{
- const v=document.getElementById('valorTrabalho');
- if(v&&isAdmin()){
-   setTimeout(()=>{
-     let t=window.trabalhos||[];
-     if(t.length){
-       t[t.length-1].valor=Number(v.value)||0;
-       localStorage.setItem('ge_trabalhos',JSON.stringify(t));
-     }
-   },500);
- }
-});
-
-function aprovarOrc(id){
- let o=(window.orcamentos||[]).find(x=>x.id==id);
- if(!o)return;
- o.estado='aprovado';
- let t={
-  id:'T'+Date.now(),
-  cliente:o.cliente,
-  descricao:o.descricao,
-  valor:o.valor,
-  estado:'pendente',
-  data:new Date().toISOString()
- };
- window.trabalhos=window.trabalhos||[];
- window.trabalhos.push(t);
- localStorage.setItem('ge_trabalhos',JSON.stringify(window.trabalhos));
- alert('Aprovado e enviado para histórico');
-}
-
-function renderHist(){
- let el=document.getElementById('historico');
- if(!el)return;
- let t=window.trabalhos||[];
- el.innerHTML=t.reverse().map(x=>`
-  <div class="hist-card">
-    <div class="hist-top">
-      <span>${x.cliente||''}</span>
-      <span>${x.valor||0}€</span>
-    </div>
-    <div class="hist-desc">${x.descricao||''}</div>
-    <div class="hist-bottom">
-      <span>${x.data||''}</span>
-      <span class="badge ${x.estado}">${x.estado}</span>
-    </div>
-  </div>
- `).join('');
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
- addValorField();
- setTimeout(renderHist,1000);
-});
-</script>
-</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -9636,7 +9545,7 @@ function buildProfessionalReportHtml(){
         th,td{border:1px solid #e2e8f0;padding:10px;text-align:left}
         th{background:#f5f3ff;color:#4c1d95}
       
-/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
+/* CAMPOS AVANÇADOS NO ADICIONAR */
 .master-edit-only.is-hidden-by-role{
   display:none !important;
 }
@@ -9835,15 +9744,6 @@ body{
   }
 }
 
-
-/* FINAL UI HISTORICO */
-.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin-bottom:10px}
-.hist-top{display:flex;justify-content:space-between;font-weight:700}
-.hist-desc{opacity:.8;margin-top:6px}
-.hist-bottom{font-size:12px;opacity:.7;margin-top:8px;display:flex;justify-content:space-between}
-.badge{padding:4px 8px;border-radius:999px;font-size:11px}
-.badge.pendente{background:orange;color:#000}
-.badge.pago{background:green;color:#fff}
 </style>
     
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -9886,73 +9786,7 @@ body{
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    
-<script>
-function isAdmin(){return (window.currentUser?.role||'').includes('admin');}
-
-function addValorField(){
- const form=document.querySelector('form');
- if(!form||document.getElementById('valorTrabalho'))return;
- const div=document.createElement('div');
- div.innerHTML='<input id="valorTrabalho" type="number" placeholder="Valor (€)">';
- form.appendChild(div);
-}
-document.addEventListener('submit',e=>{
- const v=document.getElementById('valorTrabalho');
- if(v&&isAdmin()){
-   setTimeout(()=>{
-     let t=window.trabalhos||[];
-     if(t.length){
-       t[t.length-1].valor=Number(v.value)||0;
-       localStorage.setItem('ge_trabalhos',JSON.stringify(t));
-     }
-   },500);
- }
-});
-
-function aprovarOrc(id){
- let o=(window.orcamentos||[]).find(x=>x.id==id);
- if(!o)return;
- o.estado='aprovado';
- let t={
-  id:'T'+Date.now(),
-  cliente:o.cliente,
-  descricao:o.descricao,
-  valor:o.valor,
-  estado:'pendente',
-  data:new Date().toISOString()
- };
- window.trabalhos=window.trabalhos||[];
- window.trabalhos.push(t);
- localStorage.setItem('ge_trabalhos',JSON.stringify(window.trabalhos));
- alert('Aprovado e enviado para histórico');
-}
-
-function renderHist(){
- let el=document.getElementById('historico');
- if(!el)return;
- let t=window.trabalhos||[];
- el.innerHTML=t.reverse().map(x=>`
-  <div class="hist-card">
-    <div class="hist-top">
-      <span>${x.cliente||''}</span>
-      <span>${x.valor||0}€</span>
-    </div>
-    <div class="hist-desc">${x.descricao||''}</div>
-    <div class="hist-bottom">
-      <span>${x.data||''}</span>
-      <span class="badge ${x.estado}">${x.estado}</span>
-    </div>
-  </div>
- `).join('');
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
- addValorField();
- setTimeout(renderHist,1000);
-});
-</script>
-</body>
+    </body>
   </html>`;
 }
 
@@ -10002,7 +9836,7 @@ function renderOrcamentos(){
       <td>${euro(o.valor||0)}</td>
       <td>${fmtDate(o.data||'')}</td>
       <td><span class="badge" data-state="${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}">${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}</span></td>
-      <td><div class="orc-actions">${isAdminLike()?`<button class="orc-btn edit" onclick="editOrcamento('${o.id}')">Editar</button><button class="orc-btn pending" onclick="approveOrcamento('${o.id}')">Pend.</button><button class="orc-btn paid" onclick="approveOrcamentoAsPaid('${o.id}')">Pago</button><button class="orc-btn reject" onclick="rejectOrcamento('${o.id}')">Rejeitar</button><button class="orc-btn delete" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
+      <td><div class="orc-actions">${isAdminLike()?`<button class="orc-btn edit" onclick="editOrcamento('${o.id}')">Editar</button><button class="orc-btn approved" onclick="approveOrcamento('${o.id}')">Aprovado</button><button class="orc-btn paid" onclick="approveOrcamentoAsPaid('${o.id}')">Pago</button><button class="orc-btn reject" onclick="rejectOrcamento('${o.id}')">Rejeitar</button><button class="orc-btn delete" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
     </tr>`).join('') : '<tr><td colspan="7">Sem orçamentos registados.</td></tr>';
 }
 $('searchOrcamentos')?.addEventListener('input', renderOrcamentos);
@@ -10185,71 +10019,5 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
     </div>
   </div>
 
-
-<script>
-function isAdmin(){return (window.currentUser?.role||'').includes('admin');}
-
-function addValorField(){
- const form=document.querySelector('form');
- if(!form||document.getElementById('valorTrabalho'))return;
- const div=document.createElement('div');
- div.innerHTML='<input id="valorTrabalho" type="number" placeholder="Valor (€)">';
- form.appendChild(div);
-}
-document.addEventListener('submit',e=>{
- const v=document.getElementById('valorTrabalho');
- if(v&&isAdmin()){
-   setTimeout(()=>{
-     let t=window.trabalhos||[];
-     if(t.length){
-       t[t.length-1].valor=Number(v.value)||0;
-       localStorage.setItem('ge_trabalhos',JSON.stringify(t));
-     }
-   },500);
- }
-});
-
-function aprovarOrc(id){
- let o=(window.orcamentos||[]).find(x=>x.id==id);
- if(!o)return;
- o.estado='aprovado';
- let t={
-  id:'T'+Date.now(),
-  cliente:o.cliente,
-  descricao:o.descricao,
-  valor:o.valor,
-  estado:'pendente',
-  data:new Date().toISOString()
- };
- window.trabalhos=window.trabalhos||[];
- window.trabalhos.push(t);
- localStorage.setItem('ge_trabalhos',JSON.stringify(window.trabalhos));
- alert('Aprovado e enviado para histórico');
-}
-
-function renderHist(){
- let el=document.getElementById('historico');
- if(!el)return;
- let t=window.trabalhos||[];
- el.innerHTML=t.reverse().map(x=>`
-  <div class="hist-card">
-    <div class="hist-top">
-      <span>${x.cliente||''}</span>
-      <span>${x.valor||0}€</span>
-    </div>
-    <div class="hist-desc">${x.descricao||''}</div>
-    <div class="hist-bottom">
-      <span>${x.data||''}</span>
-      <span class="badge ${x.estado}">${x.estado}</span>
-    </div>
-  </div>
- `).join('');
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
- addValorField();
- setTimeout(renderHist,1000);
-});
-</script>
 </body>
 </html>
