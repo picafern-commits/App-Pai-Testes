@@ -3361,6 +3361,39 @@ body{
   border-color:rgba(255,255,255,.14) !important;
 }
 
+
+/* ===== VALOR MODO EMPRESA ===== */
+.valor-admin-force{
+  display:block !important;
+}
+.valor-empresa-box{
+  border:1px solid rgba(34,197,94,.22) !important;
+  background:linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
+  border-radius:16px !important;
+  padding:12px !important;
+}
+.valor-empresa-box label::after{
+  content:"  Admin";
+  margin-left:8px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:rgba(34,197,94,.14);
+  color:#86efac;
+  font-size:10px;
+  font-weight:900;
+}
+.valor-empresa-hint{
+  color:#86efac;
+  font-size:12px;
+  margin-top:7px;
+  font-weight:700;
+}
+#trabalhos-page tbody td:nth-child(4){
+  font-size:18px !important;
+  font-weight:950 !important;
+  color:#86efac !important;
+}
+
 </style>
   
 
@@ -4948,7 +4981,117 @@ body{
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script>
+/* ===== VALOR MODO EMPRESA SAFE ===== */
+(function(){
+  function roleAdminEmpresa(){
+    const vals = [
+      window.currentRole,
+      window.userRole,
+      window.role,
+      window.currentUser?.role,
+      window.firebaseAuth?.currentUser?.email
+    ].map(v => String(v || '').toLowerCase());
+    return vals.some(v => v.includes('admin') || v.includes('master') || v.includes('pica.fern'));
+  }
+
+  function ativarValorEmpresa(){
+    const valor = document.getElementById('valor');
+    if(!valor) return;
+
+    const box = valor.closest('.field') || valor.parentElement;
+    if(!box) return;
+
+    const admin = roleAdminEmpresa();
+
+    if(admin){
+      box.classList.remove('is-hidden-by-role');
+      box.classList.remove('field-hidden-by-role');
+      box.classList.add('valor-admin-force');
+      box.classList.add('valor-empresa-box');
+      box.style.display = 'block';
+      valor.disabled = false;
+      valor.readOnly = false;
+
+      if(!box.querySelector('.valor-empresa-hint')){
+        const hint = document.createElement('div');
+        hint.className = 'valor-empresa-hint';
+        hint.textContent = 'Valor visível para Admin/Master.';
+        box.appendChild(hint);
+      }
+    }else{
+      box.classList.add('is-hidden-by-role');
+    }
+  }
+
+  function guardarValorEmpresaNoSubmit(){
+    const form = document.getElementById('trabalhoForm');
+    if(!form || form.dataset.valorEmpresaWired === '1') return;
+    form.dataset.valorEmpresaWired = '1';
+
+    form.addEventListener('submit', function(){
+      const valor = document.getElementById('valor');
+      if(!valor || !roleAdminEmpresa()) return;
+      const val = Number(String(valor.value || '0').replace(',', '.')) || 0;
+
+      setTimeout(function(){
+        try{
+          const arr = Array.isArray(window.trabalhos) ? window.trabalhos : [];
+          const id = document.getElementById('trabalhoId')?.value || '';
+          let trab = id ? arr.find(t => String(t.id) === String(id)) : arr[arr.length - 1];
+          if(!trab && arr.length) trab = arr[arr.length - 1];
+          if(trab){
+            trab.valor = val;
+            if(!trab.dataCriacao) trab.dataCriacao = new Date().toISOString();
+            if(!trab.dataAdicionado) trab.dataAdicionado = new Date().toISOString();
+            try{ localStorage.setItem('ge_trabalhos', JSON.stringify(arr)); }catch(e){}
+            try{ if(typeof window.upsertRemote === 'function' && trab.id) window.upsertRemote('trabalhos', trab); }catch(e){}
+            try{ if(typeof window.renderTrabalhos === 'function') window.renderTrabalhos(); }catch(e){}
+            try{ if(typeof window.renderDashboard === 'function') window.renderDashboard(); }catch(e){}
+          }
+        }catch(e){
+          console.warn('Valor modo empresa não aplicado:', e);
+        }
+      }, 900);
+    }, true);
+  }
+
+  function wrapUpdateAdvanced(){
+    if(window.__valorEmpresaUpdateWrapped) return;
+    const old = window.updateTrabalhoAdvancedFields;
+    if(typeof old === 'function'){
+      window.updateTrabalhoAdvancedFields = function(){
+        const r = old.apply(this, arguments);
+        setTimeout(ativarValorEmpresa, 0);
+        return r;
+      };
+      window.__valorEmpresaUpdateWrapped = true;
+    }
+  }
+
+  function repetir(){
+    ativarValorEmpresa();
+    guardarValorEmpresaNoSubmit();
+    wrapUpdateAdvanced();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    repetir();
+    setTimeout(repetir, 700);
+    setTimeout(repetir, 1600);
+    setTimeout(repetir, 3000);
+  });
+
+  document.addEventListener('click', function(){
+    setTimeout(repetir, 250);
+  });
+
+  window.ativarValorEmpresa = ativarValorEmpresa;
+})();
+</script>
+
+</body>
   </html>`;
 }
 
@@ -6108,7 +6251,7 @@ function applyDeviceAccessRestrictions(){
 
 function updateTrabalhoAdvancedFields(){
   const isEditing = !!($('trabalhoId') && $('trabalhoId').value);
-  const canSee = isAdminLike() || isEditing;
+  const canSee = isAdminLike() || isMasterAdmin() || isEditing;
   document.querySelectorAll('.master-edit-only').forEach(el => {
     el.classList.toggle('is-hidden-by-role', !canSee);
   });
