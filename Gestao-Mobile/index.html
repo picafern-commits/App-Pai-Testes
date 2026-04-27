@@ -2092,7 +2092,7 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   color:#fee2e2;
   box-shadow:0 0 0 1px rgba(239,68,68,.08) inset;
 }
-.pipeline-like-btn.fatura-btn{
+.pipeline-like-btn.Fat-btn{
   background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
   border-color:rgba(216,180,254,.32);
   color:#f3e8ff;
@@ -2164,7 +2164,7 @@ td.acoes-col, .acoes-col{
 }
 
 
-.pipeline-like-btn.fatura-disabled{
+.pipeline-like-btn.Fat-disabled{
   background:linear-gradient(180deg, rgba(148,163,184,.12), rgba(100,116,139,.08));
   border-color:rgba(148,163,184,.20);
   color:#94a3b8;
@@ -3180,41 +3180,67 @@ td.acoes-col, .acoes-col{
 }
 
 
-/* ===== MOBILE NAV TOGGLE ===== */
-@media (max-width: 900px){
-  body.nav-mobile-sidebar .bottom-nav{ display:none !important; }
-  body.nav-mobile-sidebar #mobileMenuBtn,
-  body.nav-mobile-sidebar .mobile-menu-btn{ display:inline-flex !important; }
+/* ===== FULLSCREEN PRO ===== */
+html, body{
+  margin:0 !important;
+  padding:0 !important;
+  width:100%;
+  height:100%;
+  overflow-x:hidden;
+}
 
-  body.nav-mobile-bottom .bottom-nav{ display:grid !important; }
-  body.nav-mobile-bottom #mobileMenuBtn,
-  body.nav-mobile-bottom .mobile-menu-btn{ display:none !important; }
-  body.nav-mobile-bottom .mobileSidebarBackdrop{ display:none !important; }
-  body.nav-mobile-bottom .sidebar{
-    position:static !important;
-    left:auto !important;
-    transform:none !important;
-    visibility:visible !important;
-    opacity:1 !important;
+body{
+  min-height:100dvh;
+  background:#0b0f1a;
+}
+
+.app-shell,
+.main-content,
+.content,
+.page{
+  width:100% !important;
+  max-width:100% !important;
+}
+
+.sidebar{
+  height:100dvh !important;
+}
+
+@media (max-width: 900px){
+  body{
+    min-height:100dvh;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+
+  .main-content{
+    padding:10px !important;
+  }
+
+  .sidebar{
+    height:100dvh !important;
   }
 }
-.mobile-nav-setting-card{ margin-top:14px; }
-.mobile-nav-setting-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  flex-wrap:wrap;
-}
-.mobile-nav-setting-row select{ width:auto !important; min-width:190px; }
-.mobile-nav-setting-help{
-  color:var(--muted,#9fabca);
-  margin-top:8px;
-  font-size:12px;
-}
 
+
+/* FINAL UI HISTORICO */
+.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin-bottom:10px}
+.hist-top{display:flex;justify-content:space-between;font-weight:700}
+.hist-desc{opacity:.8;margin-top:6px}
+.hist-bottom{font-size:12px;opacity:.7;margin-top:8px;display:flex;justify-content:space-between}
+.badge{padding:4px 8px;border-radius:999px;font-size:11px}
+.badge.pendente{background:orange;color:#000}
+.badge.pago{background:green;color:#fff}
 </style>
   
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.json">
+
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
@@ -3344,7 +3370,7 @@ td.acoes-col, .acoes-col{
           <div class="stat-card panel pink"><span>Total trabalhos</span><strong id="statTotalTrabalhos">0</strong><small>Todos os registos</small></div>
           <div class="stat-card panel blue"><span>Em andamento</span><strong id="statEmAndamento">0</strong><small>Serviços abertos</small></div>
           <div class="stat-card panel green"><span>Concluídos</span><strong id="statConcluidos">0</strong><small>Fechados ou pagos</small></div>
-          <div class="stat-card panel gold"><span>Total faturado</span><strong id="statTotalFaturado">0 €</strong><small>Soma dos valores</small></div>
+          <div class="stat-card panel gold"><span>Total Fat</span><strong id="statTotalFat">0 €</strong><small>Soma dos valores</small></div>
         </div>
 
         <section class="panel">
@@ -3407,7 +3433,7 @@ td.acoes-col, .acoes-col{
               <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
-              <div class="field"><label>Faturação</label><select id="trabalhoInvoiceType"><option>Com Fatura</option><option>Sem Fatura</option></select></div>
+              <div class="field"><label>Fat</label><select id="trabalhoInvoiceType"><option>Com Fat</option><option>Sem Fat</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
             </form>
@@ -3426,7 +3452,7 @@ td.acoes-col, .acoes-col{
             </div>
             <div id="trabalhosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
-                <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th><th>Faturação</th><th>Ações</th></tr></thead>
+                <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th><th>Fat</th><th>Ações</th></tr></thead>
                 <tbody id="trabalhosTableBody"></tbody>
               </table>
             </div>
@@ -3488,7 +3514,7 @@ td.acoes-col, .acoes-col{
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('data')">Data do Trabalho <span id="sortIcon-data">↕</span></button></th>
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('valor')">Valor <span id="sortIcon-valor">↕</span></button></th>
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('metodo')">Método <span id="sortIcon-metodo">↕</span></button></th>
-<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('invoiceType')">Faturação <span id="sortIcon-invoiceType">↕</span></button></th>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('invoiceType')">Fat <span id="sortIcon-invoiceType">↕</span></button></th>
 <th>Ações</th></tr></thead>
                 <tbody id="pagamentosTableBody"></tbody>
               </table>
@@ -4707,12 +4733,72 @@ function buildProfessionalReportHtml(){
   .online-users-list{padding:10px;max-height:280px;}
 }
 
+
+/* ===== FULLSCREEN PRO ===== */
+html, body{
+  margin:0 !important;
+  padding:0 !important;
+  width:100%;
+  height:100%;
+  overflow-x:hidden;
+}
+
+body{
+  min-height:100dvh;
+  background:#0b0f1a;
+}
+
+.app-shell,
+.main-content,
+.content,
+.page{
+  width:100% !important;
+  max-width:100% !important;
+}
+
+.sidebar{
+  height:100dvh !important;
+}
+
+@media (max-width: 900px){
+  body{
+    min-height:100dvh;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+
+  .main-content{
+    padding:10px !important;
+  }
+
+  .sidebar{
+    height:100dvh !important;
+  }
+}
+
+
+/* FINAL UI HISTORICO */
+.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin-bottom:10px}
+.hist-top{display:flex;justify-content:space-between;font-weight:700}
+.hist-desc{opacity:.8;margin-top:6px}
+.hist-bottom{font-size:12px;opacity:.7;margin-top:8px;display:flex;justify-content:space-between}
+.badge{padding:4px 8px;border-radius:999px;font-size:11px}
+.badge.pendente{background:orange;color:#000}
+.badge.pago{background:green;color:#fff}
 </style>
-    </head>
+    
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.json">
+
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
-        <p>Resumo avançado de clientes, faturação e histórico.</p>
+        <p>Resumo avançado de clientes, Fat e histórico.</p>
       </div>
 
       <div class="stats">
@@ -4721,7 +4807,7 @@ function buildProfessionalReportHtml(){
           <div class="value">${formatEuroValue(data.avgValue)}</div>
         </div>
         <div class="card">
-          <div class="label">Cliente com mais faturação</div>
+          <div class="label">Cliente com mais Fat</div>
           <div class="value">${data.topClient ? escapeHtml(data.topClient.nome) : '--'}</div>
         </div>
       </div>
@@ -4742,97 +4828,71 @@ function buildProfessionalReportHtml(){
         <tbody>${historyHtml}</tbody>
       </table>
     
-<div class="settings-card mobile-nav-setting-card" id="mobileNavModeCard">
-  <strong>Navegação mobile</strong>
-  <div class="mobile-nav-setting-row" style="margin-top:10px;">
-    <label for="mobileNavModeSelect">Escolher modo</label>
-    <select id="mobileNavModeSelect">
-      <option value="sidebar">Sidebar escondida</option>
-      <option value="bottom">Botões em baixo</option>
-    </select>
-  </div>
-  <div class="mobile-nav-setting-help">A app memoriza esta opção neste dispositivo.</div>
-</div>
-
-
 <script>
-(function(){
-  const KEY = 'mobileNavMode';
+function isAdmin(){return (window.currentUser?.role||'').includes('admin');}
 
-  function getMode(){
-    const saved = localStorage.getItem(KEY);
-    return saved === 'bottom' ? 'bottom' : 'sidebar';
-  }
+function addValorField(){
+ const form=document.querySelector('form');
+ if(!form||document.getElementById('valorTrabalho'))return;
+ const div=document.createElement('div');
+ div.innerHTML='<input id="valorTrabalho" type="number" placeholder="Valor (€)">';
+ form.appendChild(div);
+}
+document.addEventListener('submit',e=>{
+ const v=document.getElementById('valorTrabalho');
+ if(v&&isAdmin()){
+   setTimeout(()=>{
+     let t=window.trabalhos||[];
+     if(t.length){
+       t[t.length-1].valor=Number(v.value)||0;
+       localStorage.setItem('ge_trabalhos',JSON.stringify(t));
+     }
+   },500);
+ }
+});
 
-  function applyMobileNavMode(mode){
-    const body = document.body;
-    if(!body) return;
-    body.classList.remove('nav-mobile-sidebar', 'nav-mobile-bottom');
-    body.classList.add(mode === 'bottom' ? 'nav-mobile-bottom' : 'nav-mobile-sidebar');
+function aprovarOrc(id){
+ let o=(window.orcamentos||[]).find(x=>x.id==id);
+ if(!o)return;
+ o.estado='aprovado';
+ let t={
+  id:'T'+Date.now(),
+  cliente:o.cliente,
+  descricao:o.descricao,
+  valor:o.valor,
+  estado:'pendente',
+  data:new Date().toISOString()
+ };
+ window.trabalhos=window.trabalhos||[];
+ window.trabalhos.push(t);
+ localStorage.setItem('ge_trabalhos',JSON.stringify(window.trabalhos));
+ alert('Aprovado e enviado para histórico');
+}
 
-    const select = document.getElementById('mobileNavModeSelect');
-    if(select) select.value = mode;
+function renderHist(){
+ let el=document.getElementById('historico');
+ if(!el)return;
+ let t=window.trabalhos||[];
+ el.innerHTML=t.reverse().map(x=>`
+  <div class="hist-card">
+    <div class="hist-top">
+      <span>${x.cliente||''}</span>
+      <span>${x.valor||0}€</span>
+    </div>
+    <div class="hist-desc">${x.descricao||''}</div>
+    <div class="hist-bottom">
+      <span>${x.data||''}</span>
+      <span class="badge ${x.estado}">${x.estado}</span>
+    </div>
+  </div>
+ `).join('');
+}
 
-    const bottomNav = document.querySelector('.bottom-nav');
-    const menuBtn = document.getElementById('mobileMenuBtn') || document.querySelector('.mobile-menu-btn');
-    const backdrop = document.querySelector('.mobileSidebarBackdrop');
-
-    if(window.innerWidth <= 900){
-      if(mode === 'bottom'){
-        if(bottomNav) bottomNav.style.display = 'grid';
-        if(menuBtn) menuBtn.style.display = 'none';
-        if(backdrop) backdrop.style.display = 'none';
-        document.body.classList.remove('mobile-sidebar-open');
-      }else{
-        if(bottomNav) bottomNav.style.display = 'none';
-        if(menuBtn) menuBtn.style.display = 'inline-flex';
-      }
-    }else{
-      if(bottomNav) bottomNav.style.display = '';
-      if(menuBtn) menuBtn.style.display = '';
-    }
-  }
-
-  function saveMobileNavMode(mode){
-    localStorage.setItem(KEY, mode === 'bottom' ? 'bottom' : 'sidebar');
-    applyMobileNavMode(mode);
-  }
-
-  function placeSettingsCard(){
-    const card = document.getElementById('mobileNavModeCard');
-    if(!card) return;
-
-    const ids = [
-      'pagina-configuracoes','page-configuracoes','configuracoesPage','settingsPage'
-    ];
-    let host = null;
-    for(const id of ids){
-      const el = document.getElementById(id);
-      if(el){ host = el; break; }
-    }
-    if(!host){
-      const all = Array.from(document.querySelectorAll('section, .page, .panel, div'));
-      host = all.find(el => /config|defini|setting/i.test((el.id||'') + ' ' + (el.className||''))) || null;
-    }
-    if(host && !host.contains(card)) host.appendChild(card);
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    placeSettingsCard();
-    const select = document.getElementById('mobileNavModeSelect');
-    if(select){
-      select.value = getMode();
-      select.addEventListener('change', function(e){ saveMobileNavMode(e.target.value); });
-    }
-    applyMobileNavMode(getMode());
-    window.addEventListener('resize', function(){ applyMobileNavMode(getMode()); });
-  });
-
-  window.applyMobileNavMode = applyMobileNavMode;
-  window.saveMobileNavMode = saveMobileNavMode;
-})();
+document.addEventListener('DOMContentLoaded',()=>{
+ addValorField();
+ setTimeout(renderHist,1000);
+});
 </script>
-
 </body>
   </html>`;
 }
@@ -7366,7 +7426,7 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   color:#fee2e2;
   box-shadow:0 0 0 1px rgba(239,68,68,.08) inset;
 }
-.pipeline-like-btn.fatura-btn{
+.pipeline-like-btn.Fat-btn{
   background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
   border-color:rgba(216,180,254,.32);
   color:#f3e8ff;
@@ -7438,7 +7498,7 @@ td.acoes-col, .acoes-col{
 }
 
 
-.pipeline-like-btn.fatura-disabled{
+.pipeline-like-btn.Fat-disabled{
   background:linear-gradient(180deg, rgba(148,163,184,.12), rgba(100,116,139,.08));
   border-color:rgba(148,163,184,.20);
   color:#94a3b8;
@@ -8246,7 +8306,133 @@ td.acoes-col, .acoes-col{
   .online-users-list{padding:10px;max-height:280px;}
 }
 
-</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+
+/* ===== FULLSCREEN PRO ===== */
+html, body{
+  margin:0 !important;
+  padding:0 !important;
+  width:100%;
+  height:100%;
+  overflow-x:hidden;
+}
+
+body{
+  min-height:100dvh;
+  background:#0b0f1a;
+}
+
+.app-shell,
+.main-content,
+.content,
+.page{
+  width:100% !important;
+  max-width:100% !important;
+}
+
+.sidebar{
+  height:100dvh !important;
+}
+
+@media (max-width: 900px){
+  body{
+    min-height:100dvh;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+
+  .main-content{
+    padding:10px !important;
+  }
+
+  .sidebar{
+    height:100dvh !important;
+  }
+}
+
+
+/* FINAL UI HISTORICO */
+.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin-bottom:10px}
+.hist-top{display:flex;justify-content:space-between;font-weight:700}
+.hist-desc{opacity:.8;margin-top:6px}
+.hist-bottom{font-size:12px;opacity:.7;margin-top:8px;display:flex;justify-content:space-between}
+.badge{padding:4px 8px;border-radius:999px;font-size:11px}
+.badge.pendente{background:orange;color:#000}
+.badge.pago{background:green;color:#fff}
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.json">
+
+</head><body>${bodyHtml}
+<script>
+function isAdmin(){return (window.currentUser?.role||'').includes('admin');}
+
+function addValorField(){
+ const form=document.querySelector('form');
+ if(!form||document.getElementById('valorTrabalho'))return;
+ const div=document.createElement('div');
+ div.innerHTML='<input id="valorTrabalho" type="number" placeholder="Valor (€)">';
+ form.appendChild(div);
+}
+document.addEventListener('submit',e=>{
+ const v=document.getElementById('valorTrabalho');
+ if(v&&isAdmin()){
+   setTimeout(()=>{
+     let t=window.trabalhos||[];
+     if(t.length){
+       t[t.length-1].valor=Number(v.value)||0;
+       localStorage.setItem('ge_trabalhos',JSON.stringify(t));
+     }
+   },500);
+ }
+});
+
+function aprovarOrc(id){
+ let o=(window.orcamentos||[]).find(x=>x.id==id);
+ if(!o)return;
+ o.estado='aprovado';
+ let t={
+  id:'T'+Date.now(),
+  cliente:o.cliente,
+  descricao:o.descricao,
+  valor:o.valor,
+  estado:'pendente',
+  data:new Date().toISOString()
+ };
+ window.trabalhos=window.trabalhos||[];
+ window.trabalhos.push(t);
+ localStorage.setItem('ge_trabalhos',JSON.stringify(window.trabalhos));
+ alert('Aprovado e enviado para histórico');
+}
+
+function renderHist(){
+ let el=document.getElementById('historico');
+ if(!el)return;
+ let t=window.trabalhos||[];
+ el.innerHTML=t.reverse().map(x=>`
+  <div class="hist-card">
+    <div class="hist-top">
+      <span>${x.cliente||''}</span>
+      <span>${x.valor||0}€</span>
+    </div>
+    <div class="hist-desc">${x.descricao||''}</div>
+    <div class="hist-bottom">
+      <span>${x.data||''}</span>
+      <span class="badge ${x.estado}">${x.estado}</span>
+    </div>
+  </div>
+ `).join('');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+ addValorField();
+ setTimeout(renderHist,1000);
+});
+</script>
+</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -8395,25 +8581,25 @@ function renderDashboardEmpresaSmart(){
   const pagamentosLista = Array.isArray(pagamentos) ? pagamentos : [];
   const orcamentosLista = getDashboardOrcamentosLista();
 
-  const totalFaturado = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
+  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
-  const totalDivida = Math.max(totalFaturado - totalRecebido, 0);
+  const totalDivida = Math.max(totalFat - totalRecebido, 0);
 
   const clientTotals = {};
   trabalhosLista.forEach(t => {
     const nome = String(t.cliente || t.clienteNome || '').trim();
     if(!nome) return;
-    clientTotals[nome] = clientTotals[nome] || { faturado:0, pago:0 };
-    clientTotals[nome].faturado += Number(t.valor || t.valorPago || 0) || 0;
+    clientTotals[nome] = clientTotals[nome] || { Fat:0, pago:0 };
+    clientTotals[nome].Fat += Number(t.valor || t.valorPago || 0) || 0;
   });
   pagamentosLista.forEach(p => {
     const nome = String(p.cliente || p.clienteNome || '').trim();
     if(!nome) return;
-    clientTotals[nome] = clientTotals[nome] || { faturado:0, pago:0 };
+    clientTotals[nome] = clientTotals[nome] || { Fat:0, pago:0 };
     clientTotals[nome].pago += Number(p.valor || p.valorPago || 0) || 0;
   });
   const clientesDivida = Object.entries(clientTotals)
-    .map(([nome, vals]) => ({ nome, divida: Math.max((vals.faturado||0) - (vals.pago||0), 0) }))
+    .map(([nome, vals]) => ({ nome, divida: Math.max((vals.Fat||0) - (vals.pago||0), 0) }))
     .filter(item => item.divida > 0.009)
     .sort((a,b) => b.divida - a.divida)
     .slice(0,6);
@@ -8480,14 +8666,14 @@ function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
   const emAndamento = trabalhos.filter(t=>['Pendente','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
   const concluidos = trabalhos.filter(t=>['Concluído','Pago','Entregue'].includes(normalizeEstado(t.estado))).length;
-  const totalFaturado = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
+  const totalFat = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
   const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
   const clientesAtivos = new Set(trabalhos.map(t=>(t.cliente||'').trim()).filter(Boolean)).size;
 
   $('statTotalTrabalhos').textContent = totalTrabalhos;
   $('statEmAndamento').textContent = emAndamento;
   $('statConcluidos').textContent = concluidos;
-  $('statTotalFaturado').textContent = euro(totalFaturado);
+  $('statTotalFat').textContent = euro(totalFat);
 
   const recentWrap=$('recentTrabalhos');
   recentWrap.innerHTML = !trabalhos.length
@@ -8525,7 +8711,7 @@ function renderDashboard(){
 
 
 
-let dashboardCharts = { faturacao:null, resumo:null };
+let dashboardCharts = { Fatcao:null, resumo:null };
 
 function buildDashboardChartData(){
   const trabalhosLista = Array.isArray(trabalhos) ? trabalhos : [];
@@ -8541,34 +8727,34 @@ function buildDashboardChartData(){
     monthValues[d.getMonth()] += Number(t.valor || t.valorPago || 0) || 0;
   });
 
-  const totalFaturado = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
+  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
-  const totalDivida = Math.max(totalFaturado - totalRecebido, 0);
+  const totalDivida = Math.max(totalFat - totalRecebido, 0);
 
   return { monthLabels, monthValues, totalRecebido, totalDivida };
 }
 
 function destroyDashboardCharts(){
-  try{ if(dashboardCharts.faturacao){ dashboardCharts.faturacao.destroy(); dashboardCharts.faturacao = null; } }catch(e){}
+  try{ if(dashboardCharts.Fatcao){ dashboardCharts.Fatcao.destroy(); dashboardCharts.Fatcao = null; } }catch(e){}
   try{ if(dashboardCharts.resumo){ dashboardCharts.resumo.destroy(); dashboardCharts.resumo = null; } }catch(e){}
 }
 
 function renderDashboardCharts(){
   try{
     if(typeof Chart === 'undefined') return;
-    const faturacaoCanvas = document.getElementById('graficoFaturacaoMensal');
+    const FatcaoCanvas = document.getElementById('graficoFatcaoMensal');
     const resumoCanvas = document.getElementById('graficoResumoFinanceiro');
-    if(!faturacaoCanvas || !resumoCanvas) return;
+    if(!FatcaoCanvas || !resumoCanvas) return;
 
     const { monthLabels, monthValues, totalRecebido, totalDivida } = buildDashboardChartData();
     destroyDashboardCharts();
 
-    dashboardCharts.faturacao = new Chart(faturacaoCanvas.getContext('2d'), {
+    dashboardCharts.Fatcao = new Chart(FatcaoCanvas.getContext('2d'), {
       type: 'bar',
       data: {
         labels: monthLabels,
         datasets: [{
-          label: 'Faturação (€)',
+          label: 'Fat (€)',
           data: monthValues
         }]
       },
@@ -8621,7 +8807,7 @@ function renderAlerts(){
 }
 
 function trabalhoActions(t){
-  const showInvoice = (t.invoiceType || 'Com Fatura') === 'Com Fatura';
+  const showInvoice = (t.invoiceType || 'Com Fat') === 'Com Fat';
   const canEdit = isAdminLike();
   const canDelete = isAdminLike();
   const hasDesc = ((t.descricao || t.descrição || t.description || t.desc || '')).trim().length > 0;
@@ -8633,7 +8819,7 @@ function trabalhoActions(t){
   return `
     <div class="enterprise-actions">
       ${descButton}
-      ${showInvoice ? `<button class="pipeline-like-btn fatura-btn" onclick="generateInvoice('${t.id}')">Fatura</button>` : `<span class="pipeline-like-btn fatura-disabled">Fatura</span>`}
+      ${showInvoice ? `<button class="pipeline-like-btn Fat-btn" onclick="generateInvoice('${t.id}')">Fat</button>` : `<span class="pipeline-like-btn Fat-disabled">Fat</span>`}
       ${canEdit ? `<button class="pipeline-like-btn edit-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : '<span></span>'}
       ${canDelete ? `<button class="pipeline-like-btn delete-btn" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : '<span></span>'}
       <div class="stage-flow">${flowButtons}</div>
@@ -8665,8 +8851,8 @@ function renderTrabalhos(){
   const page = updateTrabalhosPagination(rows.length);
   const pageRows = rows.slice(page.start, page.end);
   $('trabalhosTableBody').innerHTML = pageRows.length ? pageRows.map(t=>{
-    const invoiceType = t.invoiceType || 'Com Fatura';
-    const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
+    const invoiceType = t.invoiceType || 'Com Fat';
+    const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
     const effectiveEstado = t.paymentStatus === 'Pago' ? 'Pago' : (t.estado || '-');
     return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(effectiveEstado)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
   }).join('') : '<tr><td colspan="9">Sem resultados.</td></tr>';
@@ -8727,8 +8913,8 @@ function renderPagamentos() {
 
   tbody.innerHTML = listaOrdenada.length
     ? listaOrdenada.map((p) => {
-      const invoiceType = p.invoiceType || 'Com Fatura';
-      const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
+      const invoiceType = p.invoiceType || 'Com Fat';
+      const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
       return `
       <tr>
         <td>${escapeHtml(p.cliente || '-')}</td>
@@ -8814,7 +9000,7 @@ $('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClie
 $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   $('trabalhoForm')?.reset();
   if($('trabalhoId')) $('trabalhoId').value='';
-  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fatura';
+  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fat';
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
@@ -8852,7 +9038,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
-    invoiceType:$('trabalhoInvoiceType') ? $('trabalhoInvoiceType').value : 'Com Fatura',
+    invoiceType:$('trabalhoInvoiceType') ? $('trabalhoInvoiceType').value : 'Com Fat',
     descricao:$('descricao').value.trim()
   };
 
@@ -8884,7 +9070,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
 
   $('trabalhoForm').reset();
   $('trabalhoId').value='';
-  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fatura';
+  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fat';
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
@@ -8944,7 +9130,7 @@ window.editTrabalho = function(id){
   $('dataInicio').value=t.dataInicio||'';
   $('dataFim').value=t.dataFim||'';
   $('estado').value=normalizeEstado(t.estado||'Pendente');
-  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fatura';
+  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fat';
   $('descricao').value=t.descricao||'';
   updateTrabalhoAdvancedFields();
   switchTab('adicionar');
@@ -9004,7 +9190,7 @@ window.openClientHistory = function(id){
   $('clientModalContent').innerHTML = `
     <div class="client-summary-grid">
       <div class="client-summary-card"><span>Total trabalhos</span><strong>${relatedTrabalhos.length}</strong></div>
-      <div class="client-summary-card"><span>Total faturado</span><strong>${euro(totalTrabalhos)}</strong></div>
+      <div class="client-summary-card"><span>Total Fat</span><strong>${euro(totalTrabalhos)}</strong></div>
       <div class="client-summary-card"><span>Total pago</span><strong>${euro(totalPagamentos)}</strong></div>
       <div class="client-summary-card"><span>Estado</span><strong>${relatedPagamentos.length ? 'Com histórico' : 'Sem pagamentos'}</strong></div>
     </div>
@@ -9052,8 +9238,8 @@ window.generateInvoice = function(id){
   const t = trabalhos.find(x=>x.id===id);
   if(!t) return;
   const invoiceNumber = `FT-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
-  printHtml(`Fatura ${invoiceNumber}`, `
-    <h1>Fatura / Serviço</h1>
+  printHtml(`Fat ${invoiceNumber}`, `
+    <h1>Fat / Serviço</h1>
     <div class="meta">Nº ${invoiceNumber}</div>
     <div class="card"><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div>
     <div class="card"><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div>
@@ -9126,7 +9312,7 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
     data: finalPaymentDate,
     valor: valorFinal,
     metodo,
-    invoiceType: updatedTrabalho.invoiceType || 'Com Fatura',
+    invoiceType: updatedTrabalho.invoiceType || 'Com Fat',
     sourceWorkId: updatedTrabalho.id,
     workCode: updatedTrabalho.workCode || ''
   };
@@ -9401,8 +9587,8 @@ function renderMobileCards(){
       return (!term||hay.includes(term))&&(!globalTerm||hay.includes(globalTerm))&&(!estado||t.estado===estado);
     }).sort((a,b)=>getWorkCodeNumber(b.workCode)-getWorkCodeNumber(a.workCode));
     trabWrap.innerHTML = rows.length ? rows.map(t=>{
-      const invoiceType = t.invoiceType || 'Com Fatura';
-      const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
+      const invoiceType = t.invoiceType || 'Com Fat';
+      const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
       return `<article class="mobile-card">
         <div>
           <div class="mobile-card-title">${escapeHtml(t.cliente || '-')}</div>
@@ -9412,7 +9598,7 @@ function renderMobileCards(){
           <div class="mobile-card-item"><span>ID</span><strong>${escapeHtml(t.workCode || '-')}</strong></div>
           <div class="mobile-card-item"><span>Valor</span><strong>${euro(t.valorPago ?? t.valor ?? 0)}</strong></div>
           <div class="mobile-card-item"><span>Estado</span><strong><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></strong></div>
-          <div class="mobile-card-item"><span>Faturação</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
+          <div class="mobile-card-item"><span>Fat</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
         ${trabalhoActions(t)}
       </article>`;
@@ -9422,8 +9608,8 @@ function renderMobileCards(){
   const pagWrap = $('pagamentosCardsWrap');
   if(pagWrap){
     pagWrap.innerHTML = pagamentos.length ? pagamentos.slice().reverse().map(p=>{
-      const invoiceType = p.invoiceType || 'Com Fatura';
-      const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
+      const invoiceType = p.invoiceType || 'Com Fat';
+      const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
       return `<article class="mobile-card">
         <div>
           <div class="mobile-card-title">${escapeHtml(p.cliente || '-')}</div>
@@ -9433,7 +9619,7 @@ function renderMobileCards(){
           <div class="mobile-card-item"><span>Data</span><strong>${fmtDate(p.workDate || p.data || '')}</strong></div>
           <div class="mobile-card-item"><span>Valor</span><strong>${euro(p.valor || 0)}</strong></div>
           <div class="mobile-card-item"><span>Método</span><strong>${escapeHtml(p.metodo || 'Manual')}</strong></div>
-          <div class="mobile-card-item"><span>Faturação</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
+          <div class="mobile-card-item"><span>Fat</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
         ${isAdminLike() ? `<div class="row-actions"><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button></div>` : ''}
       </article>`;
@@ -10004,12 +10190,72 @@ function buildProfessionalReportHtml(){
   .online-users-list{padding:10px;max-height:280px;}
 }
 
+
+/* ===== FULLSCREEN PRO ===== */
+html, body{
+  margin:0 !important;
+  padding:0 !important;
+  width:100%;
+  height:100%;
+  overflow-x:hidden;
+}
+
+body{
+  min-height:100dvh;
+  background:#0b0f1a;
+}
+
+.app-shell,
+.main-content,
+.content,
+.page{
+  width:100% !important;
+  max-width:100% !important;
+}
+
+.sidebar{
+  height:100dvh !important;
+}
+
+@media (max-width: 900px){
+  body{
+    min-height:100dvh;
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+
+  .main-content{
+    padding:10px !important;
+  }
+
+  .sidebar{
+    height:100dvh !important;
+  }
+}
+
+
+/* FINAL UI HISTORICO */
+.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;margin-bottom:10px}
+.hist-top{display:flex;justify-content:space-between;font-weight:700}
+.hist-desc{opacity:.8;margin-top:6px}
+.hist-bottom{font-size:12px;opacity:.7;margin-top:8px;display:flex;justify-content:space-between}
+.badge{padding:4px 8px;border-radius:999px;font-size:11px}
+.badge.pendente{background:orange;color:#000}
+.badge.pago{background:green;color:#fff}
 </style>
-    </head>
+    
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.json">
+
+</head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
-        <p>Resumo avançado de clientes, faturação e histórico.</p>
+        <p>Resumo avançado de clientes, Fat e histórico.</p>
       </div>
 
       <div class="stats">
@@ -10018,7 +10264,7 @@ function buildProfessionalReportHtml(){
           <div class="value">${formatEuroValue(data.avgValue)}</div>
         </div>
         <div class="card">
-          <div class="label">Cliente com mais faturação</div>
+          <div class="label">Cliente com mais Fat</div>
           <div class="value">${data.topClient ? escapeHtml(data.topClient.nome) : '--'}</div>
         </div>
       </div>
@@ -10038,7 +10284,73 @@ function buildProfessionalReportHtml(){
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    </body>
+    
+<script>
+function isAdmin(){return (window.currentUser?.role||'').includes('admin');}
+
+function addValorField(){
+ const form=document.querySelector('form');
+ if(!form||document.getElementById('valorTrabalho'))return;
+ const div=document.createElement('div');
+ div.innerHTML='<input id="valorTrabalho" type="number" placeholder="Valor (€)">';
+ form.appendChild(div);
+}
+document.addEventListener('submit',e=>{
+ const v=document.getElementById('valorTrabalho');
+ if(v&&isAdmin()){
+   setTimeout(()=>{
+     let t=window.trabalhos||[];
+     if(t.length){
+       t[t.length-1].valor=Number(v.value)||0;
+       localStorage.setItem('ge_trabalhos',JSON.stringify(t));
+     }
+   },500);
+ }
+});
+
+function aprovarOrc(id){
+ let o=(window.orcamentos||[]).find(x=>x.id==id);
+ if(!o)return;
+ o.estado='aprovado';
+ let t={
+  id:'T'+Date.now(),
+  cliente:o.cliente,
+  descricao:o.descricao,
+  valor:o.valor,
+  estado:'pendente',
+  data:new Date().toISOString()
+ };
+ window.trabalhos=window.trabalhos||[];
+ window.trabalhos.push(t);
+ localStorage.setItem('ge_trabalhos',JSON.stringify(window.trabalhos));
+ alert('Aprovado e enviado para histórico');
+}
+
+function renderHist(){
+ let el=document.getElementById('historico');
+ if(!el)return;
+ let t=window.trabalhos||[];
+ el.innerHTML=t.reverse().map(x=>`
+  <div class="hist-card">
+    <div class="hist-top">
+      <span>${x.cliente||''}</span>
+      <span>${x.valor||0}€</span>
+    </div>
+    <div class="hist-desc">${x.descricao||''}</div>
+    <div class="hist-bottom">
+      <span>${x.data||''}</span>
+      <span class="badge ${x.estado}">${x.estado}</span>
+    </div>
+  </div>
+ `).join('');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+ addValorField();
+ setTimeout(renderHist,1000);
+});
+</script>
+</body>
   </html>`;
 }
 
@@ -10159,7 +10471,7 @@ window.approveOrcamento = async function(id){
     dataOrcamento: o.data || '',
     dataFim: '',
     estado: 'Pendente',
-    invoiceType: 'Com Fatura',
+    invoiceType: 'Com Fat',
     descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' • Data do orçamento: ' + o.data : ''}`
   };
   trabalhos.push(novoTrabalho);
@@ -10187,7 +10499,7 @@ window.approveOrcamentoAsPaid = async function(id){
     dataOrcamento: o.data || '',
     dataFim: '',
     estado: 'Pendente',
-    invoiceType: 'Com Fatura',
+    invoiceType: 'Com Fat',
     descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' • Data do orçamento: ' + o.data : ''}`
   };
   trabalhos.push(novoTrabalho);
@@ -10271,5 +10583,71 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
     </div>
   </div>
 
+
+<script>
+function isAdmin(){return (window.currentUser?.role||'').includes('admin');}
+
+function addValorField(){
+ const form=document.querySelector('form');
+ if(!form||document.getElementById('valorTrabalho'))return;
+ const div=document.createElement('div');
+ div.innerHTML='<input id="valorTrabalho" type="number" placeholder="Valor (€)">';
+ form.appendChild(div);
+}
+document.addEventListener('submit',e=>{
+ const v=document.getElementById('valorTrabalho');
+ if(v&&isAdmin()){
+   setTimeout(()=>{
+     let t=window.trabalhos||[];
+     if(t.length){
+       t[t.length-1].valor=Number(v.value)||0;
+       localStorage.setItem('ge_trabalhos',JSON.stringify(t));
+     }
+   },500);
+ }
+});
+
+function aprovarOrc(id){
+ let o=(window.orcamentos||[]).find(x=>x.id==id);
+ if(!o)return;
+ o.estado='aprovado';
+ let t={
+  id:'T'+Date.now(),
+  cliente:o.cliente,
+  descricao:o.descricao,
+  valor:o.valor,
+  estado:'pendente',
+  data:new Date().toISOString()
+ };
+ window.trabalhos=window.trabalhos||[];
+ window.trabalhos.push(t);
+ localStorage.setItem('ge_trabalhos',JSON.stringify(window.trabalhos));
+ alert('Aprovado e enviado para histórico');
+}
+
+function renderHist(){
+ let el=document.getElementById('historico');
+ if(!el)return;
+ let t=window.trabalhos||[];
+ el.innerHTML=t.reverse().map(x=>`
+  <div class="hist-card">
+    <div class="hist-top">
+      <span>${x.cliente||''}</span>
+      <span>${x.valor||0}€</span>
+    </div>
+    <div class="hist-desc">${x.descricao||''}</div>
+    <div class="hist-bottom">
+      <span>${x.data||''}</span>
+      <span class="badge ${x.estado}">${x.estado}</span>
+    </div>
+  </div>
+ `).join('');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+ addValorField();
+ setTimeout(renderHist,1000);
+});
+</script>
 </body>
 </html>
