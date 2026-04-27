@@ -3060,6 +3060,23 @@ body{
   color:#86efac !important;
 }
 
+
+/* ===== VALOR MODO EMPRESA SAFE CSS ===== */
+.valor-empresa-box{
+  border:1px solid rgba(34,197,94,.22) !important;
+  background:linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
+  border-radius:16px !important;
+  padding:12px !important;
+}
+#valor{
+  font-weight:800;
+}
+#trabalhos-page tbody td:nth-child(4){
+  font-size:18px !important;
+  font-weight:950 !important;
+  color:#86efac !important;
+}
+
 </style>
   
 
@@ -3256,7 +3273,7 @@ body{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field advanced-work-field master-edit-only"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
+              <div class="field advanced-work-field master-edit-only valor-empresa-box"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
@@ -4656,116 +4673,6 @@ body{
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    
-<script>
-/* ===== VALOR MODO EMPRESA SAFE ===== */
-(function(){
-  function roleAdminEmpresa(){
-    const vals = [
-      window.currentRole,
-      window.userRole,
-      window.role,
-      window.currentUser?.role,
-      window.firebaseAuth?.currentUser?.email
-    ].map(v => String(v || '').toLowerCase());
-    return vals.some(v => v.includes('admin') || v.includes('master') || v.includes('pica.fern'));
-  }
-
-  function ativarValorEmpresa(){
-    const valor = document.getElementById('valor');
-    if(!valor) return;
-
-    const box = valor.closest('.field') || valor.parentElement;
-    if(!box) return;
-
-    const admin = roleAdminEmpresa();
-
-    if(admin){
-      box.classList.remove('is-hidden-by-role');
-      box.classList.remove('field-hidden-by-role');
-      box.classList.add('valor-admin-force');
-      box.classList.add('valor-empresa-box');
-      box.style.display = 'block';
-      valor.disabled = false;
-      valor.readOnly = false;
-
-      if(!box.querySelector('.valor-empresa-hint')){
-        const hint = document.createElement('div');
-        hint.className = 'valor-empresa-hint';
-        hint.textContent = 'Valor visível para Admin/Master.';
-        box.appendChild(hint);
-      }
-    }else{
-      box.classList.add('is-hidden-by-role');
-    }
-  }
-
-  function guardarValorEmpresaNoSubmit(){
-    const form = document.getElementById('trabalhoForm');
-    if(!form || form.dataset.valorEmpresaWired === '1') return;
-    form.dataset.valorEmpresaWired = '1';
-
-    form.addEventListener('submit', function(){
-      const valor = document.getElementById('valor');
-      if(!valor || !roleAdminEmpresa()) return;
-      const val = Number(String(valor.value || '0').replace(',', '.')) || 0;
-
-      setTimeout(function(){
-        try{
-          const arr = Array.isArray(window.trabalhos) ? window.trabalhos : [];
-          const id = document.getElementById('trabalhoId')?.value || '';
-          let trab = id ? arr.find(t => String(t.id) === String(id)) : arr[arr.length - 1];
-          if(!trab && arr.length) trab = arr[arr.length - 1];
-          if(trab){
-            trab.valor = val;
-            if(!trab.dataCriacao) trab.dataCriacao = new Date().toISOString();
-            if(!trab.dataAdicionado) trab.dataAdicionado = new Date().toISOString();
-            try{ localStorage.setItem('ge_trabalhos', JSON.stringify(arr)); }catch(e){}
-            try{ if(typeof window.upsertRemote === 'function' && trab.id) window.upsertRemote('trabalhos', trab); }catch(e){}
-            try{ if(typeof window.renderTrabalhos === 'function') window.renderTrabalhos(); }catch(e){}
-            try{ if(typeof window.renderDashboard === 'function') window.renderDashboard(); }catch(e){}
-          }
-        }catch(e){
-          console.warn('Valor modo empresa não aplicado:', e);
-        }
-      }, 900);
-    }, true);
-  }
-
-  function wrapUpdateAdvanced(){
-    if(window.__valorEmpresaUpdateWrapped) return;
-    const old = window.updateTrabalhoAdvancedFields;
-    if(typeof old === 'function'){
-      window.updateTrabalhoAdvancedFields = function(){
-        const r = old.apply(this, arguments);
-        setTimeout(ativarValorEmpresa, 0);
-        return r;
-      };
-      window.__valorEmpresaUpdateWrapped = true;
-    }
-  }
-
-  function repetir(){
-    ativarValorEmpresa();
-    guardarValorEmpresaNoSubmit();
-    wrapUpdateAdvanced();
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    repetir();
-    setTimeout(repetir, 700);
-    setTimeout(repetir, 1600);
-    setTimeout(repetir, 3000);
-  });
-
-  document.addEventListener('click', function(){
-    setTimeout(repetir, 250);
-  });
-
-  window.ativarValorEmpresa = ativarValorEmpresa;
-})();
-</script>
-
 </body>
   </html>`;
 }
