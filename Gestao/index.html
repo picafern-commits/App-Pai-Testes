@@ -3198,16 +3198,8 @@ body{
   font-size:16px;
   pointer-events:none;
 }
-#adicionar-page .field:has(#valor),
-#adicionar-page .field:has(#valorEstipulado){
-  background:
-    linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
-  border-color:rgba(34,197,94,.16) !important;
-}
-#adicionar-page .field:has(#valor) label,
-#adicionar-page .field:has(#valorEstipulado) label{
-  color:#bbf7d0;
-}
+
+
 #adicionar-page .inline-actions{
   padding-top:4px;
 }
@@ -3286,6 +3278,32 @@ select option:checked{
   padding-right:42px !important;
 }
 .valor-euro-field::after{
+  content:"€";
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#9fabca;
+  font-weight:900;
+  pointer-events:none;
+}
+
+
+/* ===== FIX FINAL VALOR SEM ESTIPULADO ===== */
+#adicionar-page .field:has(#valor){
+  background:rgba(4,8,18,.22) !important;
+  border:1px solid rgba(255,255,255,.055) !important;
+}
+#adicionar-page .field:has(#valor) label{
+  color:#b8c6e6 !important;
+}
+#adicionar-page .valor-euro-field{
+  position:relative;
+}
+#adicionar-page .valor-euro-field input{
+  padding-right:42px !important;
+}
+#adicionar-page .valor-euro-field::after{
   content:"€";
   position:absolute;
   right:14px;
@@ -3492,7 +3510,7 @@ select option:checked{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field advanced-work-field"><label>Valor (€)</label><div class="valor-euro-field"><input id="valor" type="number" min="0" step="0.01" /></div></div></div>
+              <div class="field advanced-work-field"><label>Valor (€)</label><div class="valor-euro-field"><input id="valor" type="number" min="0" step="0.01" /></div></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
@@ -8886,7 +8904,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     cliente:$('cliente').value.trim(),
     contacto:$('contacto').value.trim(),
     tipoTrabalho:$('tipoTrabalho').value.trim(),
-    valor:Number($('valor').value||0),?.value||0),
+    valor:Number($('valor').value||0),
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
