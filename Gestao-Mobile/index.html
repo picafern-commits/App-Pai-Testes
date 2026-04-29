@@ -3649,22 +3649,8 @@ select option:checked{
 }
 
 
-/* ===== FORÇAR VALOR VISÍVEL PARA TODOS OS ROLES ===== */
-#valorFieldUniversal,
-.field.valor-field-universal,
-#adicionar-page #valorFieldUniversal{
-  display:flex !important;
-  visibility:visible !important;
-  opacity:1 !important;
-}
-#valorFieldUniversal.is-hidden-by-role,
-#valorFieldUniversal.field-hidden-by-role,
-.valor-field-universal.is-hidden-by-role,
-.valor-field-universal.field-hidden-by-role{
-  display:flex !important;
-  visibility:visible !important;
-  opacity:1 !important;
-}
+/* ===== FIX DEFINITIVO VALOR PARA TODOS ===== */
+#adicionar-page .field:has(#valor),
 #adicionar-page #valor{
   display:block !important;
   visibility:visible !important;
@@ -3885,7 +3871,7 @@ select option:checked{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field advanced-work-field valor-field-universal" id="valorFieldUniversal"><label>Valor (€)</label><div class="valor-euro-field"><input id="valor" type="number" min="0" step="0.01" /></div></div>
+              <div class="field advanced-work-field"><label>Valor (€)</label><div class="valor-euro-field"><input id="valor" type="number" min="0" step="0.01" /></div></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
@@ -5274,51 +5260,6 @@ body{
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-
-<script>
-/* ===== PATCH SEGURO: VALOR PARA TODOS ===== */
-(function(){
-  function forceValorForAll(){
-    const valor = document.getElementById('valor');
-    if(!valor) return;
-
-    const field = valor.closest('.field');
-    if(!field) return;
-
-    field.id = 'valorFieldUniversal';
-    field.classList.add('valor-field-universal');
-    field.classList.remove('master-edit-only', 'is-hidden-by-role', 'field-hidden-by-role');
-    field.style.display = 'flex';
-    field.style.visibility = 'visible';
-    field.style.opacity = '1';
-
-    valor.disabled = false;
-    valor.readOnly = false;
-    valor.style.display = 'block';
-
-    if(!valor.parentElement.classList.contains('valor-euro-field')){
-      const wrap = document.createElement('div');
-      wrap.className = 'valor-euro-field';
-      valor.parentNode.insertBefore(wrap, valor);
-      wrap.appendChild(valor);
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    forceValorForAll();
-    setTimeout(forceValorForAll, 400);
-    setTimeout(forceValorForAll, 1200);
-    setTimeout(forceValorForAll, 2500);
-  });
-
-  document.addEventListener('click', function(){
-    setTimeout(forceValorForAll, 150);
-  });
-
-  window.forceValorForAll = forceValorForAll;
-})();
-</script>
-
 </body>
   </html>`;
 }
@@ -6484,6 +6425,12 @@ function updateTrabalhoAdvancedFields(){
     el.classList.toggle('is-hidden-by-role', !canSee);
   });
 
+  const valorField = $('valor')?.closest('.field');
+  if(valorField){
+    valorField.classList.remove('is-hidden-by-role','field-hidden-by-role','master-edit-only');
+    valorField.style.display = '';
+  }
+
   if(!canSee){
     if($('dataInicio')) $('dataInicio').value = '';
     if($('dataFim')) $('dataFim').value = '';
@@ -6984,7 +6931,7 @@ function setRoleUI(){
   }
   setSyncMessage(syncReady ? 'Firebase Sync' : syncMessage, syncReady ? 'ok' : 'warn');
   try{ updateTrabalhoFieldVisibility(); }catch(e){}
-  updateTrabalhoAdvancedFields(); try{ window.forceValorForAll && window.forceValorForAll(); }catch(e){}
+  updateTrabalhoAdvancedFields();
   applyDeviceAccessRestrictions();
 }
 
@@ -9357,7 +9304,7 @@ $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
   try{ updateTrabalhoFieldVisibility(); }catch(e){}
-  updateTrabalhoAdvancedFields(); try{ window.forceValorForAll && window.forceValorForAll(); }catch(e){}
+  updateTrabalhoAdvancedFields();
 });
 $('clearClienteBtn')?.addEventListener('click', ()=>{
   $('clienteForm')?.reset();
@@ -9427,7 +9374,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
   try{ updateTrabalhoFieldVisibility(); }catch(e){}
-  updateTrabalhoAdvancedFields(); try{ window.forceValorForAll && window.forceValorForAll(); }catch(e){}
+  updateTrabalhoAdvancedFields();
 
   renderAll();
   switchTab('trabalhos');
@@ -9484,7 +9431,7 @@ window.editTrabalho = function(id){
   $('estado').value=normalizeEstado(t.estado||'Pendente');
   if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fat';
   $('descricao').value=t.descricao||'';
-  updateTrabalhoAdvancedFields(); try{ window.forceValorForAll && window.forceValorForAll(); }catch(e){}
+  updateTrabalhoAdvancedFields();
   switchTab('adicionar');
 };
 window.deleteTrabalho = async function(id){
