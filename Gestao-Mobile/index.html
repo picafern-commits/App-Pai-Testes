@@ -3609,7 +3609,8 @@ body{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
+              <div class="field"><label>Valor Trabalho (€)</label><input id="valorTrabalho" type="number" min="0" step="0.01" /></div>
+              <div class="field"><label>Valor Pago (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
               <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option></select></div>
@@ -3632,7 +3633,7 @@ body{
             </div>
             <div id="trabalhosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
-                <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th><th>Fat</th><th>Ações</th></tr></thead>
+                <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Valor Trabalho</th><th>Valor Pago</th><th>Início</th><th>Fim</th><th>Estado</th><th>Fat</th><th>Ações</th></tr></thead>
                 <tbody id="trabalhosTableBody"></tbody>
               </table>
             </div>
@@ -3978,7 +3979,7 @@ function legacy_openPaymentMethodModal(id){
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
-  if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
+  if(valueInput) valueInput.value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
 
   modal.style.display = 'grid';
   modal.classList.add('show');
@@ -6096,6 +6097,9 @@ function initUiScale(){
 
 
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
+const getValorTrabalho = (t) => Number(t?.valorTrabalho ?? t?.valorEsperado ?? t?.valor ?? 0) || 0;
+const getValorPago = (t) => Number(t?.valorPago ?? t?.valor ?? 0) || 0;
+const getValorPagoCompat = (t) => Number(t?.valorPago ?? t?.valor ?? 0) || 0;
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const isMasterAdmin = () => currentRole === 'master_admin';
@@ -8569,7 +8573,7 @@ function renderCalendario(){
                   <span class="badge" data-state="${escapeHtml(t.estado || '-')}">${escapeHtml(t.estado || '-')}</span>
                 </div>
                 <div>${escapeHtml(t.tipoTrabalho || '-')}</div>
-                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: ${euro(t.valorPago ?? t.valor ?? 0)}</div>
+                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</div>
                 ${(t.descricao || '').trim() ? `<div class="calendar-meta">${escapeHtml(t.descricao)}</div>` : ''}
               </div>
               <div class="row-actions">
@@ -8713,7 +8717,7 @@ function renderDashboard(){
         <div class="mini-label badge" data-state="${escapeHtml(t.estado||'Sem estado')}">${escapeHtml(t.estado||'Sem estado')}</div>
         <strong>${escapeHtml(t.cliente||'-')}</strong>
         <div>${escapeHtml(t.tipoTrabalho||'-')}</div>
-        <div class="recent-meta">${euro(t.valorPago ?? t.valor ?? 0)} • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
+        <div class="recent-meta">${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)} • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
       </div>`).join('');
 
   const monthMap={};
@@ -8886,8 +8890,8 @@ function renderTrabalhos(){
     const effectiveEstado = t.paymentStatus === 'Pago' ? 'Pago' : (t.estado || '-');
     const estadoClass = String(effectiveEstado || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
     const dataCriacao = t.dataCriacao || t.dataAdicionado || t.createdAt || t.dataInicio || '';
-    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong><span class="data-criacao-mini">Criado: ${fmtDate(dataCriacao)}</span></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="estado-pill-plus ${escapeHtml(estadoClass)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
-  }).join('') : '<tr><td colspan="9">Sem resultados.</td></tr>';
+    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong><span class="data-criacao-mini">Criado: ${fmtDate(dataCriacao)}</span></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(getValorTrabalho(t))}</td><td>${euro(getValorPago(t))}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="estado-pill-plus ${escapeHtml(estadoClass)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
+  }).join('') : '<tr><td colspan="10">Sem resultados.</td></tr>';
 }
 function renderClientes(){
   const term=$('searchClientes').value.trim().toLowerCase();
@@ -9066,7 +9070,9 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     cliente:$('cliente').value.trim(),
     contacto:$('contacto').value.trim(),
     tipoTrabalho:$('tipoTrabalho').value.trim(),
-    valor:Number($('valor').value||0),
+    valorTrabalho:Number($('valorTrabalho')?.value||0),
+    valor:Number($('valorTrabalho')?.value||0),
+    valorPago:Number($('valor').value||0),
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
@@ -9082,21 +9088,22 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   const i=trabalhos.findIndex(x=>x.id===item.id);
   const previousItem = i >= 0 ? JSON.parse(JSON.stringify(trabalhos[i])) : null;
   const actionType = previousItem ? 'update_trabalho' : 'create_trabalho';
-  if(i>=0) trabalhos[i]=item; else trabalhos.push(item);
+  if(i>=0) trabalhos[i]={...trabalhos[i], ...item}; else trabalhos.push(item);
   refreshLastTrabIdFromWorks();
 
   saveLocal();
   try{
-    await upsertRemote('trabalhos', item);
+    await upsertRemote('trabalhos', trabalhos.find(x=>x.id===item.id) || item);
     await logAction(actionType, {
       entity: 'trabalho',
       trabalhoId: item.id,
       workCode: item.workCode || '',
       cliente: item.cliente || '',
       estado: item.estado || '',
-      valor: Number(item.valor || 0),
+      valorTrabalho: Number(item.valorTrabalho ?? item.valor ?? 0),
+      valorPago: Number(item.valorPago ?? 0),
       before: previousItem,
-      after: JSON.parse(JSON.stringify(item))
+      after: JSON.parse(JSON.stringify(trabalhos.find(x=>x.id===item.id) || item))
     });
   }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
 
@@ -9139,7 +9146,7 @@ $('clienteForm')?.addEventListener('submit', async (e)=>{
       telefone: item.telefone || '',
       email: item.email || '',
       before: previousItem,
-      after: JSON.parse(JSON.stringify(item))
+      after: JSON.parse(JSON.stringify(trabalhos.find(x=>x.id===item.id) || item))
     });
   }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
   $('clienteForm').reset();
@@ -9158,7 +9165,8 @@ window.editTrabalho = function(id){
   populateClientOptions(t.cliente || '');
   if($('contacto')) $('contacto').value=t.contacto||'';
   $('tipoTrabalho').value=t.tipoTrabalho||'';
-  $('valor').value=t.valor||'';
+  if($('valorTrabalho')) $('valorTrabalho').value = (t.valorTrabalho ?? t.valor ?? '');
+  $('valor').value = (t.valorPago ?? '');
   $('dataInicio').value=t.dataInicio||'';
   $('dataFim').value=t.dataFim||'';
   $('estado').value=normalizeEstado(t.estado||'Pendente');
@@ -9244,9 +9252,9 @@ window.openClientHistory = function(id){
       <div class="panel-head"><h3>Trabalhos do cliente</h3></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th></tr></thead>
+          <thead><tr><th>Tipo</th><th>Valor Trabalho</th><th>Valor Pago</th><th>Início</th><th>Fim</th><th>Estado</th></tr></thead>
           <tbody>
-            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></td></tr>`).join('') : '<tr><td colspan="5">Sem trabalhos registados.</td></tr>'}
+            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(getValorTrabalho(t))}</td><td>${euro(getValorPago(t))}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></td></tr>`).join('') : '<tr><td colspan="6">Sem trabalhos registados.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -9279,12 +9287,12 @@ window.generateInvoice = function(id){
     <div class="card"><strong>Data de início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Data de fim:</strong> ${fmtDate(t.dataFim)}</div>
     <div class="card"><strong>Estado:</strong> ${escapeHtml(t.estado||'-')}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}</div>
     <div class="card"><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div>
-    <div class="card"><strong>Total:</strong> ${euro(t.valorPago ?? t.valor ?? 0)}</div>
+    <div class="card"><strong>Total:</strong> ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</div>
   `);
 };
 
-window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valorPago ?? t.valor ?? 0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
-window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
+window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor Trabalho:</strong> ${euro(getValorTrabalho(t))}<br><strong>Valor Pago:</strong> ${euro(getValorPago(t))}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
+window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
 window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
 function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
@@ -9318,7 +9326,7 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
   const t = trabalhos.find(x => x.id === id);
   if(!t) return false;
   const finalPaymentDate = dataPagamento || todayLocalDate();
-  const valorFinal = Number(valorPersonalizado ?? t.valorPago ?? t.valor ?? 0);
+  const valorFinal = Number(valorPersonalizado ?? t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0);
   const updatedTrabalho = JSON.parse(JSON.stringify(t));
   updatedTrabalho.estado = 'Pago';
   updatedTrabalho.dataEstado = new Date().toISOString();
@@ -9448,13 +9456,13 @@ window.marcarComoPagoComValor = function(id){
   pendingPaymentWorkId = id;
   resetPaymentModalState();
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
-  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valorPago ?? t.valor ?? 0)}`;
+  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}`;
   if($('paymentDateInput')) {
     $('paymentDateInput').value = t.dataPagamento || todayLocalDate();
     $('paymentDateInput').removeAttribute('readonly');
     $('paymentDateInput').disabled = false;
   }
-  if($('paymentValueInput')) $('paymentValueInput').value = String(t.valorPago ?? t.valor ?? '').replace('.', ',');
+  if($('paymentValueInput')) $('paymentValueInput').value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
   showPaymentModal();
 };
 
@@ -9628,7 +9636,8 @@ function renderMobileCards(){
         </div>
         <div class="mobile-card-grid">
           <div class="mobile-card-item"><span>ID</span><strong>${escapeHtml(t.workCode || '-')}</strong></div>
-          <div class="mobile-card-item"><span>Valor</span><strong>${euro(t.valorPago ?? t.valor ?? 0)}</strong></div>
+          <div class="mobile-card-item"><span>Valor Trabalho</span><strong>${euro(getValorTrabalho(t))}</strong></div>
+          <div class="mobile-card-item"><span>Valor Pago</span><strong>${euro(getValorPago(t))}</strong></div>
           <div class="mobile-card-item"><span>Estado</span><strong><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></strong></div>
           <div class="mobile-card-item"><span>Fat</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
@@ -9701,7 +9710,7 @@ function legacy2_openPaymentMethodModal(id){
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
-  if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
+  if(valueInput) valueInput.value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
 
   modal.style.display = 'grid';
   modal.classList.add('show');
