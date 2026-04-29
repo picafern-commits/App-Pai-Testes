@@ -3366,8 +3366,22 @@ body{
 .valor-admin-force{
   display:block !important;
 }
-
-
+.valor-empresa-box{
+  border:1px solid rgba(34,197,94,.22) !important;
+  background:linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
+  border-radius:16px !important;
+  padding:12px !important;
+}
+.valor-empresa-box label::after{
+  content:"  Admin";
+  margin-left:8px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:rgba(34,197,94,.14);
+  color:#86efac;
+  font-size:10px;
+  font-weight:900;
+}
 .valor-empresa-hint{
   color:#86efac;
   font-size:12px;
@@ -3382,7 +3396,12 @@ body{
 
 
 /* ===== VALOR MODO EMPRESA SAFE CSS ===== */
-
+.valor-empresa-box{
+  border:1px solid rgba(34,197,94,.22) !important;
+  background:linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
+  border-radius:16px !important;
+  padding:12px !important;
+}
 #valor{
   font-weight:800;
 }
@@ -3390,287 +3409,6 @@ body{
   font-size:18px !important;
   font-weight:950 !important;
   color:#86efac !important;
-}
-
-
-/* ===== VALOR PARA TODOS OS ROLES ===== */
-
-
-
-
-
-/* ===== VALORES + HISTORICO CLEAN ===== */
-.valor-inline-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-.valor-euro-field{
-  position:relative;
-}
-.valor-euro-field input{
-  padding-right:38px !important;
-}
-.valor-euro-field::after{
-  content:"€";
-  position:absolute;
-  right:14px;
-  top:50%;
-  transform:translateY(-50%);
-  color:var(--muted,#9fabca);
-  font-weight:900;
-}
-.valor-subline{
-  display:block;
-  margin-top:4px;
-  font-size:11px;
-  color:var(--muted,#9fabca);
-}
-
-.valor-real-cell{
-  font-weight:900;
-  color:#86efac;
-}
-@media(max-width:700px){
-  .valor-inline-grid{grid-template-columns:1fr;}
-}
-
-
-/* ===== ADICIONAR TRABALHO - ULTRA PREMIUM ===== */
-.valor-para-todos,
-.valor-empresa-box{
-  border:none !important;
-  background:transparent !important;
-  padding:0 !important;
-  box-shadow:none !important;
-}
-.valor-para-todos label::after,
-.valor-empresa-box label::after{
-  content:none !important;
-}
-#adicionar-page .panel{
-  background:
-    radial-gradient(circle at 18% 0%, rgba(255,122,24,.10), transparent 32%),
-    radial-gradient(circle at 85% 8%, rgba(36,200,255,.09), transparent 30%),
-    linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025)) !important;
-  border:1px solid rgba(255,255,255,.085) !important;
-  box-shadow:0 24px 70px rgba(0,0,0,.24) !important;
-}
-#adicionar-page .panel-head{
-  padding-bottom:12px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  margin-bottom:4px;
-}
-#adicionar-page .panel-head h3{
-  font-size:22px;
-  letter-spacing:-.03em;
-}
-#adicionar-page .form-grid{
-  gap:16px !important;
-}
-#adicionar-page .field{
-  position:relative;
-  padding:12px;
-  border-radius:18px;
-  background:rgba(4,8,18,.22);
-  border:1px solid rgba(255,255,255,.055);
-  transition:border-color .18s ease, background .18s ease, transform .18s ease;
-}
-#adicionar-page .field:focus-within{
-  border-color:rgba(36,200,255,.34);
-  background:rgba(8,15,30,.42);
-  transform:translateY(-1px);
-  box-shadow:0 14px 28px rgba(0,0,0,.14);
-}
-#adicionar-page .field label{
-  font-size:11px;
-  text-transform:uppercase;
-  letter-spacing:.06em;
-  color:#b8c6e6;
-  font-weight:900;
-  margin-bottom:7px;
-}
-#adicionar-page .field input,
-#adicionar-page .field select,
-#adicionar-page .field textarea{
-  background:rgba(0,0,0,.25) !important;
-  border:1px solid rgba(255,255,255,.06) !important;
-  border-radius:14px !important;
-  min-height:46px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
-}
-#adicionar-page .field input:focus,
-#adicionar-page .field select:focus,
-#adicionar-page .field textarea:focus{
-  border-color:rgba(36,200,255,.42) !important;
-  box-shadow:0 0 0 3px rgba(36,200,255,.08), inset 0 1px 0 rgba(255,255,255,.025) !important;
-}
-#adicionar-page .valor-inline-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-}
-#adicionar-page .valor-euro-field,
-#adicionar-page .valor-box{
-  position:relative;
-}
-#adicionar-page .valor-euro-field input,
-#adicionar-page .valor-box input{
-  padding-right:44px !important;
-  font-size:18px;
-  font-weight:900;
-}
-#adicionar-page .valor-euro-field::after,
-#adicionar-page .valor-box::after{
-  content:"€";
-  position:absolute;
-  right:15px;
-  top:50%;
-  transform:translateY(-50%);
-  color:#86efac;
-  font-weight:950;
-  font-size:16px;
-  pointer-events:none;
-}
-
-
-#adicionar-page .inline-actions{
-  padding-top:4px;
-}
-#adicionar-page .inline-actions .btn-primary,
-#adicionar-page button[type="submit"]{
-  background:linear-gradient(135deg,#ff7a18,#24c8ff) !important;
-  border:0 !important;
-  border-radius:16px !important;
-  min-height:48px;
-  padding:0 22px !important;
-  font-weight:900;
-  box-shadow:0 14px 28px rgba(36,200,255,.14);
-}
-#adicionar-page .inline-actions .btn-secondary{
-  border-radius:16px !important;
-  min-height:48px;
-}
-@media(max-width:900px){
-  #adicionar-page .valor-inline-grid{
-    grid-template-columns:1fr;
-  }
-  #adicionar-page .field{
-    padding:10px;
-  }
-}
-
-
-/* ===== SELECT PREMIUM SAFE DARK ===== */
-#adicionar-page select,
-select{
-  background-color:#08111f !important;
-  color:#f8fafc !important;
-  border:1px solid rgba(36,200,255,.20) !important;
-  border-radius:14px !important;
-  min-height:46px !important;
-  padding:0 42px 0 14px !important;
-  font-weight:750 !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.035), 0 10px 22px rgba(0,0,0,.12) !important;
-  color-scheme:dark !important;
-}
-#adicionar-page select:focus,
-select:focus{
-  border-color:rgba(36,200,255,.55) !important;
-  box-shadow:0 0 0 3px rgba(36,200,255,.10), inset 0 1px 0 rgba(255,255,255,.035) !important;
-  outline:none !important;
-}
-#adicionar-page select option,
-select option{
-  background:#08111f !important;
-  color:#f8fafc !important;
-  font-weight:700 !important;
-}
-#adicionar-page select option:checked,
-select option:checked{
-  background:#123052 !important;
-  color:#ffffff !important;
-}
-#adicionar-page #cliente{
-  background:linear-gradient(180deg,rgba(8,17,31,.98),rgba(8,17,31,.94)) !important;
-  border-color:rgba(36,200,255,.35) !important;
-}
-
-
-/* ===== VALOR PARA TODOS - SEM VALOR ESTIPULADO ===== */
-#adicionar-page .field:has(#valor){
-  background:rgba(4,8,18,.22) !important;
-  border:1px solid rgba(255,255,255,.055) !important;
-}
-#adicionar-page .field:has(#valor) label{
-  color:#b8c6e6 !important;
-}
-.valor-euro-field{
-  position:relative;
-}
-.valor-euro-field input{
-  padding-right:42px !important;
-}
-.valor-euro-field::after{
-  content:"€";
-  position:absolute;
-  right:14px;
-  top:50%;
-  transform:translateY(-50%);
-  color:#9fabca;
-  font-weight:900;
-  pointer-events:none;
-}
-
-
-/* ===== FIX FINAL VALOR SEM ESTIPULADO ===== */
-#adicionar-page .field:has(#valor){
-  background:rgba(4,8,18,.22) !important;
-  border:1px solid rgba(255,255,255,.055) !important;
-}
-#adicionar-page .field:has(#valor) label{
-  color:#b8c6e6 !important;
-}
-#adicionar-page .valor-euro-field{
-  position:relative;
-}
-#adicionar-page .valor-euro-field input{
-  padding-right:42px !important;
-}
-#adicionar-page .valor-euro-field::after{
-  content:"€";
-  position:absolute;
-  right:14px;
-  top:50%;
-  transform:translateY(-50%);
-  color:#9fabca;
-  font-weight:900;
-  pointer-events:none;
-}
-
-
-/* ===== FIX DEFINITIVO VALOR PARA TODOS ===== */
-#adicionar-page .field:has(#valor),
-#adicionar-page #valor{
-  display:block !important;
-  visibility:visible !important;
-  opacity:1 !important;
-}
-#adicionar-page .valor-euro-field{
-  position:relative;
-}
-#adicionar-page .valor-euro-field input{
-  padding-right:42px !important;
-}
-#adicionar-page .valor-euro-field::after{
-  content:"€";
-  position:absolute;
-  right:14px;
-  top:50%;
-  transform:translateY(-50%);
-  color:#9fabca;
-  font-weight:900;
-  pointer-events:none;
 }
 
 </style>
@@ -3871,10 +3609,10 @@ select option:checked{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field advanced-work-field"><label>Valor (€)</label><div class="valor-euro-field"><input id="valor" type="number" min="0" step="0.01" /></div></div>
+              <div class="field"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
-              <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
+              <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option></select></div>
               <div class="field"><label>Fat</label><select id="trabalhoInvoiceType"><option>Com Fat</option><option>Sem Fat</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
@@ -6425,13 +6163,8 @@ function updateTrabalhoAdvancedFields(){
     el.classList.toggle('is-hidden-by-role', !canSee);
   });
 
-  const valorField = $('valor')?.closest('.field');
-  if(valorField){
-    valorField.classList.remove('is-hidden-by-role','field-hidden-by-role','master-edit-only');
-    valorField.style.display = '';
-  }
-
   if(!canSee){
+    if($('valor')) $('valor').value = '';
     if($('dataInicio')) $('dataInicio').value = '';
     if($('dataFim')) $('dataFim').value = '';
     if($('estado')) $('estado').value = 'Pendente';
@@ -8836,7 +8569,7 @@ function renderCalendario(){
                   <span class="badge" data-state="${escapeHtml(t.estado || '-')}">${escapeHtml(t.estado || '-')}</span>
                 </div>
                 <div>${escapeHtml(t.tipoTrabalho || '-')}</div>
-                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: <span class="valor-real-cell">${euro(t.valorPago ?? t.valor ?? 0)}</span></div>
+                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: ${euro(t.valorPago ?? t.valor ?? 0)}</div>
                 ${(t.descricao || '').trim() ? `<div class="calendar-meta">${escapeHtml(t.descricao)}</div>` : ''}
               </div>
               <div class="row-actions">
