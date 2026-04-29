@@ -3092,17 +3092,7 @@ body{
   font-size:11px;
   color:var(--muted,#9fabca);
 }
-.valor-estipulado-chip{
-  display:inline-flex;
-  margin-top:5px;
-  padding:4px 8px;
-  border-radius:999px;
-  background:rgba(245,158,11,.10);
-  color:#fde68a;
-  font-size:11px;
-  font-weight:800;
-  border:1px solid rgba(245,158,11,.18);
-}
+
 .valor-real-cell{
   font-weight:900;
   color:#86efac;
@@ -3278,6 +3268,32 @@ select option:checked{
 #adicionar-page #cliente{
   background:linear-gradient(180deg,rgba(8,17,31,.98),rgba(8,17,31,.94)) !important;
   border-color:rgba(36,200,255,.35) !important;
+}
+
+
+/* ===== VALOR PARA TODOS - SEM VALOR ESTIPULADO ===== */
+#adicionar-page .field:has(#valor){
+  background:rgba(4,8,18,.22) !important;
+  border:1px solid rgba(255,255,255,.055) !important;
+}
+#adicionar-page .field:has(#valor) label{
+  color:#b8c6e6 !important;
+}
+.valor-euro-field{
+  position:relative;
+}
+.valor-euro-field input{
+  padding-right:42px !important;
+}
+.valor-euro-field::after{
+  content:"€";
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#9fabca;
+  font-weight:900;
+  pointer-events:none;
 }
 
 </style>
@@ -3476,16 +3492,7 @@ select option:checked{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="valor-inline-grid field-span-2">
-                <div class="field advanced-work-field">
-                  <label>Valor (€)</label>
-                  <div class="valor-euro-field"><input id="valor" type="number" min="0" step="0.01" /></div>
-                </div>
-                <div class="field advanced-work-field">
-                  <label>Valor estipulado (€)</label>
-                  <div class="valor-euro-field"><input id="valorEstipulado" type="number" min="0" step="0.01" /></div>
-                </div>
-              </div>
+              <div class="field advanced-work-field"><label>Valor (€)</label><div class="valor-euro-field"><input id="valor" type="number" min="0" step="0.01" /></div></div></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
@@ -8382,7 +8389,7 @@ function renderCalendario(){
                   <span class="badge" data-state="${escapeHtml(t.estado || '-')}">${escapeHtml(t.estado || '-')}</span>
                 </div>
                 <div>${escapeHtml(t.tipoTrabalho || '-')}</div>
-                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: <span class="valor-real-cell">${euro(t.valorPago ?? t.valor ?? 0)}</span>${Number(t.valorEstipulado||0)>0 ? `<span class="valor-estipulado-chip">Estipulado: ${euro(t.valorEstipulado)}</span>` : ''}</div>
+                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: <span class="valor-real-cell">${euro(t.valorPago ?? t.valor ?? 0)}</span></div>
                 ${(t.descricao || '').trim() ? `<div class="calendar-meta">${escapeHtml(t.descricao)}</div>` : ''}
               </div>
               <div class="row-actions">
@@ -8879,8 +8886,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     cliente:$('cliente').value.trim(),
     contacto:$('contacto').value.trim(),
     tipoTrabalho:$('tipoTrabalho').value.trim(),
-    valor:Number($('valor').value||0),
-    valorEstipulado:Number($('valorEstipulado')?.value||0),
+    valor:Number($('valor').value||0),?.value||0),
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
@@ -8973,7 +8979,6 @@ window.editTrabalho = function(id){
   if($('contacto')) $('contacto').value=t.contacto||'';
   $('tipoTrabalho').value=t.tipoTrabalho||'';
   $('valor').value=t.valor||'';
-  if($('valorEstipulado')) $('valorEstipulado').value=t.valorEstipulado||'';
   $('dataInicio').value=t.dataInicio||'';
   $('dataFim').value=t.dataFim||'';
   $('estado').value=normalizeEstado(t.estado||'Pendente');
