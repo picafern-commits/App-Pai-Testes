@@ -2092,7 +2092,7 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   color:#fee2e2;
   box-shadow:0 0 0 1px rgba(239,68,68,.08) inset;
 }
-.pipeline-like-btn.Fat-btn{
+.pipeline-like-btn.fatura-btn{
   background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
   border-color:rgba(216,180,254,.32);
   color:#f3e8ff;
@@ -2164,7 +2164,7 @@ td.acoes-col, .acoes-col{
 }
 
 
-.pipeline-like-btn.Fat-disabled{
+.pipeline-like-btn.fatura-disabled{
   background:linear-gradient(180deg, rgba(148,163,184,.12), rgba(100,116,139,.08));
   border-color:rgba(148,163,184,.20);
   color:#94a3b8;
@@ -2975,263 +2975,7 @@ td.acoes-col, .acoes-col{
 
 .table-sort-btn{background:none;border:none;color:inherit;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:0}
 .table-sort-btn span{opacity:.8}
-
-.firebase-backups-panel{margin-top:16px;padding:16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
-.firebase-backups-list{display:grid;gap:10px;max-height:260px;overflow:auto;margin-top:12px}
-.firebase-backup-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
-.firebase-backup-meta{display:grid;gap:4px}
-.firebase-backup-meta strong{font-size:14px}
-.firebase-backup-meta span{font-size:12px;color:var(--muted)}
-.firebase-backup-actions{display:flex;gap:8px;flex-wrap:wrap}
-.firebase-backup-preview{margin-top:12px;padding:14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
-
-
-/* ===== SIDEBAR PREMIUM ===== */
-.sidebar{
-  background:linear-gradient(180deg, rgba(6,10,18,.96), rgba(10,15,28,.92)) !important;
-  border-right:1px solid rgba(255,255,255,.08) !important;
-  box-shadow:20px 0 50px rgba(0,0,0,.22);
-}
-.brand-card{
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)) !important;
-  border:1px solid rgba(255,255,255,.08) !important;
-  border-radius:24px !important;
-  padding:16px !important;
-}
-.brand-card h1{
-  font-size:24px !important;
-  letter-spacing:-.02em;
-}
-.brand-card p{
-  color:#b8c6e6 !important;
-  font-size:12px !important;
-}
-.sidebar-logo{
-  width:62px !important;
-  height:62px !important;
-  border-radius:18px !important;
-  background:rgba(255,255,255,.05) !important;
-  box-shadow:0 10px 24px rgba(0,0,0,.18);
-}
-.nav{
-  gap:8px !important;
-}
-.nav-btn{
-  position:relative;
-  padding:13px 14px !important;
-  border-radius:18px !important;
-  background:rgba(255,255,255,.02) !important;
-  border:1px solid transparent !important;
-  transition:all .18s ease !important;
-  font-weight:600;
-}
-.nav-btn:hover{
-  background:linear-gradient(135deg, rgba(111,92,255,.14), rgba(36,200,255,.08)) !important;
-  border-color:rgba(255,255,255,.08) !important;
-  transform:translateX(2px);
-}
-.nav-btn.active{
-  background:linear-gradient(135deg, rgba(111,92,255,.22), rgba(36,200,255,.12)) !important;
-  border-color:rgba(255,255,255,.10) !important;
-  box-shadow:0 12px 26px rgba(0,0,0,.16);
-}
-.nav-btn.active::before{
-  content:"";
-  position:absolute;
-  left:-2px;
-  top:10px;
-  bottom:10px;
-  width:4px;
-  border-radius:999px;
-  background:linear-gradient(180deg, #ff7a18, #24c8ff);
-}
-.nav-icon{
-  width:32px !important;
-  height:32px !important;
-  border-radius:12px !important;
-  background:rgba(255,255,255,.07) !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
-}
-.mini-card{
-  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)) !important;
-  border:1px solid rgba(255,255,255,.07) !important;
-  border-radius:20px !important;
-}
-.sidebar-footer{
-  gap:10px !important;
-}
-@media (max-width: 900px){
-  .sidebar{
-    box-shadow:28px 0 60px rgba(0,0,0,.38) !important;
-  }
-  .brand-card{
-    margin-top:6px;
-  }
-}
-
-
-/* ===== DASHBOARD EMPRESA SMART ===== */
-.empresa-smart-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:14px}
-.empresa-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.empresa-kpi{padding:16px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.07)}
-.empresa-kpi span{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}
-.empresa-kpi strong{display:block;font-size:26px;line-height:1.05;margin-bottom:6px}
-.empresa-kpi small{color:#c9d6f5}
-.empresa-list{display:grid;gap:10px}
-.empresa-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
-.empresa-item .meta{display:grid;gap:4px}
-.empresa-item .title{font-weight:700}
-.empresa-pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-.empresa-pill.warn{background:rgba(245,158,11,.14);color:#fde68a;border:1px solid rgba(245,158,11,.22)}
-.empresa-pill.good{background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.22)}
-.empresa-pill.danger{background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.22)}
-.empresa-empty{padding:16px;border-radius:18px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.08);color:var(--muted)}
-@media (max-width:1100px){.empresa-smart-grid{grid-template-columns:1fr}.empresa-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:700px){.empresa-kpi-grid{grid-template-columns:1fr}}
-
-
-/* ===== ORÇAMENTOS ACTIONS PREMIUM ===== */
-.orc-actions{display:flex;gap:8px;flex-wrap:wrap}
-.orc-btn{
-  min-height:34px;
-  padding:8px 12px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.08);
-  color:#fff;
-  cursor:pointer;
-  font-weight:700;
-  letter-spacing:.01em;
-  transition:.18s ease;
-  background:rgba(255,255,255,.05);
-}
-.orc-btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
-.orc-btn.edit{background:linear-gradient(135deg,rgba(36,200,255,.18),rgba(111,92,255,.14));border-color:rgba(36,200,255,.25)}
-.orc-btn.pending{background:linear-gradient(135deg,rgba(245,158,11,.20),rgba(251,191,36,.14));border-color:rgba(245,158,11,.28);color:#fde68a}
-.orc-btn.paid{background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(16,185,129,.14));border-color:rgba(34,197,94,.28);color:#bbf7d0}
-.orc-btn.reject{background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(248,113,113,.14));border-color:rgba(239,68,68,.28);color:#fecaca}
-.orc-btn.delete{background:linear-gradient(135deg,rgba(127,29,29,.45),rgba(239,68,68,.16));border-color:rgba(239,68,68,.32);color:#fff}
-
-
-/* ALERTAS SAFE */
-.alert-card strong{display:block;font-size:28px;margin:6px 0 8px}
-.alert-card p{margin:0;color:var(--muted);line-height:1.45}
-
-
-#trabalhosPerPage{min-width:140px}
-#trabalhosPaginationBar{margin-top:12px}
-
-
-/* ===== PAGINACAO VISUAL SAFE ===== */
-#trabalhosPaginationBar{
-  justify-content:center !important;
-  align-items:center !important;
-  gap:10px !important;
-  margin-top:12px;
-  padding-top:4px;
-}
-#trabalhosPaginationBar .inline-actions{
-  gap:6px !important;
-  align-items:center;
-}
-#trabalhosPaginationBar #trabalhosPageInfo{
-  font-size:12px !important;
-  color:var(--muted,#b8c6e6) !important;
-  margin-right:4px;
-  white-space:nowrap;
-}
-#trabalhosPaginationBar .btn{
-  min-height:auto !important;
-  padding:6px 10px !important;
-  border-radius:10px !important;
-  font-size:12px !important;
-}
-#trabalhosPerPage{
-  min-height:auto !important;
-  width:auto !important;
-  padding:5px 8px !important;
-  border-radius:9px !important;
-  font-size:11px !important;
-  background:rgba(255,255,255,.05) !important;
-  border:1px solid rgba(255,255,255,.06) !important;
-  box-shadow:none !important;
-}
-#trabalhosPageToolbar{
-  align-items:center !important;
-}
-#trabalhosPageToolbar #trabalhosPerPage{
-  display:none !important;
-}
-#trabalhosPaginationBar #trabalhosPerPage{
-  display:inline-flex !important;
-}
-@media (max-width:900px){
-  #trabalhosPaginationBar{
-    flex-wrap:wrap;
-    gap:8px !important;
-  }
-  #trabalhosPaginationBar .btn{
-    padding:5px 9px !important;
-    font-size:11px !important;
-  }
-  #trabalhosPerPage{
-    font-size:10px !important;
-    padding:4px 7px !important;
-  }
-}
-
-
-/* ===== FULLSCREEN PRO ===== */
-html, body{
-  margin:0 !important;
-  padding:0 !important;
-  width:100%;
-  height:100%;
-  overflow-x:hidden;
-}
-
-body{
-  min-height:100dvh;
-  background:#0b0f1a;
-}
-
-.app-shell,
-.main-content,
-.content,
-.page{
-  width:100% !important;
-  max-width:100% !important;
-}
-
-.sidebar{
-  height:100dvh !important;
-}
-
-@media (max-width: 900px){
-  body{
-    min-height:100dvh;
-    padding-top:env(safe-area-inset-top);
-    padding-bottom:env(safe-area-inset-bottom);
-  }
-
-  .main-content{
-    padding:10px !important;
-  }
-
-  .sidebar{
-    height:100dvh !important;
-  }
-}
-
 </style>
-  
-
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0b1020">
-<link rel="manifest" href="manifest.json">
-
 </head>
 <body>
   <div id="loginScreen" class="login-screen">
@@ -3302,7 +3046,6 @@ body{
         <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">◈</span><span>Dashboard</span></button>
         <button class="nav-btn" data-tab="adicionar"><span class="nav-icon">＋</span><span>Adicionar Trabalho</span></button>
         <button class="nav-btn" data-tab="trabalhos"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
-        <button class="nav-btn" data-tab="orcamentos"><span class="nav-icon">📝</span><span>Orçamentos</span></button>
         <button class="nav-btn" data-tab="clientes"><span class="nav-icon">◉</span><span>Clientes</span></button>
         <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">€</span><span>Pagamentos</span></button>
         <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">▣</span><span>Relatórios</span></button>
@@ -3361,7 +3104,7 @@ body{
           <div class="stat-card panel pink"><span>Total trabalhos</span><strong id="statTotalTrabalhos">0</strong><small>Todos os registos</small></div>
           <div class="stat-card panel blue"><span>Em andamento</span><strong id="statEmAndamento">0</strong><small>Serviços abertos</small></div>
           <div class="stat-card panel green"><span>Concluídos</span><strong id="statConcluidos">0</strong><small>Fechados ou pagos</small></div>
-          <div class="stat-card panel gold"><span>Total Fat</span><strong id="statTotalFat">0 €</strong><small>Soma dos valores</small></div>
+          <div class="stat-card panel gold"><span>Total faturado</span><strong id="statTotalFaturado">0 €</strong><small>Soma dos valores</small></div>
         </div>
 
         <section class="panel">
@@ -3369,16 +3112,10 @@ body{
           <div id="alertCards" class="alert-grid"></div>
         </section>
 
-        <div class="empresa-smart-grid">
-          <section class="panel">
-            <div class="panel-head"><h3>Clientes com dívida</h3></div>
-            <div id="empresaClientesDividaList" class="empresa-list"></div>
-          </section>
-          <section class="panel">
-            <div class="panel-head"><h3>Orçamentos pendentes</h3></div>
-            <div id="empresaOrcamentosPendentesList" class="empresa-list"></div>
-          </section>
-        </div>
+        <section class="panel">
+          <div class="panel-head">
+          <div id="dashboardAgendaWrap" class="agenda-smart-grid"></div>
+        </section>
 
         <div class="dashboard-grid">
           <section class="panel">
@@ -3391,19 +3128,9 @@ body{
             <div id="monthlyBars" class="bars"></div>
           </section>
         </div>
-
-
-        <section class="panel" id="dashboardEmpresaSmartSection">
-          <div class="panel-head"><h3>Resumo empresa</h3></div>
-          <div class="empresa-kpi-grid">
-            <div class="empresa-kpi"><span>Total recebido</span><strong id="empresaTotalRecebido">0 €</strong><small>Pagamentos registados</small></div>
-            <div class="empresa-kpi"><span>Em dívida</span><strong id="empresaTotalDivida">0 €</strong><small>Valor em aberto</small></div>
-            <div class="empresa-kpi"><span>Orçamentos pendentes</span><strong id="empresaOrcPendentes">0</strong><small>A aguardar decisão</small></div>
-            <div class="empresa-kpi"><span>Clientes com dívida</span><strong id="empresaClientesDivida">0</strong><small>Prioridade do dia</small></div>
-          </div>
-        </section>
       </section>
 
+      
 <section class="page" id="adicionar-page">
         <div class="content-grid single-panel-grid">
           <section class="panel admin-only">
@@ -3424,7 +3151,7 @@ body{
               <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
-              <div class="field"><label>Fat</label><select id="trabalhoInvoiceType"><option>Com Fat</option><option>Sem Fat</option></select></div>
+              <div class="field"><label>Faturação</label><select id="trabalhoInvoiceType"><option>Com Fatura</option><option>Sem Fatura</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
             </form>
@@ -3436,29 +3163,16 @@ body{
         <div class="content-grid single-panel-grid">
           <section class="panel wide-panel">
             <div class="panel-head"><h3>Histórico de trabalhos</h3></div>
-            <div class="toolbar" id="trabalhosPageToolbar">
+            <div class="toolbar">
               <input id="searchTrabalhos" type="text" placeholder="Pesquisar por cliente, ID ou tipo de trabalho" />
               <select id="filterEstado">
-                <option value="">Todos os estados</option><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option></select>
+                <option value="">Todos os estados</option>                <option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Pago</option><option>Entregue</option><option>Cancelado</option></select>
             </div>
             <div id="trabalhosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
-                <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th><th>Fat</th><th>Ações</th></tr></thead>
+                <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th><th>Faturação</th><th>Ações</th></tr></thead>
                 <tbody id="trabalhosTableBody"></tbody>
               </table>
-            </div>
-            <div class="toolbar" id="trabalhosPaginationBar" style="justify-content:space-between;align-items:center;">
-              <div id="trabalhosPageInfo" class="recent-meta">Página 1 de 1</div>
-              <div class="inline-actions">
-                <button type="button" class="btn btn-secondary" id="trabalhosPrevBtn">Anterior</button>
-                <button type="button" class="btn btn-secondary" id="trabalhosNextBtn">Seguinte</button>
-              <select id="trabalhosPerPage" title="Trabalhos por página">
-                <option value="10">10 / página</option>
-                <option value="20" selected>20 / página</option>
-                <option value="50">50 / página</option>
-                <option value="100">100 / página</option>
-              </select>
-              </div>
             </div>
           </section>
         </div>
@@ -3505,38 +3219,9 @@ body{
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('data')">Data do Trabalho <span id="sortIcon-data">↕</span></button></th>
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('valor')">Valor <span id="sortIcon-valor">↕</span></button></th>
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('metodo')">Método <span id="sortIcon-metodo">↕</span></button></th>
-<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('invoiceType')">Fat <span id="sortIcon-invoiceType">↕</span></button></th>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('invoiceType')">Faturação <span id="sortIcon-invoiceType">↕</span></button></th>
 <th>Ações</th></tr></thead>
                 <tbody id="pagamentosTableBody"></tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-      </section>
-
-
-      <section class="page" id="orcamentos-page">
-        <div class="content-grid">
-          <section class="panel admin-only">
-            <div class="panel-head"><h3>Novo orçamento</h3></div>
-            <form id="orcamentoForm" class="form-grid">
-              <input type="hidden" id="orcamentoId" />
-              <div class="field"><label>Cliente</label><select id="orcamentoCliente"></select></div>
-              <div class="field"><label>Descrição</label><input id="orcamentoDescricao" type="text" placeholder="Serviço / orçamento" required /></div>
-              <div class="field"><label>Valor</label><input id="orcamentoValor" type="number" step="0.01" min="0" /></div>
-              <div class="field"><label>Data</label><input id="orcamentoData" type="date" /></div>
-              <div class="field"><label>Estado</label><select id="orcamentoEstado"><option value="pendente">Pendente</option><option value="aprovado">Aprovado</option><option value="rejeitado">Rejeitado</option><option value="rejeitado">Rejeitado</option></select></div>
-              <div class="field field-span-2"><label>Notas</label><textarea id="orcamentoNotas" rows="4"></textarea></div>
-              <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar orçamento</button><button type="button" class="btn btn-secondary" id="clearOrcamentoBtn">Limpar</button></div></div>
-            </form>
-          </section>
-          <section class="panel wide-panel">
-            <div class="panel-head"><h3>Lista de orçamentos</h3></div>
-            <div class="toolbar"><input id="searchOrcamentos" type="text" placeholder="Pesquisar orçamento" /></div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Código</th><th>Cliente</th><th>Descrição</th><th>Valor</th><th>Data</th><th>Estado</th><th>Ações</th></tr></thead>
-                <tbody id="orcamentosTableBody"></tbody>
               </table>
             </div>
           </section>
@@ -4724,63 +4409,12 @@ function buildProfessionalReportHtml(){
   .online-users-list{padding:10px;max-height:280px;}
 }
 
-
-/* ===== FULLSCREEN PRO ===== */
-html, body{
-  margin:0 !important;
-  padding:0 !important;
-  width:100%;
-  height:100%;
-  overflow-x:hidden;
-}
-
-body{
-  min-height:100dvh;
-  background:#0b0f1a;
-}
-
-.app-shell,
-.main-content,
-.content,
-.page{
-  width:100% !important;
-  max-width:100% !important;
-}
-
-.sidebar{
-  height:100dvh !important;
-}
-
-@media (max-width: 900px){
-  body{
-    min-height:100dvh;
-    padding-top:env(safe-area-inset-top);
-    padding-bottom:env(safe-area-inset-bottom);
-  }
-
-  .main-content{
-    padding:10px !important;
-  }
-
-  .sidebar{
-    height:100dvh !important;
-  }
-}
-
 </style>
-    
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0b1020">
-<link rel="manifest" href="manifest.json">
-
-</head>
+    </head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
-        <p>Resumo avançado de clientes, Fat e histórico.</p>
+        <p>Resumo avançado de clientes, faturação e histórico.</p>
       </div>
 
       <div class="stats">
@@ -4789,7 +4423,7 @@ body{
           <div class="value">${formatEuroValue(data.avgValue)}</div>
         </div>
         <div class="card">
-          <div class="label">Cliente com mais Fat</div>
+          <div class="label">Cliente com mais faturação</div>
           <div class="value">${data.topClient ? escapeHtml(data.topClient.nome) : '--'}</div>
         </div>
       </div>
@@ -4809,56 +4443,7 @@ body{
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    
-<script>
-(function(){
-  const APP_VERSION = "2.0.0";
-
-  async function checkVersion(){
-    try{
-      const res = await fetch("./version.json?cache=" + Date.now());
-      const data = await res.json();
-
-      if(data && data.version && data.version !== APP_VERSION){
-        showUpdate(data.message || "Nova versão disponível");
-      }
-    }catch(e){
-      console.log("sem update");
-    }
-  }
-
-  function showUpdate(msg){
-    if(document.getElementById("appUpdateBox")) return;
-
-    const box = document.createElement("div");
-    box.id = "appUpdateBox";
-
-    box.style.position = "fixed";
-    box.style.bottom = "20px";
-    box.style.left = "20px";
-    box.style.right = "20px";
-    box.style.background = "#0f172a";
-    box.style.color = "white";
-    box.style.padding = "16px";
-    box.style.borderRadius = "12px";
-    box.style.zIndex = "9999";
-    box.style.boxShadow = "0 10px 30px rgba(0,0,0,0.4)";
-
-    box.innerHTML = `
-      <div style="font-weight:700;margin-bottom:8px">${msg}</div>
-      <button onclick="location.reload()" style="background:#22c55e;border:none;padding:10px 14px;border-radius:8px;color:white;font-weight:700;cursor:pointer;">
-        Atualizar
-      </button>
-    `;
-
-    document.body.appendChild(box);
-  }
-
-  window.addEventListener("load", checkVersion);
-})();
-</script>
-
-</body>
+    </body>
   </html>`;
 }
 
@@ -4889,9 +4474,6 @@ function printProfessionalReport(){
   const BACKUP_HISTORY_KEY = 'ge_official_backups';
   const BACKUP_META_KEY = 'ge_official_backup_meta';
   const BACKUP_FILE_INPUT_ID = 'backupRestoreInputClean';
-  const DAILY_CLOUD_META_KEY = 'ge_daily_cloud_backup_meta';
-  const DAILY_CLOUD_TARGET_HOUR = 19;
-  const DAILY_CLOUD_TARGET_MINUTE = 30;
 
   function formatBackupDateSafe(value){
     if(!value) return '--';
@@ -4960,121 +4542,6 @@ function printProfessionalReport(){
     };
   }
 
-
-
-  function readDailyCloudMeta(){
-    try{ return JSON.parse(localStorage.getItem(DAILY_CLOUD_META_KEY) || '{}') || {}; }catch(e){ return {}; }
-  }
-
-  function writeDailyCloudMeta(meta){
-    localStorage.setItem(DAILY_CLOUD_META_KEY, JSON.stringify(meta || {}));
-  }
-
-  function getTodayIsoForBackup(){
-    return new Date().toISOString().slice(0,10);
-  }
-
-  function getNextDailyCloudTarget(now = new Date()){
-    const target = new Date(now);
-    target.setHours(DAILY_CLOUD_TARGET_HOUR, DAILY_CLOUD_TARGET_MINUTE, 0, 0);
-    if(now > target) target.setDate(target.getDate() + 1);
-    return target;
-  }
-
-  function formatDurationMs(ms){
-    if(!Number.isFinite(ms) || ms < 0) ms = 0;
-    const totalMinutes = Math.floor(ms / 60000);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return `${hours}h ${String(minutes).padStart(2,'0')}m`;
-  }
-
-  function renderBackupTimerAndCloudState(){
-    const timerEl = document.getElementById('backupDailyTimerClean');
-    const cloudEl = document.getElementById('backupDailyCloudStatusClean');
-    const pillEl = document.getElementById('backupDailyCloudBadgeClean');
-    const meta = readDailyCloudMeta();
-    const now = new Date();
-    const nextTarget = getNextDailyCloudTarget(now);
-    if(timerEl) timerEl.textContent = formatDurationMs(nextTarget - now);
-    const today = getTodayIsoForBackup();
-    const sentToday = meta.lastBackupDate === today;
-    if(cloudEl) cloudEl.textContent = sentToday ? `Enviado hoje • ${formatBackupDateSafe(meta.lastBackupAt)}` : 'Por enviar hoje';
-    if(pillEl){
-      pillEl.classList.remove('ok','warn','error');
-      if(sentToday){
-        pillEl.textContent = 'Cloud diário OK';
-        pillEl.classList.add('ok');
-      }else{
-        pillEl.textContent = now.getHours() > DAILY_CLOUD_TARGET_HOUR || (now.getHours() === DAILY_CLOUD_TARGET_HOUR && now.getMinutes() >= DAILY_CLOUD_TARGET_MINUTE) ? 'Cloud pendente' : 'Aguardando 19:30';
-        pillEl.classList.add('warn');
-      }
-    }
-  }
-
-  async function createDailyCloudBackupIfDue(force = false){
-    try{
-      const now = new Date();
-      const today = getTodayIsoForBackup();
-      const meta = readDailyCloudMeta();
-      const dueNow = now.getHours() > DAILY_CLOUD_TARGET_HOUR || (now.getHours() === DAILY_CLOUD_TARGET_HOUR && now.getMinutes() >= DAILY_CLOUD_TARGET_MINUTE);
-      if(!force && !dueNow) return false;
-      if(!force && meta.lastBackupDate === today) return false;
-
-      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
-      if(typeof ensureReady === 'function') await ensureReady();
-      const db = window.firestoreDb;
-      const setDocFn = window.setDoc;
-      const docFn = window.doc;
-      if(!db || typeof setDocFn !== 'function' || typeof docFn !== 'function') return false;
-
-      const snapshot = (typeof getAppDataSnapshot === 'function') ? getAppDataSnapshot() : {
-        trabalhos: JSON.parse(localStorage.getItem('trabalhos') || localStorage.getItem('ge_trabalhos') || '[]'),
-        clientes: JSON.parse(localStorage.getItem('clientes') || localStorage.getItem('ge_clientes') || '[]'),
-        pagamentos: JSON.parse(localStorage.getItem('pagamentos') || localStorage.getItem('ge_pagamentos') || '[]'),
-        dataBackup: new Date().toISOString(),
-        versao: 'backup-cloud-diario-v1'
-      };
-      const cloned = safeJsonClone(snapshot);
-      const payload = {
-        id: `daily-${today}`,
-        createdAt: new Date().toISOString(),
-        dateKey: today,
-        type: 'daily-cloud',
-        count: getBackupRecordCount(cloned),
-        actorEmail: String(window.currentUserEmail || window.firebaseAuth?.currentUser?.email || '').trim().toLowerCase(),
-        snapshot: cloned
-      };
-      await setDocFn(docFn(db, 'app_backups', payload.id), payload, { merge:true });
-      writeDailyCloudMeta({
-        lastBackupDate: today,
-        lastBackupAt: payload.createdAt,
-        count: payload.count,
-        state: 'ok'
-      });
-      renderBackupTimerAndCloudState();
-      return true;
-    }catch(err){
-      console.warn('Backup cloud diário falhou:', err);
-      const now = new Date();
-      writeDailyCloudMeta({
-        ...readDailyCloudMeta(),
-        lastErrorAt: now.toISOString(),
-        state: 'error',
-        reason: err?.code || err?.message || 'cloud-daily-failed'
-      });
-      renderBackupTimerAndCloudState();
-      return false;
-    }
-  }
-
-  function startDailyCloudBackupScheduler(){
-    renderBackupTimerAndCloudState();
-    setInterval(renderBackupTimerAndCloudState, 60000);
-    setTimeout(() => { createDailyCloudBackupIfDue(false); }, 2500);
-    setInterval(() => { createDailyCloudBackupIfDue(false); }, 300000);
-  }
-
   function setBackupBanner(message, tone){
     const box = document.getElementById('backupCleanMessage');
     if(!box) return;
@@ -5117,8 +4584,6 @@ function printProfessionalReport(){
       else if(stateValue.includes('local')) badge.classList.add('warn');
       else badge.classList.add('error');
     }
-
-    renderBackupTimerAndCloudState();
 
     if(!latest){
       setBackupBanner('Ainda não existe backup criado nesta app.', 'warn');
@@ -5239,160 +4704,7 @@ function printProfessionalReport(){
     if(typeof importBackupFile === 'function') return importBackupFile(event);
   }
 
-  
-  function getFirebaseBackupSnapshotData(raw){
-    if(!raw || typeof raw !== 'object') return { trabalhos:[], clientes:[], pagamentos:[], ts:'' };
-    const snapshot = raw.snapshot && typeof raw.snapshot === 'object' ? raw.snapshot : raw;
-    return {
-      trabalhos: Array.isArray(snapshot.trabalhos) ? snapshot.trabalhos : [],
-      clientes: Array.isArray(snapshot.clientes) ? snapshot.clientes : [],
-      pagamentos: Array.isArray(snapshot.pagamentos) ? snapshot.pagamentos : [],
-      ts: snapshot.dataBackup || raw.createdAt || raw.ts || ''
-    };
-  }
-
-  async function loadFirebaseBackupsList(forceOpen = false){
-    const panel = document.getElementById('firebaseBackupsPanelClean');
-    const list = document.getElementById('firebaseBackupsListClean');
-    const preview = document.getElementById('firebaseBackupPreviewClean');
-    if(forceOpen && panel) panel.classList.remove('hidden');
-    if(list) list.innerHTML = '<div class="settings-help">A carregar backups Firebase...</div>';
-    if(preview){ preview.classList.add('hidden'); preview.innerHTML = ''; }
-    try{
-      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
-      if(typeof ensureReady === 'function') await ensureReady();
-      const db = window.firestoreDb;
-      const getDocsFn = window.getDocs;
-      const collectionFn = window.collection;
-      if(!db || typeof getDocsFn !== 'function' || typeof collectionFn !== 'function'){
-        if(list) list.innerHTML = '<div class="settings-help">Firebase indisponível.</div>';
-        return;
-      }
-      const snap = await getDocsFn(collectionFn(db, 'app_backups'));
-      const rows = [];
-      (snap.docs || []).forEach(docSnap => {
-        rows.push({ id: docSnap.id, ...(docSnap.data() || {}) });
-      });
-      rows.sort((a,b) => {
-        const da = new Date((a.createdAt || a.ts || a.dateKey || a.id || '')).getTime() || 0;
-        const dbv = new Date((b.createdAt || b.ts || b.dateKey || b.id || '')).getTime() || 0;
-        return dbv - da;
-      });
-      if(!rows.length){
-        if(list) list.innerHTML = '<div class="settings-help">Ainda não existem backups na Firebase.</div>';
-        return;
-      }
-      if(list){
-        list.innerHTML = rows.map(item => {
-          const snapData = getFirebaseBackupSnapshotData(item);
-          const total = snapData.trabalhos.length + snapData.clientes.length + snapData.pagamentos.length;
-          const when = formatBackupDateSafe(item.createdAt || snapData.ts || item.dateKey || item.id);
-          return `<div class="firebase-backup-item">
-            <div class="firebase-backup-meta">
-              <strong>${when}</strong>
-              <span>${total} registos • Trabalhos ${snapData.trabalhos.length} • Clientes ${snapData.clientes.length} • Pagamentos ${snapData.pagamentos.length}</span>
-            </div>
-            <div class="firebase-backup-actions">
-              <button class="small-btn" type="button" onclick="previewFirebaseBackupClean('${item.id.replace(/'/g,"&#39;")}')">Ver</button>
-              <button class="small-btn" type="button" onclick="restoreFirebaseBackupClean('${item.id.replace(/'/g,"&#39;")}')">Restaurar</button>
-            </div>
-          </div>`;
-        }).join('');
-      }
-    }catch(err){
-      console.error('Erro ao carregar backups Firebase:', err);
-      if(list) list.innerHTML = '<div class="settings-help">Falha ao ler backups Firebase.</div>';
-    }
-  }
-
-  async function previewFirebaseBackupClean(id){
-    const preview = document.getElementById('firebaseBackupPreviewClean');
-    if(!preview) return;
-    preview.classList.remove('hidden');
-    preview.innerHTML = 'A carregar preview...';
-    try{
-      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
-      if(typeof ensureReady === 'function') await ensureReady();
-      const db = window.firestoreDb;
-      const getDocFn = window.getDoc;
-      const docFn = window.doc;
-      if(!db || typeof getDocFn !== 'function' || typeof docFn !== 'function'){
-        preview.innerHTML = 'Firebase indisponível.';
-        return;
-      }
-      const snap = await getDocFn(docFn(db, 'app_backups', id));
-      if(!snap.exists()){
-        preview.innerHTML = 'Backup não encontrado.';
-        return;
-      }
-      const raw = snap.data() || {};
-      const data = getFirebaseBackupSnapshotData(raw);
-      preview.innerHTML = `
-        <div><strong>Backup:</strong> ${id}</div>
-        <div><strong>Data:</strong> ${formatBackupDateSafe(raw.createdAt || data.ts || raw.dateKey || id)}</div>
-        <div><strong>Trabalhos:</strong> ${data.trabalhos.length}</div>
-        <div><strong>Clientes:</strong> ${data.clientes.length}</div>
-        <div><strong>Pagamentos:</strong> ${data.pagamentos.length}</div>
-        <div style="margin-top:10px"><button class="backups-premium-btn" type="button" onclick="restoreFirebaseBackupClean('${id.replace(/'/g,"&#39;")}')">Restaurar este backup</button></div>
-      `;
-    }catch(err){
-      console.error('Erro preview backup Firebase:', err);
-      preview.innerHTML = 'Falha ao abrir preview do backup.';
-    }
-  }
-
-  async function restoreFirebaseBackupClean(id){
-    try{
-      const ensureReady = window.ensureFirebaseReady || window.ensureFirebaseCore || null;
-      if(typeof ensureReady === 'function') await ensureReady();
-      const db = window.firestoreDb;
-      const getDocFn = window.getDoc;
-      const docFn = window.doc;
-      if(!db || typeof getDocFn !== 'function' || typeof docFn !== 'function'){
-        alert('Firebase indisponível.');
-        return;
-      }
-      const snap = await getDocFn(docFn(db, 'app_backups', id));
-      if(!snap.exists()){
-        alert('Backup não encontrado.');
-        return;
-      }
-      const raw = snap.data() || {};
-      const data = getFirebaseBackupSnapshotData(raw);
-      if(!confirm(`Restaurar o backup ${id}? Isto vai substituir os dados atuais.`)) return;
-
-      const currentSnapshot = (typeof getAppDataSnapshot === 'function') ? getAppDataSnapshot() : {
-        trabalhos: JSON.parse(localStorage.getItem('trabalhos') || localStorage.getItem('ge_trabalhos') || '[]'),
-        clientes: JSON.parse(localStorage.getItem('clientes') || localStorage.getItem('ge_clientes') || '[]'),
-        pagamentos: JSON.parse(localStorage.getItem('pagamentos') || localStorage.getItem('ge_pagamentos') || '[]'),
-        dataBackup: new Date().toISOString(),
-        versao: 'pre-restore-guard'
-      };
-      localStorage.setItem('backup_restore_guard_snapshot', JSON.stringify(currentSnapshot));
-
-      localStorage.setItem('trabalhos', JSON.stringify(data.trabalhos));
-      localStorage.setItem('clientes', JSON.stringify(data.clientes));
-      localStorage.setItem('pagamentos', JSON.stringify(data.pagamentos));
-      localStorage.setItem('ge_trabalhos', JSON.stringify(data.trabalhos));
-      localStorage.setItem('ge_clientes', JSON.stringify(data.clientes));
-      localStorage.setItem('ge_pagamentos', JSON.stringify(data.pagamentos));
-      setBackupBanner(`Backup Firebase ${id} restaurado.`, 'ok');
-      setTimeout(() => location.reload(), 500);
-    }catch(err){
-      console.error('Erro ao restaurar backup Firebase:', err);
-      alert('Falha ao restaurar backup Firebase.');
-    }
-  }
-
-  function toggleFirebaseBackupsPanel(){
-    const panel = document.getElementById('firebaseBackupsPanelClean');
-    if(!panel) return;
-    const hidden = panel.classList.contains('hidden');
-    panel.classList.toggle('hidden');
-    if(hidden) loadFirebaseBackupsList(true);
-  }
-
-function installCleanBackupPanel(){
+  function installCleanBackupPanel(){
     const page = document.getElementById('configuracoes-page');
     if(!page) return;
     let card = document.getElementById('backupToolsCard');
@@ -5406,12 +4718,9 @@ function installCleanBackupPanel(){
         <div class="backups-premium-head">
           <div>
             <h3>Backup limpo e profissional</h3>
-            <p>Crias um backup oficial quando quiseres, tens timer diário até às 19:30 e vês o estado real dos teus dados.</p>
+            <p>Crias um backup oficial quando quiseres e vês sempre o estado real dos teus dados.</p>
           </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-            <span id="backupDailyCloudBadgeClean" class="backups-premium-pill daily warn">Aguardando 19:30</span>
-            <span id="backupStateBadgeClean" class="backups-premium-pill warn">Sem backup</span>
-          </div>
+          <span id="backupStateBadgeClean" class="backups-premium-pill warn">Sem backup</span>
         </div>
         <div class="backups-premium-grid">
           <div class="backups-premium-stat"><span class="label">Último backup</span><span id="backupLastStatusClean" class="value">--</span></div>
@@ -5420,54 +4729,31 @@ function installCleanBackupPanel(){
           <div class="backups-premium-stat"><span class="label">Armazenamento</span><span id="backupStorageStatusClean" class="value">--</span></div>
           <div class="backups-premium-stat"><span class="label">Estado</span><span id="backupStateStatusClean" class="value">Sem backup</span></div>
           <div class="backups-premium-stat"><span class="label">Última sync Firebase</span><span id="backupFirebaseStatusClean" class="value">Não confirmado</span></div>
-          <div class="backups-premium-stat"><span class="label">Próximo cloud diário</span><span id="backupDailyTimerClean" class="value">--</span></div>
-          <div class="backups-premium-stat"><span class="label">Cloud diário</span><span id="backupDailyCloudStatusClean" class="value">Por enviar hoje</span></div>
         </div>
         <div class="backups-premium-actions">
           <button id="backupCreateBtnClean" class="backups-premium-btn export" type="button">Criar Backup Agora</button>
           <button id="backupExportBtnClean" class="backups-premium-btn download" type="button">Exportar JSON</button>
           <button id="backupRestoreBtnClean" class="backups-premium-btn" type="button">Restaurar Backup</button>
-          <button id="backupFirebaseListBtnClean" class="backups-premium-btn" type="button">Ver backups Firebase</button>
-          <button id="backupCloudNowBtnClean" class="backups-premium-btn" type="button">Enviar Cloud Agora</button>
           <input id="${BACKUP_FILE_INPUT_ID}" class="backups-hidden-input" type="file" accept=".json,application/json">
         </div>
         <div id="backupCleanMessage" class="settings-help">Ainda não existe backup criado nesta app.</div>
-        <div id="firebaseBackupsPanelClean" class="firebase-backups-panel hidden">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-            <h4 style="margin:0">Backups Firebase</h4>
-            <button id="backupFirebaseRefreshBtnClean" class="backups-premium-btn" type="button">Atualizar lista</button>
-          </div>
-          <div id="firebaseBackupsListClean" class="firebase-backups-list"></div>
-          <div id="firebaseBackupPreviewClean" class="firebase-backup-preview hidden"></div>
-        </div>
       </div>`;
 
     const createBtn = document.getElementById('backupCreateBtnClean');
     const exportBtn = document.getElementById('backupExportBtnClean');
     const restoreBtn = document.getElementById('backupRestoreBtnClean');
-    const firebaseListBtn = document.getElementById('backupFirebaseListBtnClean');
-    const firebaseRefreshBtn = document.getElementById('backupFirebaseRefreshBtnClean');
     const fileInput = document.getElementById(BACKUP_FILE_INPUT_ID);
-    const cloudNowBtn = document.getElementById('backupCloudNowBtnClean');
     if(createBtn) createBtn.onclick = createOfficialBackupNow;
     if(exportBtn) exportBtn.onclick = exportOfficialBackupJson;
     if(restoreBtn) restoreBtn.onclick = openRestoreBackupPicker;
-    if(firebaseListBtn) firebaseListBtn.onclick = toggleFirebaseBackupsPanel;
-    if(firebaseRefreshBtn) firebaseRefreshBtn.onclick = () => loadFirebaseBackupsList(true);
-    if(cloudNowBtn) cloudNowBtn.onclick = () => createDailyCloudBackupIfDue(true);
     if(fileInput) fileInput.onchange = handleCleanBackupImport;
     renderCleanBackupStatus();
-    startDailyCloudBackupScheduler();
   }
 
   window.createOfficialBackupNow = createOfficialBackupNow;
   window.exportOfficialBackupJson = exportOfficialBackupJson;
   window.openRestoreBackupPicker = openRestoreBackupPicker;
   window.handleCleanBackupImport = handleCleanBackupImport;
-  window.toggleFirebaseBackupsPanel = toggleFirebaseBackupsPanel;
-  window.loadFirebaseBackupsList = loadFirebaseBackupsList;
-  window.previewFirebaseBackupClean = previewFirebaseBackupClean;
-  window.restoreFirebaseBackupClean = restoreFirebaseBackupClean;
   window.refreshBackupStatusUi = renderCleanBackupStatus;
   window.updateBackupWeekIndicator = function(){};
   window.fazerBackupSexta = function(){};
@@ -5494,7 +4780,7 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPe
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const APP_VERSION = '1.0.6';
-const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos', orcamentos:'ge_orcamentos', lastTrabId:'ge_last_trab_id' };
+const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos' , lastTrabId:'ge_last_trab_id' };
 const LOGS_COLLECTION = 'logs';
 
 let currentRole = null, currentUsername = null, currentUserEmail = null;
@@ -5503,7 +4789,7 @@ let currentAccessMode = 'edit';
 let managedUsersCache = [];
 const ROLE_COLLECTION = 'user_roles';
 const MASTER_EMAILS = ['pica.fern@gmail.com'];
-let trabalhos = [], clientes = [], pagamentos = [], orcamentos = []; if(typeof window !== 'undefined') window.orcamentos = orcamentos;
+let trabalhos = [], clientes = [], pagamentos = [];
 let lastTrabId = 0;
 
 let firebaseApp = null;
@@ -5650,7 +4936,6 @@ async function ensureFirebaseCore(){
     window.ensureFirebaseCore = ensureFirebaseCore;
     window.onAuthStateChanged = onAuthStateChanged;
     window.getDocs = getDocs;
-    window.getDoc = getDoc;
     window.collection = collection;
     window.writeBatch = writeBatch;
     window.doc = doc;
@@ -6292,8 +5577,6 @@ function loadLocal(){
   try{trabalhos=(JSON.parse(localStorage.getItem(STORAGE_KEYS.trabalhos))||[]).map(normalizeTrabalhoStateShape)}catch{trabalhos=[]}
   try{clientes=JSON.parse(localStorage.getItem(STORAGE_KEYS.clientes))||[]}catch{clientes=[]}
   try{pagamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.pagamentos))||[]}catch{pagamentos=[]}
-  try{orcamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.orcamentos))||[]}catch{orcamentos=[]}
-  if(typeof window !== 'undefined') window.orcamentos = orcamentos;
   try{ lastTrabId = Number(localStorage.getItem(STORAGE_KEYS.lastTrabId) || 0) || 0 }catch{ lastTrabId = 0 }
   normalizeTrabalhosIds();
   refreshLastTrabIdFromWorks();
@@ -6302,9 +5585,7 @@ function saveLocal(){
   localStorage.setItem(STORAGE_KEYS.trabalhos, JSON.stringify(trabalhos));
   localStorage.setItem(STORAGE_KEYS.clientes, JSON.stringify(clientes));
   localStorage.setItem(STORAGE_KEYS.pagamentos, JSON.stringify(pagamentos));
-  localStorage.setItem(STORAGE_KEYS.orcamentos, JSON.stringify(orcamentos));
   localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
-  if(typeof window !== 'undefined'){ window.orcamentos = orcamentos; window.trabalhos = trabalhos; window.clientes = clientes; window.pagamentos = pagamentos; }
   autoBackupInvisible();
 }
 
@@ -6771,7 +6052,6 @@ function switchTab(tab){
   if(tab === 'trabalhos') renderTrabalhos();
   if(tab === 'clientes') renderClientes();
   if(tab === 'pagamentos') renderPagamentos();
-  if(tab === 'orcamentos') renderOrcamentos();
   if(tab === 'relatorios') renderRelatorios();
   if(tab === 'logs') renderAuditLogs(false);
   try{ renderAdvancedReports(); }catch(e){}
@@ -6894,7 +6174,6 @@ function attachRealtimeListeners(){
   bind('trabalhos', rows => { trabalhos = rows.map(r => normalizeTrabalhoStateShape({ ...r, workCode: r.workCode || r.ordemId || '' })); normalizeTrabalhosIds(); refreshLastTrabIdFromWorks(); });
   bind('clientes', rows => { clientes = rows; });
   bind('pagamentos', rows => { pagamentos = rows; });
-  bind('orcamentos', rows => { orcamentos = rows; if(typeof window !== 'undefined') window.orcamentos = orcamentos; });
 }
 async function ensureFirebaseReady(timeoutMs = 12000){
   if (!firestoreDb) {
@@ -7391,7 +6670,7 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   color:#fee2e2;
   box-shadow:0 0 0 1px rgba(239,68,68,.08) inset;
 }
-.pipeline-like-btn.Fat-btn{
+.pipeline-like-btn.fatura-btn{
   background:linear-gradient(180deg, rgba(168,85,247,.22), rgba(126,34,206,.16));
   border-color:rgba(216,180,254,.32);
   color:#f3e8ff;
@@ -7463,7 +6742,7 @@ td.acoes-col, .acoes-col{
 }
 
 
-.pipeline-like-btn.Fat-disabled{
+.pipeline-like-btn.fatura-disabled{
   background:linear-gradient(180deg, rgba(148,163,184,.12), rgba(100,116,139,.08));
   border-color:rgba(148,163,184,.20);
   color:#94a3b8;
@@ -8271,58 +7550,7 @@ td.acoes-col, .acoes-col{
   .online-users-list{padding:10px;max-height:280px;}
 }
 
-
-/* ===== FULLSCREEN PRO ===== */
-html, body{
-  margin:0 !important;
-  padding:0 !important;
-  width:100%;
-  height:100%;
-  overflow-x:hidden;
-}
-
-body{
-  min-height:100dvh;
-  background:#0b0f1a;
-}
-
-.app-shell,
-.main-content,
-.content,
-.page{
-  width:100% !important;
-  max-width:100% !important;
-}
-
-.sidebar{
-  height:100dvh !important;
-}
-
-@media (max-width: 900px){
-  body{
-    min-height:100dvh;
-    padding-top:env(safe-area-inset-top);
-    padding-bottom:env(safe-area-inset-bottom);
-  }
-
-  .main-content{
-    padding:10px !important;
-  }
-
-  .sidebar{
-    height:100dvh !important;
-  }
-}
-
-</style>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0b1020">
-<link rel="manifest" href="manifest.json">
-
-</head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</style></head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -8444,126 +7672,18 @@ function renderCalendario(){
   }).join('');
 }
 
-
-function getDashboardOrcamentosLista(){
-  const lista = window.orcamentos || [];
-  if(Array.isArray(lista) && lista.length) return lista;
-  try{
-    const raw = localStorage.getItem('ge_orcamentos');
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  }catch(e){
-    return [];
-  }
-}
-
-function renderDashboardEmpresaSmart(){
-  const recebidoEl = document.getElementById('empresaTotalRecebido');
-  const dividaEl = document.getElementById('empresaTotalDivida');
-  const orcEl = document.getElementById('empresaOrcPendentes');
-  const cliEl = document.getElementById('empresaClientesDivida');
-  const cliList = document.getElementById('empresaClientesDividaList');
-  const orcList = document.getElementById('empresaOrcamentosPendentesList');
-  const alertCards = document.getElementById('alertCards');
-  if(!recebidoEl || !dividaEl || !orcEl || !cliEl || !cliList || !orcList) return;
-
-  const trabalhosLista = Array.isArray(trabalhos) ? trabalhos : [];
-  const pagamentosLista = Array.isArray(pagamentos) ? pagamentos : [];
-  const orcamentosLista = getDashboardOrcamentosLista();
-
-  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
-  const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
-  const totalDivida = Math.max(totalFat - totalRecebido, 0);
-
-  const clientTotals = {};
-  trabalhosLista.forEach(t => {
-    const nome = String(t.cliente || t.clienteNome || '').trim();
-    if(!nome) return;
-    clientTotals[nome] = clientTotals[nome] || { Fat:0, pago:0 };
-    clientTotals[nome].Fat += Number(t.valor || t.valorPago || 0) || 0;
-  });
-  pagamentosLista.forEach(p => {
-    const nome = String(p.cliente || p.clienteNome || '').trim();
-    if(!nome) return;
-    clientTotals[nome] = clientTotals[nome] || { Fat:0, pago:0 };
-    clientTotals[nome].pago += Number(p.valor || p.valorPago || 0) || 0;
-  });
-  const clientesDivida = Object.entries(clientTotals)
-    .map(([nome, vals]) => ({ nome, divida: Math.max((vals.Fat||0) - (vals.pago||0), 0) }))
-    .filter(item => item.divida > 0.009)
-    .sort((a,b) => b.divida - a.divida)
-    .slice(0,6);
-
-  const orcPendentes = orcamentosLista
-    .filter(o => String(o.estado || '').toLowerCase().includes('pend'))
-    .sort((a,b) => String(b.data || '').localeCompare(String(a.data || '')))
-    .slice(0,6);
-
-  recebidoEl.textContent = euro(totalRecebido);
-  dividaEl.textContent = euro(totalDivida);
-  orcEl.textContent = String(orcPendentes.length);
-  cliEl.textContent = String(clientesDivida.length);
-
-  if(alertCards){
-    const trabalhosPendentes = trabalhosLista.filter(t => {
-      const st = String(normalizeEstado(t.estado || '') || '').toLowerCase();
-      return !st || st.includes('pend') || st.includes('curso') || st.includes('aguardar');
-    }).length;
-    const alertHtml = [];
-    if(orcPendentes.length){
-      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Pendente">Orçamentos</span><strong>${orcPendentes.length}</strong><p>Orçamentos pendentes a precisar de decisão.</p></div>`);
-    }
-    if(trabalhosPendentes){
-      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Em andamento">Trabalhos</span><strong>${trabalhosPendentes}</strong><p>Trabalhos pendentes ou em andamento.</p></div>`);
-    }
-    if(clientesDivida.length){
-      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Pendente">Clientes</span><strong>${clientesDivida.length}</strong><p>Clientes com valores em dívida.</p></div>`);
-    }
-    if(totalDivida > 0.009){
-      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Pendente">Dívida</span><strong>${euro(totalDivida)}</strong><p>Valor global ainda por receber.</p></div>`);
-    }
-    alertCards.innerHTML = alertHtml.length ? alertHtml.join('') : '<div class="alert-card"><span class="badge" data-state="Concluído">Tudo em dia</span><strong>0</strong><p>Sem alertas críticos neste momento.</p></div>';
-  }
-
-  cliList.innerHTML = clientesDivida.length ? clientesDivida.map(item => `
-    <div class="empresa-item">
-      <div class="meta">
-        <span class="title">${escapeHtml(item.nome)}</span>
-        <span class="sub">Cliente com valor em aberto</span>
-      </div>
-      <div style="display:grid;justify-items:end;gap:6px;">
-        <span class="empresa-pill danger">Dívida</span>
-        <strong>${euro(item.divida)}</strong>
-      </div>
-    </div>
-  `).join('') : '<div class="empresa-empty">Sem clientes com dívida neste momento.</div>';
-
-  orcList.innerHTML = orcPendentes.length ? orcPendentes.map(item => `
-    <div class="empresa-item">
-      <div class="meta">
-        <span class="title">${escapeHtml(item.cliente || 'Sem cliente')}</span>
-        <span class="sub">${escapeHtml(item.descricao || item.tipoTrabalho || 'Orçamento pendente')}</span>
-      </div>
-      <div style="display:grid;justify-items:end;gap:6px;">
-        <span class="empresa-pill warn">Pendente</span>
-        <strong>${euro(Number(item.valor || 0) || 0)}</strong>
-      </div>
-    </div>
-  `).join('') : '<div class="empresa-empty">Sem orçamentos pendentes.</div>';
-}
-
 function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
   const emAndamento = trabalhos.filter(t=>['Pendente','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
   const concluidos = trabalhos.filter(t=>['Concluído','Pago','Entregue'].includes(normalizeEstado(t.estado))).length;
-  const totalFat = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
+  const totalFaturado = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
   const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
   const clientesAtivos = new Set(trabalhos.map(t=>(t.cliente||'').trim()).filter(Boolean)).size;
 
   $('statTotalTrabalhos').textContent = totalTrabalhos;
   $('statEmAndamento').textContent = emAndamento;
   $('statConcluidos').textContent = concluidos;
-  $('statTotalFat').textContent = euro(totalFat);
+  $('statTotalFaturado').textContent = euro(totalFaturado);
 
   const recentWrap=$('recentTrabalhos');
   recentWrap.innerHTML = !trabalhos.length
@@ -8595,86 +7715,6 @@ function renderDashboard(){
     chip.textContent = totalTrabalhos ? 'Empresa Ativa' : 'Online';
     chip.className = totalTrabalhos ? 'status-ok' : 'status-warn';
   }
-  try{ renderDashboardEmpresaSmart(); }catch(e){}
-  try{ renderDashboardCharts(); }catch(e){}
-}
-
-
-
-let dashboardCharts = { Fatcao:null, resumo:null };
-
-function buildDashboardChartData(){
-  const trabalhosLista = Array.isArray(trabalhos) ? trabalhos : [];
-  const pagamentosLista = Array.isArray(pagamentos) ? pagamentos : [];
-  const monthLabels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const monthValues = Array(12).fill(0);
-
-  trabalhosLista.forEach(t => {
-    const rawDate = t.dataInicio || t.data || t.dataFim || t.dataPagamento || '';
-    if(!rawDate) return;
-    const d = new Date(rawDate);
-    if(Number.isNaN(d.getTime())) return;
-    monthValues[d.getMonth()] += Number(t.valor || t.valorPago || 0) || 0;
-  });
-
-  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
-  const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
-  const totalDivida = Math.max(totalFat - totalRecebido, 0);
-
-  return { monthLabels, monthValues, totalRecebido, totalDivida };
-}
-
-function destroyDashboardCharts(){
-  try{ if(dashboardCharts.Fatcao){ dashboardCharts.Fatcao.destroy(); dashboardCharts.Fatcao = null; } }catch(e){}
-  try{ if(dashboardCharts.resumo){ dashboardCharts.resumo.destroy(); dashboardCharts.resumo = null; } }catch(e){}
-}
-
-function renderDashboardCharts(){
-  try{
-    if(typeof Chart === 'undefined') return;
-    const FatcaoCanvas = document.getElementById('graficoFatcaoMensal');
-    const resumoCanvas = document.getElementById('graficoResumoFinanceiro');
-    if(!FatcaoCanvas || !resumoCanvas) return;
-
-    const { monthLabels, monthValues, totalRecebido, totalDivida } = buildDashboardChartData();
-    destroyDashboardCharts();
-
-    dashboardCharts.Fatcao = new Chart(FatcaoCanvas.getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: monthLabels,
-        datasets: [{
-          label: 'Fat (€)',
-          data: monthValues
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: true } },
-        scales: {
-          y: { beginAtZero: true }
-        }
-      }
-    });
-
-    dashboardCharts.resumo = new Chart(resumoCanvas.getContext('2d'), {
-      type: 'doughnut',
-      data: {
-        labels: ['Recebido', 'Em dívida'],
-        datasets: [{
-          data: [totalRecebido, totalDivida]
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: true } }
-      }
-    });
-  }catch(err){
-    console.warn('Falha ao renderizar gráficos do dashboard:', err);
-  }
 }
 
 
@@ -8697,7 +7737,7 @@ function renderAlerts(){
 }
 
 function trabalhoActions(t){
-  const showInvoice = (t.invoiceType || 'Com Fat') === 'Com Fat';
+  const showInvoice = (t.invoiceType || 'Com Fatura') === 'Com Fatura';
   const canEdit = isAdminLike();
   const canDelete = isAdminLike();
   const hasDesc = ((t.descricao || t.descrição || t.description || t.desc || '')).trim().length > 0;
@@ -8709,7 +7749,7 @@ function trabalhoActions(t){
   return `
     <div class="enterprise-actions">
       ${descButton}
-      ${showInvoice ? `<button class="pipeline-like-btn Fat-btn" onclick="generateInvoice('${t.id}')">Fat</button>` : `<span class="pipeline-like-btn Fat-disabled">Fat</span>`}
+      ${showInvoice ? `<button class="pipeline-like-btn fatura-btn" onclick="generateInvoice('${t.id}')">Fatura</button>` : `<span class="pipeline-like-btn fatura-disabled">Fatura</span>`}
       ${canEdit ? `<button class="pipeline-like-btn edit-btn" onclick="editTrabalho('${t.id}')">Editar</button>` : '<span></span>'}
       ${canDelete ? `<button class="pipeline-like-btn delete-btn" onclick="deleteTrabalho('${t.id}')">Apagar</button>` : '<span></span>'}
       <div class="stage-flow">${flowButtons}</div>
@@ -8726,10 +7766,6 @@ function pagamentoActions(p){
   const pdf=`<button class="small-btn" onclick="pdfPagamento('${p.id}')">PDF</button>`;
   return !isAdminLike() ? pdf : `${pdf}<button class="small-btn" onclick="editPagamento('${p.id}')">Editar</button><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button>`;
 }
-let trabalhosCurrentPage = 1;
-function getTrabalhosPerPage(){ const el = $('trabalhosPerPage'); const v = Number(el?.value || 20); return Number.isFinite(v) && v > 0 ? v : 20; }
-function updateTrabalhosPagination(totalRows){ const perPage = getTrabalhosPerPage(); const totalPages = Math.max(1, Math.ceil(totalRows / perPage)); if(trabalhosCurrentPage > totalPages) trabalhosCurrentPage = totalPages; if(trabalhosCurrentPage < 1) trabalhosCurrentPage = 1; const info = $('trabalhosPageInfo'); if(info) info.textContent = `Página ${trabalhosCurrentPage} de ${totalPages} • ${totalRows} trabalhos`; const prev = $('trabalhosPrevBtn'); const next = $('trabalhosNextBtn'); if(prev) prev.disabled = trabalhosCurrentPage <= 1; if(next) next.disabled = trabalhosCurrentPage >= totalPages; return { perPage, totalPages, start:(trabalhosCurrentPage-1)*perPage, end:trabalhosCurrentPage*perPage }; }
-
 function renderTrabalhos(){
   const term=$('searchTrabalhos').value.trim().toLowerCase();
   const globalTerm=($('globalSearch')?.value||'').trim().toLowerCase();
@@ -8738,11 +7774,9 @@ function renderTrabalhos(){
     const hay=[t.workCode,t.cliente,t.tipoTrabalho,t.contacto,t.descricao,t.estado,t.invoiceType].join(' ').toLowerCase();
     return (!term||hay.includes(term))&&(!globalTerm||hay.includes(globalTerm))&&(!estado||t.estado===estado);
   }).sort((a,b)=>getWorkCodeNumber(b.workCode)-getWorkCodeNumber(a.workCode));
-  const page = updateTrabalhosPagination(rows.length);
-  const pageRows = rows.slice(page.start, page.end);
-  $('trabalhosTableBody').innerHTML = pageRows.length ? pageRows.map(t=>{
-    const invoiceType = t.invoiceType || 'Com Fat';
-    const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
+  $('trabalhosTableBody').innerHTML = rows.length ? rows.map(t=>{
+    const invoiceType = t.invoiceType || 'Com Fatura';
+    const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
     const effectiveEstado = t.paymentStatus === 'Pago' ? 'Pago' : (t.estado || '-');
     return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(effectiveEstado)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
   }).join('') : '<tr><td colspan="9">Sem resultados.</td></tr>';
@@ -8803,8 +7837,8 @@ function renderPagamentos() {
 
   tbody.innerHTML = listaOrdenada.length
     ? listaOrdenada.map((p) => {
-      const invoiceType = p.invoiceType || 'Com Fat';
-      const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
+      const invoiceType = p.invoiceType || 'Com Fatura';
+      const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
       return `
       <tr>
         <td>${escapeHtml(p.cliente || '-')}</td>
@@ -8870,7 +7904,7 @@ function renderRelatorios() {
         .join('')
     : '<div class="report-card">Sem dados para relatório.</div>';
 }
-function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); populateOrcamentoClientOptions(); renderDashboard(); renderAlerts(); try{ if(typeof renderDashboardAgenda === 'function') renderDashboardAgenda(); }catch(e){ console.warn('renderDashboardAgenda indisponível:', e); } renderTrabalhos(); renderClientes(); renderPagamentos(); renderOrcamentos(); renderRelatorios();
+function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOptions(); populateClientOptions(); renderDashboard(); renderAlerts(); try{ if(typeof renderDashboardAgenda === 'function') renderDashboardAgenda(); }catch(e){ console.warn('renderDashboardAgenda indisponível:', e); } renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){}
   renderManagedUsers();
   updateWorkCodePreview();
@@ -8878,11 +7912,8 @@ function renderAll(){ if(!currentRole) return; setRoleUI(); populateClientOption
   renderMobileCards();
   applyDeviceAccessRestrictions(); }
 
-$('searchTrabalhos')?.addEventListener('input', ()=>{ trabalhosCurrentPage = 1; renderTrabalhos(); renderMobileCards(); });
-$('filterEstado')?.addEventListener('change', ()=>{ trabalhosCurrentPage = 1; renderTrabalhos(); renderMobileCards(); });
-$('trabalhosPerPage')?.addEventListener('change', ()=>{ trabalhosCurrentPage = 1; renderTrabalhos(); });
-$('trabalhosPrevBtn')?.addEventListener('click', ()=>{ if(trabalhosCurrentPage > 1){ trabalhosCurrentPage--; renderTrabalhos(); } });
-$('trabalhosNextBtn')?.addEventListener('click', ()=>{ const totalRows = trabalhos.filter(t=>{ const term=$('searchTrabalhos').value.trim().toLowerCase(); const globalTerm=($('globalSearch')?.value||'').trim().toLowerCase(); const estado=$('filterEstado').value; const hay=[t.workCode,t.cliente,t.tipoTrabalho,t.contacto,t.descricao,t.estado,t.invoiceType].join(' ').toLowerCase(); return (!term||hay.includes(term))&&(!globalTerm||hay.includes(globalTerm))&&(!estado||t.estado===estado); }).length; const totalPages = Math.max(1, Math.ceil(totalRows / getTrabalhosPerPage())); if(trabalhosCurrentPage < totalPages){ trabalhosCurrentPage++; renderTrabalhos(); } });
+$('searchTrabalhos')?.addEventListener('input', ()=>{ renderTrabalhos(); renderMobileCards(); });
+$('filterEstado')?.addEventListener('change', ()=>{ renderTrabalhos(); renderMobileCards(); });
 $('searchClientes')?.addEventListener('input', ()=>{ renderClientes(); renderMobileCards(); });
 $('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClientes(); renderPagamentos(); renderRelatorios();
   try{ renderAdvancedReports(); }catch(e){} renderMobileCards(); });
@@ -8890,7 +7921,7 @@ $('globalSearch')?.addEventListener('input', ()=>{ renderTrabalhos(); renderClie
 $('clearTrabalhoBtn')?.addEventListener('click', ()=>{
   $('trabalhoForm')?.reset();
   if($('trabalhoId')) $('trabalhoId').value='';
-  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fat';
+  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fatura';
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
@@ -8928,7 +7959,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
-    invoiceType:$('trabalhoInvoiceType') ? $('trabalhoInvoiceType').value : 'Com Fat',
+    invoiceType:$('trabalhoInvoiceType') ? $('trabalhoInvoiceType').value : 'Com Fatura',
     descricao:$('descricao').value.trim()
   };
 
@@ -8960,7 +7991,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
 
   $('trabalhoForm').reset();
   $('trabalhoId').value='';
-  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fat';
+  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value='Com Fatura';
   if($('cliente')) $('cliente').value='';
   if($('contacto')) $('contacto').value='';
   if($('workCodeDisplay')) $('workCodeDisplay').value = nextTrabalhoIdPreview();
@@ -9020,7 +8051,7 @@ window.editTrabalho = function(id){
   $('dataInicio').value=t.dataInicio||'';
   $('dataFim').value=t.dataFim||'';
   $('estado').value=normalizeEstado(t.estado||'Pendente');
-  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fat';
+  if($('trabalhoInvoiceType')) $('trabalhoInvoiceType').value=t.invoiceType||'Com Fatura';
   $('descricao').value=t.descricao||'';
   updateTrabalhoAdvancedFields();
   switchTab('adicionar');
@@ -9080,7 +8111,7 @@ window.openClientHistory = function(id){
   $('clientModalContent').innerHTML = `
     <div class="client-summary-grid">
       <div class="client-summary-card"><span>Total trabalhos</span><strong>${relatedTrabalhos.length}</strong></div>
-      <div class="client-summary-card"><span>Total Fat</span><strong>${euro(totalTrabalhos)}</strong></div>
+      <div class="client-summary-card"><span>Total faturado</span><strong>${euro(totalTrabalhos)}</strong></div>
       <div class="client-summary-card"><span>Total pago</span><strong>${euro(totalPagamentos)}</strong></div>
       <div class="client-summary-card"><span>Estado</span><strong>${relatedPagamentos.length ? 'Com histórico' : 'Sem pagamentos'}</strong></div>
     </div>
@@ -9128,8 +8159,8 @@ window.generateInvoice = function(id){
   const t = trabalhos.find(x=>x.id===id);
   if(!t) return;
   const invoiceNumber = `FT-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
-  printHtml(`Fat ${invoiceNumber}`, `
-    <h1>Fat / Serviço</h1>
+  printHtml(`Fatura ${invoiceNumber}`, `
+    <h1>Fatura / Serviço</h1>
     <div class="meta">Nº ${invoiceNumber}</div>
     <div class="card"><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div>
     <div class="card"><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div>
@@ -9202,7 +8233,7 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
     data: finalPaymentDate,
     valor: valorFinal,
     metodo,
-    invoiceType: updatedTrabalho.invoiceType || 'Com Fat',
+    invoiceType: updatedTrabalho.invoiceType || 'Com Fatura',
     sourceWorkId: updatedTrabalho.id,
     workCode: updatedTrabalho.workCode || ''
   };
@@ -9477,8 +8508,8 @@ function renderMobileCards(){
       return (!term||hay.includes(term))&&(!globalTerm||hay.includes(globalTerm))&&(!estado||t.estado===estado);
     }).sort((a,b)=>getWorkCodeNumber(b.workCode)-getWorkCodeNumber(a.workCode));
     trabWrap.innerHTML = rows.length ? rows.map(t=>{
-      const invoiceType = t.invoiceType || 'Com Fat';
-      const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
+      const invoiceType = t.invoiceType || 'Com Fatura';
+      const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
       return `<article class="mobile-card">
         <div>
           <div class="mobile-card-title">${escapeHtml(t.cliente || '-')}</div>
@@ -9488,7 +8519,7 @@ function renderMobileCards(){
           <div class="mobile-card-item"><span>ID</span><strong>${escapeHtml(t.workCode || '-')}</strong></div>
           <div class="mobile-card-item"><span>Valor</span><strong>${euro(t.valorPago ?? t.valor ?? 0)}</strong></div>
           <div class="mobile-card-item"><span>Estado</span><strong><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></strong></div>
-          <div class="mobile-card-item"><span>Fat</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
+          <div class="mobile-card-item"><span>Faturação</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
         ${trabalhoActions(t)}
       </article>`;
@@ -9498,8 +8529,8 @@ function renderMobileCards(){
   const pagWrap = $('pagamentosCardsWrap');
   if(pagWrap){
     pagWrap.innerHTML = pagamentos.length ? pagamentos.slice().reverse().map(p=>{
-      const invoiceType = p.invoiceType || 'Com Fat';
-      const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
+      const invoiceType = p.invoiceType || 'Com Fatura';
+      const invoiceClass = invoiceType === 'Sem Fatura' ? 'sem' : 'com';
       return `<article class="mobile-card">
         <div>
           <div class="mobile-card-title">${escapeHtml(p.cliente || '-')}</div>
@@ -9509,7 +8540,7 @@ function renderMobileCards(){
           <div class="mobile-card-item"><span>Data</span><strong>${fmtDate(p.workDate || p.data || '')}</strong></div>
           <div class="mobile-card-item"><span>Valor</span><strong>${euro(p.valor || 0)}</strong></div>
           <div class="mobile-card-item"><span>Método</span><strong>${escapeHtml(p.metodo || 'Manual')}</strong></div>
-          <div class="mobile-card-item"><span>Fat</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
+          <div class="mobile-card-item"><span>Faturação</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
         ${isAdminLike() ? `<div class="row-actions"><button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button></div>` : ''}
       </article>`;
@@ -10080,63 +9111,12 @@ function buildProfessionalReportHtml(){
   .online-users-list{padding:10px;max-height:280px;}
 }
 
-
-/* ===== FULLSCREEN PRO ===== */
-html, body{
-  margin:0 !important;
-  padding:0 !important;
-  width:100%;
-  height:100%;
-  overflow-x:hidden;
-}
-
-body{
-  min-height:100dvh;
-  background:#0b0f1a;
-}
-
-.app-shell,
-.main-content,
-.content,
-.page{
-  width:100% !important;
-  max-width:100% !important;
-}
-
-.sidebar{
-  height:100dvh !important;
-}
-
-@media (max-width: 900px){
-  body{
-    min-height:100dvh;
-    padding-top:env(safe-area-inset-top);
-    padding-bottom:env(safe-area-inset-bottom);
-  }
-
-  .main-content{
-    padding:10px !important;
-  }
-
-  .sidebar{
-    height:100dvh !important;
-  }
-}
-
 </style>
-    
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0b1020">
-<link rel="manifest" href="manifest.json">
-
-</head>
+    </head>
     <body>
       <div class="hero">
         <h1>Relatório Profissional</h1>
-        <p>Resumo avançado de clientes, Fat e histórico.</p>
+        <p>Resumo avançado de clientes, faturação e histórico.</p>
       </div>
 
       <div class="stats">
@@ -10145,7 +9125,7 @@ body{
           <div class="value">${formatEuroValue(data.avgValue)}</div>
         </div>
         <div class="card">
-          <div class="label">Cliente com mais Fat</div>
+          <div class="label">Cliente com mais faturação</div>
           <div class="value">${data.topClient ? escapeHtml(data.topClient.nome) : '--'}</div>
         </div>
       </div>
@@ -10189,159 +9169,6 @@ function printProfessionalReport(){
   openProfessionalReportWindow(true);
 }
 
-
-function populateOrcamentoClientOptions(selected=''){
-  const select = $('orcamentoCliente');
-  if(!select) return;
-  const current = selected || select.value || '';
-  const sorted = clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
-  select.innerHTML = ['<option value="">Selecionar cliente</option>']
-    .concat(sorted.map(c => `<option value="${escapeHtml(c.nome || '')}">${escapeHtml(c.nome || '')}</option>`))
-    .join('');
-  if(current) select.value = current;
-}
-function renderOrcamentos(){
-  const tbody = $('orcamentosTableBody');
-  if(!tbody) return;
-  populateOrcamentoClientOptions();
-  const term = ($('searchOrcamentos')?.value||'').trim().toLowerCase();
-  const rows = orcamentos.filter(o => [o.codigo,o.cliente,o.descricao,o.estado,o.notas].join(' ').toLowerCase().includes(term))
-    .slice().sort((a,b)=> new Date(b.data || 0) - new Date(a.data || 0));
-  tbody.innerHTML = rows.length ? rows.map(o => `
-    <tr>
-      <td><strong>${escapeHtml(o.codigo||'-')}</strong></td>
-      <td>${escapeHtml(o.cliente||'-')}</td>
-      <td>${escapeHtml(o.descricao||'-')}</td>
-      <td>${euro(o.valor||0)}</td>
-      <td>${fmtDate(o.data||'')}</td>
-      <td><span class="badge" data-state="${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}">${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}</span></td>
-      <td><div class="orc-actions">${isAdminLike()?`<button class="orc-btn edit" onclick="editOrcamento('${o.id}')">Editar</button><button class="orc-btn pending" onclick="approveOrcamento('${o.id}')">Pend.</button><button class="orc-btn paid" onclick="approveOrcamentoAsPaid('${o.id}')">Pago</button><button class="orc-btn reject" onclick="rejectOrcamento('${o.id}')">Rejeitar</button><button class="orc-btn delete" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
-    </tr>`).join('') : '<tr><td colspan="7">Sem orçamentos registados.</td></tr>';
-}
-$('searchOrcamentos')?.addEventListener('input', renderOrcamentos);
-$('orcamentoForm')?.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  if(!adminGuard()) return;
-  const existingId = $('orcamentoId').value;
-  const current = existingId ? orcamentos.find(x=>x.id===existingId) : null;
-  const item = {
-    id: existingId || genId('orc'),
-    codigo: current?.codigo || `ORC-${String(orcamentos.length + 1).padStart(4,'0')}`,
-    cliente: $('orcamentoCliente').value.trim(),
-    descricao: $('orcamentoDescricao').value.trim(),
-    valor: Number($('orcamentoValor').value || 0),
-    data: $('orcamentoData').value || getTodayLocalDateStr(),
-    estado: $('orcamentoEstado').value || 'pendente',
-    notas: $('orcamentoNotas').value.trim()
-  };
-  if(!item.cliente || !item.descricao){ alert('Preenche cliente e descrição do orçamento.'); return; }
-  const i = orcamentos.findIndex(x=>x.id===item.id);
-  if(i>=0) orcamentos[i] = item; else orcamentos.push(item);
-  saveLocal();
-  try{ await upsertRemote('orcamentos', item); }catch(e){ console.error(e); }
-  try{ await logAction(i>=0?'update_orcamento':'create_orcamento',{ entity:'orcamento', orcamentoId:item.id, codigo:item.codigo, cliente:item.cliente, valor:item.valor, estado:item.estado }); }catch(e){}
-  $('orcamentoForm').reset();
-  if($('orcamentoId')) $('orcamentoId').value='';
-  if($('orcamentoEstado')) $('orcamentoEstado').value='pendente';
-  if($('orcamentoData')) $('orcamentoData').value = getTodayLocalDateStr();
-  renderAll();
-  switchTab('orcamentos');
-});
-window.editOrcamento = function(id){
-  if(!adminGuard()) return;
-  const o = orcamentos.find(x=>x.id===id); if(!o) return;
-  $('orcamentoId').value = o.id;
-  populateOrcamentoClientOptions(o.cliente || '');
-  $('orcamentoDescricao').value = o.descricao || '';
-  $('orcamentoValor').value = o.valor || '';
-  $('orcamentoData').value = o.data || getTodayLocalDateStr();
-  $('orcamentoEstado').value = o.estado || 'pendente';
-  $('orcamentoNotas').value = o.notas || '';
-  switchTab('orcamentos');
-};
-window.deleteOrcamento = async function(id){
-  if(!adminGuard()) return;
-  if(!confirm('Apagar este orçamento?')) return;
-  orcamentos = orcamentos.filter(x=>x.id!==id);
-  if(typeof window !== 'undefined') window.orcamentos = orcamentos;
-  saveLocal();
-  try{ await removeRemote('orcamentos', id); }catch(e){ console.error(e); }
-  try{ await logAction('delete_orcamento',{ entity:'orcamento', orcamentoId:id }); }catch(e){}
-  renderAll();
-};
-window.approveOrcamento = async function(id){
-  if(!adminGuard()) return;
-  const o = orcamentos.find(x=>x.id===id); if(!o) return;
-  if(!confirm('Aprovar orçamento e criar trabalho pendente?')) return;
-  o.estado = 'aprovado';
-  try{ await upsertRemote('orcamentos', o); }catch(e){ console.error(e); }
-  const novoTrabalho = {
-    id: genId('trab'),
-    workCode: nextTrabalhoId(),
-    cliente: o.cliente || '',
-    contacto: '',
-    tipoTrabalho: o.descricao || 'Orçamento aprovado',
-    valor: Number(o.valor || 0),
-    dataInicio: getTodayLocalDateStr(),
-    dataOrcamento: o.data || '',
-    dataFim: '',
-    estado: 'Pendente',
-    invoiceType: 'Com Fat',
-    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' • Data do orçamento: ' + o.data : ''}`
-  };
-  trabalhos.push(novoTrabalho);
-  saveLocal();
-  try{ await upsertRemote('trabalhos', novoTrabalho); }catch(e){ console.error(e); }
-  try{ await logAction('approve_orcamento_pendente',{ entity:'orcamento', orcamentoId:o.id, codigo:o.codigo, trabalhoId:novoTrabalho.id, workCode:novoTrabalho.workCode, modo:'pendente' }); }catch(e){}
-  renderAll();
-  switchTab('trabalhos');
-};
-
-window.approveOrcamentoAsPaid = async function(id){
-  if(!adminGuard()) return;
-  const o = orcamentos.find(x=>x.id===id); if(!o) return;
-  if(!confirm('Aprovar orçamento e criar trabalho já pago?')) return;
-  o.estado = 'aprovado';
-  try{ await upsertRemote('orcamentos', o); }catch(e){ console.error(e); }
-  const novoTrabalho = {
-    id: genId('trab'),
-    workCode: nextTrabalhoId(),
-    cliente: o.cliente || '',
-    contacto: '',
-    tipoTrabalho: o.descricao || 'Orçamento aprovado',
-    valor: Number(o.valor || 0),
-    dataInicio: getTodayLocalDateStr(),
-    dataOrcamento: o.data || '',
-    dataFim: '',
-    estado: 'Pendente',
-    invoiceType: 'Com Fat',
-    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' • Data do orçamento: ' + o.data : ''}`
-  };
-  trabalhos.push(novoTrabalho);
-  saveLocal();
-  try{ await upsertRemote('trabalhos', novoTrabalho); }catch(e){ console.error(e); }
-  try{
-    if(typeof window.markAsPaid === 'function'){
-      await window.markAsPaid(novoTrabalho.id, 'Orçamento Aprovado', getTodayLocalDateStr(), Number(o.valor || 0));
-    }
-  }catch(e){ console.error(e); }
-  try{ await logAction('approve_orcamento_pago',{ entity:'orcamento', orcamentoId:o.id, codigo:o.codigo, trabalhoId:novoTrabalho.id, workCode:novoTrabalho.workCode, modo:'pago' }); }catch(e){}
-  renderAll();
-  switchTab('pagamentos');
-};
-
-window.rejectOrcamento = async function(id){
-  if(!adminGuard()) return;
-  const o = orcamentos.find(x=>x.id===id); if(!o) return;
-  if(!confirm('Marcar este orçamento como rejeitado?')) return;
-  o.estado = 'rejeitado';
-  saveLocal();
-  try{ await upsertRemote('orcamentos', o); }catch(e){ console.error(e); }
-  try{ await logAction('reject_orcamento',{ entity:'orcamento', orcamentoId:o.id, codigo:o.codigo }); }catch(e){}
-  renderAll();
-  switchTab('orcamentos');
-};
-$('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = getTodayLocalDateStr());
 </script>
 
   <div id="clientModal" class="modal hidden">

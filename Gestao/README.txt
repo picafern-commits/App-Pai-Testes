@@ -5,7 +5,7 @@ Esta versão liga dispositivos entre si por Cloud Firestore.
 Mantém:
 - login interno da app
 - visual premium
-- Fats PDF
+- faturas PDF
 - histórico do cliente
 - permissões
 
@@ -94,7 +94,7 @@ Correções finais 1.0.6:
 Fix 1.0.6:
 - botão Pago no histórico
 - ao marcar Pago cria registo em Pagamentos
-- histórico mostra coluna Fat
+- histórico mostra coluna Faturação
 
 
 Fix 1.0.6:
@@ -102,7 +102,7 @@ Fix 1.0.6:
 
 
 Melhorias premium 1.0.6:
-- badges visuais de estado e Fat
+- badges visuais de estado e faturação
 - escolha de método ao marcar como pago
 - dashboard com métricas melhores
 - ações por permissões (empresa)
