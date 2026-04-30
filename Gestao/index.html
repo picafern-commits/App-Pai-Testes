@@ -2482,7 +2482,7 @@ td.acoes-col, .acoes-col{
 }
 
 
-/* CAMPOS AVANÇADOS NO ADICIONAR */
+/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
 .master-edit-only.is-hidden-by-role{
   display:none !important;
 }
@@ -2888,219 +2888,6 @@ body{
   }
 }
 
-
-/* ===== HISTORICO TABLE PREMIUM SAFE ===== */
-#trabalhos-page .table-wrap{
-  border-radius:22px;
-  border:1px solid rgba(255,255,255,.07);
-  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));
-  box-shadow:0 18px 42px rgba(0,0,0,.16);
-}
-#trabalhos-page table{
-  border-collapse:separate;
-  border-spacing:0;
-}
-#trabalhos-page thead th{
-  position:sticky;
-  top:0;
-  z-index:2;
-  background:rgba(9,13,24,.96);
-  text-transform:uppercase;
-  letter-spacing:.06em;
-  font-size:11px;
-  color:#b8c6e6;
-}
-#trabalhos-page tbody tr{
-  background:rgba(255,255,255,.018);
-  transition:background .15s ease, transform .15s ease;
-}
-#trabalhos-page tbody tr:hover{
-  background:rgba(255,255,255,.045);
-}
-#trabalhos-page tbody td{
-  vertical-align:middle;
-  border-bottom:1px solid rgba(255,255,255,.055);
-}
-#trabalhos-page tbody td:nth-child(1) strong{
-  display:inline-flex;
-  padding:7px 10px;
-  border-radius:12px;
-  background:rgba(255,255,255,.055);
-}
-#trabalhos-page tbody td:nth-child(4){
-  font-size:16px;
-  font-weight:900;
-  color:#86efac;
-  white-space:nowrap;
-}
-#trabalhos-page .actions-cell .row-actions,
-#trabalhos-page .actions-cell{
-  gap:6px;
-}
-#trabalhos-page .small-btn{
-  min-height:auto !important;
-  padding:7px 9px !important;
-  border-radius:10px !important;
-  font-size:11px !important;
-}
-@media (max-width:900px){
-  #trabalhos-page table{min-width:980px}
-  #trabalhos-page .table-wrap{
-    margin-left:-2px;
-    margin-right:-2px;
-  }
-}
-.orc-btn.approved{
-  background:linear-gradient(135deg,#f59e0b,#22c55e) !important;
-  border-color:rgba(255,255,255,.12) !important;
-  color:#fff !important;
-}
-
-
-/* ===== ESTADO / HISTORICO MAIS PERCEPTIVEL ===== */
-.status-cell-inline{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  min-width:120px;
-}
-.estado-pill-plus{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  padding:8px 11px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:900;
-  letter-spacing:.01em;
-  border:1px solid rgba(255,255,255,.08);
-  white-space:nowrap;
-}
-.estado-pill-plus::before{
-  content:"";
-  width:8px;
-  height:8px;
-  border-radius:999px;
-  background:currentColor;
-  box-shadow:0 0 0 4px rgba(255,255,255,.04);
-}
-.estado-pill-plus.pendente{
-  background:rgba(245,158,11,.14);
-  color:#fcd34d;
-  border-color:rgba(245,158,11,.28);
-}
-.estado-pill-plus.em-curso,
-.estado-pill-plus.andamento{
-  background:rgba(14,165,233,.14);
-  color:#7dd3fc;
-  border-color:rgba(14,165,233,.28);
-}
-.estado-pill-plus.concluido,
-.estado-pill-plus.entregue,
-.estado-pill-plus.pago{
-  background:rgba(34,197,94,.14);
-  color:#86efac;
-  border-color:rgba(34,197,94,.28);
-}
-.estado-pill-plus.cancelado,
-.estado-pill-plus.rejeitado{
-  background:rgba(239,68,68,.14);
-  color:#fca5a5;
-  border-color:rgba(239,68,68,.28);
-}
-.data-criacao-mini{
-  display:block;
-  margin-top:4px;
-  color:var(--muted,#9fabca);
-  font-size:11px;
-}
-.orc-actions .orc-btn{
-  min-height:auto !important;
-  padding:8px 10px !important;
-  border-radius:11px !important;
-  font-size:11px !important;
-  font-weight:800 !important;
-}
-.orc-btn.approved{
-  background:linear-gradient(135deg,rgba(245,158,11,.9),rgba(34,197,94,.9)) !important;
-  color:white !important;
-  border-color:rgba(255,255,255,.14) !important;
-}
-
-
-/* ===== VALOR MODO EMPRESA ===== */
-.valor-admin-force{
-  display:block !important;
-}
-.valor-empresa-box{
-  border:1px solid rgba(34,197,94,.22) !important;
-  background:linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
-  border-radius:16px !important;
-  padding:12px !important;
-}
-.valor-empresa-box label::after{
-  content:"  Admin";
-  margin-left:8px;
-  padding:3px 7px;
-  border-radius:999px;
-  background:rgba(34,197,94,.14);
-  color:#86efac;
-  font-size:10px;
-  font-weight:900;
-}
-.valor-empresa-hint{
-  color:#86efac;
-  font-size:12px;
-  margin-top:7px;
-  font-weight:700;
-}
-#trabalhos-page tbody td:nth-child(4){
-  font-size:18px !important;
-  font-weight:950 !important;
-  color:#86efac !important;
-}
-
-
-/* ===== VALOR MODO EMPRESA SAFE CSS ===== */
-.valor-empresa-box{
-  border:1px solid rgba(34,197,94,.22) !important;
-  background:linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
-  border-radius:16px !important;
-  padding:12px !important;
-}
-#valor{
-  font-weight:800;
-}
-#trabalhos-page tbody td:nth-child(4){
-  font-size:18px !important;
-  font-weight:950 !important;
-  color:#86efac !important;
-}
-
-
-/* ===== VALOR TRABALHO / VALOR PAGO FINAL ===== */
-#trabalhos-page tbody td:nth-child(4){
-  color:var(--muted,#9fabca) !important;
-  font-weight:700 !important;
-}
-#trabalhos-page tbody td:nth-child(5){
-  color:#86efac !important;
-  font-weight:950 !important;
-  font-size:16px !important;
-}
-#adicionar-page .field:has(#valorTrabalho){
-  background:rgba(4,8,18,.22) !important;
-  border:1px solid rgba(255,255,255,.055) !important;
-}
-#adicionar-page .field:has(#valor){
-  background:linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
-  border:1px solid rgba(34,197,94,.16) !important;
-}
-#adicionar-page .field:has(#valor) label{
-  color:#bbf7d0 !important;
-}
-
-.valor-trabalho-note{display:block;margin-top:4px;font-size:11px;color:var(--muted,#9fabca);font-weight:700;}
 </style>
   
 
@@ -3297,11 +3084,10 @@ body{
               </div>
               <div class="field"><label>Contacto do cliente</label><input id="contacto" type="text" readonly /></div>
               <div class="field"><label>Tipo de trabalho</label><input id="tipoTrabalho" type="text" required /></div>
-              <div class="field"><label>Valor Trabalho (€)</label><input id="valorTrabalho" type="number" min="0" step="0.01" /></div>
-              <div class="field"><label>Valor Pago (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
+              <div class="field advanced-work-field master-edit-only"><label>Valor (€)</label><input id="valor" type="number" min="0" step="0.01" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de início</label><input id="dataInicio" type="date" /></div>
               <div class="field advanced-work-field master-edit-only"><label>Data de fim</label><input id="dataFim" type="date" /></div>
-              <div class="field"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option></select></div>
+              <div class="field advanced-work-field master-edit-only"><label>Estado</label><select id="estado"><option>Pendente</option><option>Em curso</option><option>Concluído</option><option>Entregue</option><option>Cancelado</option></select></div>
               <div class="field"><label>Fat</label><select id="trabalhoInvoiceType"><option>Com Fat</option><option>Sem Fat</option></select></div>
               <div class="field field-span-2"><label>Descrição</label><textarea id="descricao" rows="5"></textarea></div>
               <div class="field field-span-2"><div class="inline-actions"><button type="submit" class="btn btn-primary">Guardar trabalho</button><button type="button" class="btn btn-secondary" id="clearTrabalhoBtn">Limpar</button></div></div>
@@ -3321,7 +3107,7 @@ body{
             </div>
             <div id="trabalhosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
-                <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Valor Trabalho</th><th>Valor Pago</th><th>Início</th><th>Fim</th><th>Estado</th><th>Fat</th><th>Ações</th></tr></thead>
+                <thead><tr><th>ID</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th><th>Fat</th><th>Ações</th></tr></thead>
                 <tbody id="trabalhosTableBody"></tbody>
               </table>
             </div>
@@ -3678,7 +3464,7 @@ function legacy_openPaymentMethodModal(id){
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
-  if(valueInput) valueInput.value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
+  if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
   modal.style.display = 'grid';
   modal.classList.add('show');
@@ -4457,7 +4243,7 @@ function buildProfessionalReportHtml(){
         th,td{border:1px solid #e2e8f0;padding:10px;text-align:left}
         th{background:#f5f3ff;color:#4c1d95}
       
-/* CAMPOS AVANÇADOS NO ADICIONAR */
+/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
 .master-edit-only.is-hidden-by-role{
   display:none !important;
 }
@@ -4698,7 +4484,55 @@ body{
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-  <script src="version-check.js"></script>
+    
+<script>
+(function(){
+  const APP_VERSION = "2.0.0";
+
+  async function checkVersion(){
+    try{
+      const res = await fetch("./version.json?cache=" + Date.now());
+      const data = await res.json();
+
+      if(data && data.version && data.version !== APP_VERSION){
+        showUpdate(data.message || "Nova versão disponível");
+      }
+    }catch(e){
+      console.log("sem update");
+    }
+  }
+
+  function showUpdate(msg){
+    if(document.getElementById("appUpdateBox")) return;
+
+    const box = document.createElement("div");
+    box.id = "appUpdateBox";
+
+    box.style.position = "fixed";
+    box.style.bottom = "20px";
+    box.style.left = "20px";
+    box.style.right = "20px";
+    box.style.background = "#0f172a";
+    box.style.color = "white";
+    box.style.padding = "16px";
+    box.style.borderRadius = "12px";
+    box.style.zIndex = "9999";
+    box.style.boxShadow = "0 10px 30px rgba(0,0,0,0.4)";
+
+    box.innerHTML = `
+      <div style="font-weight:700;margin-bottom:8px">${msg}</div>
+      <button onclick="location.reload()" style="background:#22c55e;border:none;padding:10px 14px;border-radius:8px;color:white;font-weight:700;cursor:pointer;">
+        Atualizar
+      </button>
+    `;
+
+    document.body.appendChild(box);
+  }
+
+  window.addEventListener("load", checkVersion);
+})();
+</script>
+
 </body>
   </html>`;
 }
@@ -5787,9 +5621,6 @@ function initUiScale(){
 
 
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
-const getValorTrabalho = (t) => Number(t?.valorTrabalho ?? t?.valorEsperado ?? t?.valor ?? 0) || 0;
-const getValorPago = (t) => Number(t?.valorPago ?? t?.valor ?? 0) || 0;
-const getValorPagoCompat = (t) => Number(t?.valorPago ?? t?.valor ?? 0) || 0;
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const isMasterAdmin = () => currentRole === 'master_admin';
@@ -5852,7 +5683,7 @@ function applyDeviceAccessRestrictions(){
 
 function updateTrabalhoAdvancedFields(){
   const isEditing = !!($('trabalhoId') && $('trabalhoId').value);
-  const canSee = isAdminLike() || isMasterAdmin() || isEditing;
+  const canSee = isMasterAdmin() || isEditing;
   document.querySelectorAll('.master-edit-only').forEach(el => {
     el.classList.toggle('is-hidden-by-role', !canSee);
   });
@@ -7886,7 +7717,7 @@ td.acoes-col, .acoes-col{
 }
 
 
-/* CAMPOS AVANÇADOS NO ADICIONAR */
+/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
 .master-edit-only.is-hidden-by-role{
   display:none !important;
 }
@@ -8200,7 +8031,7 @@ function renderCalendario(){
                   <span class="badge" data-state="${escapeHtml(t.estado || '-')}">${escapeHtml(t.estado || '-')}</span>
                 </div>
                 <div>${escapeHtml(t.tipoTrabalho || '-')}</div>
-                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</div>
+                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: ${euro(t.valorPago ?? t.valor ?? 0)}</div>
                 ${(t.descricao || '').trim() ? `<div class="calendar-meta">${escapeHtml(t.descricao)}</div>` : ''}
               </div>
               <div class="row-actions">
@@ -8242,7 +8073,7 @@ function renderDashboardEmpresaSmart(){
   const pagamentosLista = Array.isArray(pagamentos) ? pagamentos : [];
   const orcamentosLista = getDashboardOrcamentosLista();
 
-  const totalFat = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
+  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
   const totalDivida = Math.max(totalFat - totalRecebido, 0);
 
@@ -8327,7 +8158,7 @@ function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
   const emAndamento = trabalhos.filter(t=>['Pendente','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
   const concluidos = trabalhos.filter(t=>['Concluído','Pago','Entregue'].includes(normalizeEstado(t.estado))).length;
-  const totalFat = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
+  const totalFat = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
   const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
   const clientesAtivos = new Set(trabalhos.map(t=>(t.cliente||'').trim()).filter(Boolean)).size;
 
@@ -8344,17 +8175,16 @@ function renderDashboard(){
         <div class="mini-label badge" data-state="${escapeHtml(t.estado||'Sem estado')}">${escapeHtml(t.estado||'Sem estado')}</div>
         <strong>${escapeHtml(t.cliente||'-')}</strong>
         <div>${escapeHtml(t.tipoTrabalho||'-')}</div>
-        <div class="recent-meta">${euro(getValorPago(t))} <span class="valor-trabalho-note">Valor trabalho: ${euro(getValorTrabalho(t))}</span> • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
+        <div class="recent-meta">${euro(t.valorPago ?? t.valor ?? 0)} • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
       </div>`).join('');
 
   const monthMap={};
-  pagamentos.forEach(p=>{
-    const rawDate = p.data || p.workDate || p.dataPagamento || '';
-    if(!rawDate) return;
-    const d=new Date(rawDate);
+  trabalhos.forEach(t=>{
+    if(!t.dataInicio) return;
+    const d=new Date(t.dataInicio);
     if(isNaN(d)) return;
     const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    monthMap[key]=(monthMap[key]||0)+Number(p.valor||0);
+    monthMap[key]=(monthMap[key]||0)+Number(t.valor||0);
   });
   const entries=Object.entries(monthMap).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
   const max=Math.max(...entries.map(([,v])=>v),1);
@@ -8381,15 +8211,15 @@ function buildDashboardChartData(){
   const monthLabels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const monthValues = Array(12).fill(0);
 
-  pagamentosLista.forEach(p => {
-    const rawDate = p.data || p.workDate || p.dataPagamento || '';
+  trabalhosLista.forEach(t => {
+    const rawDate = t.dataInicio || t.data || t.dataFim || t.dataPagamento || '';
     if(!rawDate) return;
     const d = new Date(rawDate);
     if(Number.isNaN(d.getTime())) return;
-    monthValues[d.getMonth()] += Number(p.valor || p.valorPago || 0) || 0;
+    monthValues[d.getMonth()] += Number(t.valor || t.valorPago || 0) || 0;
   });
 
-  const totalFat = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
+  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
   const totalDivida = Math.max(totalFat - totalRecebido, 0);
 
@@ -8502,7 +8332,6 @@ let trabalhosCurrentPage = 1;
 function getTrabalhosPerPage(){ const el = $('trabalhosPerPage'); const v = Number(el?.value || 20); return Number.isFinite(v) && v > 0 ? v : 20; }
 function updateTrabalhosPagination(totalRows){ const perPage = getTrabalhosPerPage(); const totalPages = Math.max(1, Math.ceil(totalRows / perPage)); if(trabalhosCurrentPage > totalPages) trabalhosCurrentPage = totalPages; if(trabalhosCurrentPage < 1) trabalhosCurrentPage = 1; const info = $('trabalhosPageInfo'); if(info) info.textContent = `Página ${trabalhosCurrentPage} de ${totalPages} • ${totalRows} trabalhos`; const prev = $('trabalhosPrevBtn'); const next = $('trabalhosNextBtn'); if(prev) prev.disabled = trabalhosCurrentPage <= 1; if(next) next.disabled = trabalhosCurrentPage >= totalPages; return { perPage, totalPages, start:(trabalhosCurrentPage-1)*perPage, end:trabalhosCurrentPage*perPage }; }
 
-
 function renderTrabalhos(){
   const term=$('searchTrabalhos').value.trim().toLowerCase();
   const globalTerm=($('globalSearch')?.value||'').trim().toLowerCase();
@@ -8517,10 +8346,8 @@ function renderTrabalhos(){
     const invoiceType = t.invoiceType || 'Com Fat';
     const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
     const effectiveEstado = t.paymentStatus === 'Pago' ? 'Pago' : (t.estado || '-');
-    const estadoClass = String(effectiveEstado || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
-    const dataCriacao = t.dataCriacao || t.dataAdicionado || t.createdAt || t.dataInicio || '';
-    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong><span class="data-criacao-mini">Criado: ${fmtDate(dataCriacao)}</span></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(getValorTrabalho(t))}</td><td>${euro(getValorPago(t))}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="estado-pill-plus ${escapeHtml(estadoClass)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
-  }).join('') : '<tr><td colspan="10">Sem resultados.</td></tr>';
+    return `<tr><td><strong>${escapeHtml(t.workCode||'-')}</strong></td><td>${escapeHtml(t.cliente||'-')}</td><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(effectiveEstado)}">${escapeHtml(effectiveEstado)}</span></div></td><td><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></td><td class="actions-cell">${trabalhoActions(t)}</td></tr>`;
+  }).join('') : '<tr><td colspan="9">Sem resultados.</td></tr>';
 }
 function renderClientes(){
   const term=$('searchClientes').value.trim().toLowerCase();
@@ -8699,9 +8526,7 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     cliente:$('cliente').value.trim(),
     contacto:$('contacto').value.trim(),
     tipoTrabalho:$('tipoTrabalho').value.trim(),
-    valorTrabalho:Number($('valorTrabalho')?.value||0),
-    valor:Number($('valor')?.value||0),
-    valorPago:Number($('valor')?.value||0),
+    valor:Number($('valor').value||0),
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
@@ -8717,22 +8542,21 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   const i=trabalhos.findIndex(x=>x.id===item.id);
   const previousItem = i >= 0 ? JSON.parse(JSON.stringify(trabalhos[i])) : null;
   const actionType = previousItem ? 'update_trabalho' : 'create_trabalho';
-  if(i>=0) trabalhos[i]={...trabalhos[i], ...item}; else trabalhos.push(item);
+  if(i>=0) trabalhos[i]=item; else trabalhos.push(item);
   refreshLastTrabIdFromWorks();
 
   saveLocal();
   try{
-    await upsertRemote('trabalhos', trabalhos.find(x=>x.id===item.id) || item);
+    await upsertRemote('trabalhos', item);
     await logAction(actionType, {
       entity: 'trabalho',
       trabalhoId: item.id,
       workCode: item.workCode || '',
       cliente: item.cliente || '',
       estado: item.estado || '',
-      valorTrabalho: Number(item.valorTrabalho ?? item.valor ?? 0),
-      valorPago: Number(item.valorPago ?? 0),
+      valor: Number(item.valor || 0),
       before: previousItem,
-      after: JSON.parse(JSON.stringify(trabalhos.find(x=>x.id===item.id) || item))
+      after: JSON.parse(JSON.stringify(item))
     });
   }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
 
@@ -8775,7 +8599,7 @@ $('clienteForm')?.addEventListener('submit', async (e)=>{
       telefone: item.telefone || '',
       email: item.email || '',
       before: previousItem,
-      after: JSON.parse(JSON.stringify(trabalhos.find(x=>x.id===item.id) || item))
+      after: JSON.parse(JSON.stringify(item))
     });
   }catch(err){ console.error(err); setSyncMessage('Erro a gravar no Firebase', 'bad'); }
   $('clienteForm').reset();
@@ -8794,8 +8618,7 @@ window.editTrabalho = function(id){
   populateClientOptions(t.cliente || '');
   if($('contacto')) $('contacto').value=t.contacto||'';
   $('tipoTrabalho').value=t.tipoTrabalho||'';
-  if($('valorTrabalho')) $('valorTrabalho').value = (t.valorTrabalho ?? t.valor ?? '');
-  $('valor').value = (t.valorPago ?? '');
+  $('valor').value=t.valor||'';
   $('dataInicio').value=t.dataInicio||'';
   $('dataFim').value=t.dataFim||'';
   $('estado').value=normalizeEstado(t.estado||'Pendente');
@@ -8881,9 +8704,9 @@ window.openClientHistory = function(id){
       <div class="panel-head"><h3>Trabalhos do cliente</h3></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Tipo</th><th>Valor Trabalho</th><th>Valor Pago</th><th>Início</th><th>Fim</th><th>Estado</th></tr></thead>
+          <thead><tr><th>Tipo</th><th>Valor</th><th>Início</th><th>Fim</th><th>Estado</th></tr></thead>
           <tbody>
-            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(getValorTrabalho(t))}</td><td>${euro(getValorPago(t))}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></td></tr>`).join('') : '<tr><td colspan="6">Sem trabalhos registados.</td></tr>'}
+            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></td></tr>`).join('') : '<tr><td colspan="5">Sem trabalhos registados.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -8916,12 +8739,12 @@ window.generateInvoice = function(id){
     <div class="card"><strong>Data de início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Data de fim:</strong> ${fmtDate(t.dataFim)}</div>
     <div class="card"><strong>Estado:</strong> ${escapeHtml(t.estado||'-')}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}</div>
     <div class="card"><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div>
-    <div class="card"><strong>Total:</strong> ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</div>
+    <div class="card"><strong>Total:</strong> ${euro(t.valorPago ?? t.valor ?? 0)}</div>
   `);
 };
 
-window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor Trabalho:</strong> ${euro(getValorTrabalho(t))}<br><strong>Valor Pago:</strong> ${euro(getValorPago(t))}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
-window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
+window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(t.valorPago ?? t.valor ?? 0)}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
+window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valorPago ?? t.valor ?? 0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
 window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
 function exportBackup(){ const payload={ exportadoEm:new Date().toISOString(), appVersion:APP_VERSION, currentUsername, currentRole, trabalhos, clientes, pagamentos }; const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gestao-empresa-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
@@ -8955,7 +8778,7 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
   const t = trabalhos.find(x => x.id === id);
   if(!t) return false;
   const finalPaymentDate = dataPagamento || todayLocalDate();
-  const valorFinal = Number(valorPersonalizado ?? t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0);
+  const valorFinal = Number(valorPersonalizado ?? t.valorPago ?? t.valor ?? 0);
   const updatedTrabalho = JSON.parse(JSON.stringify(t));
   updatedTrabalho.estado = 'Pago';
   updatedTrabalho.dataEstado = new Date().toISOString();
@@ -9085,13 +8908,13 @@ window.marcarComoPagoComValor = function(id){
   pendingPaymentWorkId = id;
   resetPaymentModalState();
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
-  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}`;
+  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valorPago ?? t.valor ?? 0)}`;
   if($('paymentDateInput')) {
     $('paymentDateInput').value = t.dataPagamento || todayLocalDate();
     $('paymentDateInput').removeAttribute('readonly');
     $('paymentDateInput').disabled = false;
   }
-  if($('paymentValueInput')) $('paymentValueInput').value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
+  if($('paymentValueInput')) $('paymentValueInput').value = String(t.valorPago ?? t.valor ?? '').replace('.', ',');
   showPaymentModal();
 };
 
@@ -9265,8 +9088,7 @@ function renderMobileCards(){
         </div>
         <div class="mobile-card-grid">
           <div class="mobile-card-item"><span>ID</span><strong>${escapeHtml(t.workCode || '-')}</strong></div>
-          <div class="mobile-card-item"><span>Valor Trabalho</span><strong>${euro(getValorTrabalho(t))}</strong></div>
-          <div class="mobile-card-item"><span>Valor Pago</span><strong>${euro(getValorPago(t))}</strong></div>
+          <div class="mobile-card-item"><span>Valor</span><strong>${euro(t.valorPago ?? t.valor ?? 0)}</strong></div>
           <div class="mobile-card-item"><span>Estado</span><strong><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></strong></div>
           <div class="mobile-card-item"><span>Fat</span><strong><span class="invoice-badge ${invoiceClass}">${escapeHtml(invoiceType)}</span></strong></div>
         </div>
@@ -9339,7 +9161,7 @@ function legacy2_openPaymentMethodModal(id){
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
-  if(valueInput) valueInput.value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
+  if(valueInput) valueInput.value = String(t.valor || t.valorPago || '').replace('.', ',');
 
   modal.style.display = 'grid';
   modal.classList.add('show');
@@ -9704,7 +9526,7 @@ function buildProfessionalReportHtml(){
         th,td{border:1px solid #e2e8f0;padding:10px;text-align:left}
         th{background:#f5f3ff;color:#4c1d95}
       
-/* CAMPOS AVANÇADOS NO ADICIONAR */
+/* CAMPOS SÓ ADMIN MESTRE NO ADICIONAR */
 .master-edit-only.is-hidden-by-role{
   display:none !important;
 }
@@ -9995,7 +9817,7 @@ function renderOrcamentos(){
       <td>${euro(o.valor||0)}</td>
       <td>${fmtDate(o.data||'')}</td>
       <td><span class="badge" data-state="${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}">${escapeHtml((o.estado||'pendente').replace(/^./,m=>m.toUpperCase()))}</span></td>
-      <td><div class="orc-actions">${isAdminLike()?`<button class="orc-btn edit" onclick="editOrcamento('${o.id}')">Editar</button><button class="orc-btn approved" onclick="approveOrcamento('${o.id}')">Aprovado</button><button class="orc-btn reject" onclick="rejectOrcamento('${o.id}')">Rejeitar</button><button class="orc-btn delete" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
+      <td><div class="orc-actions">${isAdminLike()?`<button class="orc-btn edit" onclick="editOrcamento('${o.id}')">Editar</button><button class="orc-btn pending" onclick="approveOrcamento('${o.id}')">Pend.</button><button class="orc-btn paid" onclick="approveOrcamentoAsPaid('${o.id}')">Pago</button><button class="orc-btn reject" onclick="rejectOrcamento('${o.id}')">Rejeitar</button><button class="orc-btn delete" onclick="deleteOrcamento('${o.id}')">Apagar</button>`:''}</div></td>
     </tr>`).join('') : '<tr><td colspan="7">Sem orçamentos registados.</td></tr>';
 }
 $('searchOrcamentos')?.addEventListener('input', renderOrcamentos);
@@ -10063,8 +9885,6 @@ window.approveOrcamento = async function(id){
     tipoTrabalho: o.descricao || 'Orçamento aprovado',
     valor: Number(o.valor || 0),
     dataInicio: getTodayLocalDateStr(),
-    dataCriacao: new Date().toISOString(),
-    dataAdicionado: new Date().toISOString(),
     dataOrcamento: o.data || '',
     dataFim: '',
     estado: 'Pendente',
@@ -10093,8 +9913,6 @@ window.approveOrcamentoAsPaid = async function(id){
     tipoTrabalho: o.descricao || 'Orçamento aprovado',
     valor: Number(o.valor || 0),
     dataInicio: getTodayLocalDateStr(),
-    dataCriacao: new Date().toISOString(),
-    dataAdicionado: new Date().toISOString(),
     dataOrcamento: o.data || '',
     dataFim: '',
     estado: 'Pendente',
