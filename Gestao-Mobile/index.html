@@ -3446,19 +3446,6 @@ body{
 <link rel="manifest" href="manifest.json">
 
 </head>
-<style id="ge-update-system-style">
-  .ge-update-toast{position:fixed;right:18px;bottom:18px;z-index:99999;max-width:390px;width:calc(100% - 36px);padding:16px;border-radius:20px;background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.96));border:1px solid rgba(96,165,250,.35);box-shadow:0 24px 70px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.08);color:#f8fafc;display:none;backdrop-filter:blur(18px)}
-  .ge-update-toast.show{display:block;animation:geUpdateIn .22s ease-out}
-  .ge-update-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
-  .ge-update-title{font-weight:900;font-size:15px;letter-spacing:.01em}
-  .ge-update-sub{font-size:12px;line-height:1.45;color:#cbd5e1;margin:0 0 14px}
-  .ge-update-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-  .ge-update-btn{border:0;border-radius:14px;padding:10px 13px;font-weight:850;cursor:pointer;color:#fff;background:linear-gradient(135deg,#2563eb,#7c3aed);box-shadow:0 10px 22px rgba(37,99,235,.22)}
-  .ge-update-btn.secondary{background:rgba(255,255,255,.08);color:#e2e8f0;box-shadow:none;border:1px solid rgba(255,255,255,.12)}
-  .ge-update-x{border:0;background:rgba(255,255,255,.08);color:#e2e8f0;border-radius:12px;width:32px;height:32px;cursor:pointer;font-size:18px;line-height:1}
-  @keyframes geUpdateIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-  @media(max-width:640px){.ge-update-toast{left:12px;right:12px;bottom:12px;width:auto;border-radius:18px}.ge-update-actions{justify-content:stretch}.ge-update-btn{flex:1}}
-</style>
 <body>
   <div id="loginScreen" class="login-screen">
     <div class="login-card">
@@ -5037,88 +5024,6 @@ body{
         <tbody>${historyHtml}</tbody>
       </table>
 </body>
-<div id="geUpdateToast" class="ge-update-toast" role="status" aria-live="polite">
-  <div class="ge-update-head">
-    <div>
-      <div class="ge-update-title">Nova versão disponível</div>
-      <p id="geUpdateText" class="ge-update-sub">Há uma atualização pronta para instalar.</p>
-    </div>
-    <button id="geUpdateClose" class="ge-update-x" type="button" aria-label="Fechar">×</button>
-  </div>
-  <div class="ge-update-actions">
-    <button id="geUpdateLater" class="ge-update-btn secondary" type="button">Mais tarde</button>
-    <button id="geUpdateNow" class="ge-update-btn" type="button">Atualizar agora</button>
-  </div>
-</div>
-<script id="ge-update-system-script">
-(function(){
-  'use strict';
-  const CURRENT_VERSION = '1.0.7';
-  const VERSION_URL = './version.json';
-  const CHECK_EVERY_MS = 3 * 60 * 1000;
-  const DISMISSED_KEY = 'ge_update_dismissed_version';
-
-  function normalizeVersion(v){ return String(v || '').trim(); }
-  function getToast(){ return document.getElementById('geUpdateToast'); }
-  function isDismissed(version){
-    try{ return localStorage.getItem(DISMISSED_KEY) === version; }catch(e){ return false; }
-  }
-  function dismiss(version){
-    try{ localStorage.setItem(DISMISSED_KEY, version || ''); }catch(e){}
-    getToast()?.classList.remove('show');
-  }
-  async function clearBrowserCaches(){
-    try{
-      if('caches' in window){
-        const names = await caches.keys();
-        await Promise.all(names.map(name => caches.delete(name)));
-      }
-    }catch(e){ console.warn('Não foi possível limpar cache da app:', e); }
-  }
-  async function hardReload(version){
-    await clearBrowserCaches();
-    const url = new URL(window.location.href);
-    url.searchParams.set('v', version || Date.now());
-    url.searchParams.set('refresh', Date.now());
-    window.location.replace(url.toString());
-  }
-  function bindUpdateButtons(version){
-    const nowBtn = document.getElementById('geUpdateNow');
-    const laterBtn = document.getElementById('geUpdateLater');
-    const closeBtn = document.getElementById('geUpdateClose');
-    if(nowBtn) nowBtn.onclick = () => hardReload(version);
-    if(laterBtn) laterBtn.onclick = () => dismiss(version);
-    if(closeBtn) closeBtn.onclick = () => dismiss(version);
-  }
-  function showUpdate(version, environment){
-    const toast = getToast();
-    if(!toast || isDismissed(version)) return;
-    const txt = document.getElementById('geUpdateText');
-    if(txt){
-      txt.textContent = `Tens a versão ${CURRENT_VERSION}. Já existe a versão ${version}${environment ? ' (' + environment + ')' : ''}. Guarda o que estiveres a fazer e atualiza.`;
-    }
-    bindUpdateButtons(version);
-    toast.classList.add('show');
-  }
-  async function checkForUpdate(){
-    try{
-      const response = await fetch(`${VERSION_URL}?t=${Date.now()}`, { cache:'no-store' });
-      if(!response.ok) return;
-      const data = await response.json();
-      const remoteVersion = normalizeVersion(data.version);
-      if(remoteVersion && remoteVersion !== CURRENT_VERSION){
-        showUpdate(remoteVersion, data.environment || data.env || '');
-      }
-    }catch(e){ console.warn('Verificação de versão indisponível:', e); }
-  }
-  window.AppVersionUpdater = { check: checkForUpdate, currentVersion: CURRENT_VERSION };
-  document.addEventListener('DOMContentLoaded', () => {
-    checkForUpdate();
-    setInterval(checkForUpdate, CHECK_EVERY_MS);
-    document.addEventListener('visibilitychange', () => { if(!document.hidden) checkForUpdate(); });
-  });
-})();
-</script>
   </html>`;
 }
 
@@ -10673,6 +10578,59 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
       </div>
     </div>
   </div>
+
+
+<!-- Sistema de aviso de versão SAFE: não toca no login, Firebase, localStorage ou IndexedDB -->
+<style id="ge-update-safe-style">
+  #geUpdateToast{position:fixed;right:18px;bottom:18px;z-index:999999;max-width:390px;width:calc(100% - 36px);padding:16px;border-radius:20px;background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.96));border:1px solid rgba(96,165,250,.35);box-shadow:0 24px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.08);color:#f8fafc;display:none;backdrop-filter:blur(18px);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+  #geUpdateToast.ge-show{display:block}
+  #geUpdateToast .ge-title{font-weight:900;font-size:15px;margin:0 36px 6px 0}
+  #geUpdateToast .ge-text{font-size:12px;line-height:1.45;color:#cbd5e1;margin:0 0 14px}
+  #geUpdateToast .ge-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  #geUpdateToast button{border:0;border-radius:14px;padding:10px 13px;font-weight:850;cursor:pointer;color:#fff;background:linear-gradient(135deg,#2563eb,#7c3aed)}
+  #geUpdateToast button.ge-secondary{background:rgba(255,255,255,.08);color:#e2e8f0;border:1px solid rgba(255,255,255,.12)}
+  #geUpdateToast .ge-close{position:absolute;right:12px;top:12px;width:32px;height:32px;padding:0;background:rgba(255,255,255,.08);font-size:18px;line-height:1}
+  @media(max-width:640px){#geUpdateToast{left:12px;right:12px;bottom:12px;width:auto;border-radius:18px}#geUpdateToast .ge-actions button{flex:1}}
+</style>
+<div id="geUpdateToast" aria-live="polite">
+  <button class="ge-close" type="button" id="geUpdateClose" aria-label="Fechar">×</button>
+  <div class="ge-title">Nova versão disponível</div>
+  <p class="ge-text" id="geUpdateText">Há uma atualização pronta.</p>
+  <div class="ge-actions">
+    <button class="ge-secondary" type="button" id="geUpdateLater">Mais tarde</button>
+    <button type="button" id="geUpdateNow">Atualizar agora</button>
+  </div>
+</div>
+<script id="ge-update-safe-script">
+(function(){
+  'use strict';
+  var CURRENT_VERSION = '1.0.7';
+  var VERSION_URL = './version.json';
+  var DISMISSED_KEY = 'ge_update_dismissed_version';
+  var CHECK_EVERY_MS = 180000;
+  function byId(id){ return document.getElementById(id); }
+  function dismissed(v){ try{return localStorage.getItem(DISMISSED_KEY) === String(v||'');}catch(e){return false;} }
+  function dismiss(v){ try{localStorage.setItem(DISMISSED_KEY, String(v||''));}catch(e){} var t=byId('geUpdateToast'); if(t)t.classList.remove('ge-show'); }
+  function show(v, env){
+    if(!v || String(v) === CURRENT_VERSION || dismissed(v)) return;
+    var text=byId('geUpdateText');
+    if(text) text.textContent = 'Tens a versão ' + CURRENT_VERSION + '. Já existe a versão ' + v + (env ? ' (' + env + ')' : '') + '. Carrega em atualizar quando quiseres.';
+    var t=byId('geUpdateToast'); if(t)t.classList.add('ge-show');
+    var later=byId('geUpdateLater'), close=byId('geUpdateClose'), now=byId('geUpdateNow');
+    if(later) later.onclick=function(){ dismiss(v); };
+    if(close) close.onclick=function(){ dismiss(v); };
+    if(now) now.onclick=function(){ var url = new URL(window.location.href); url.searchParams.set('v', String(v)); url.searchParams.set('_', String(Date.now())); window.location.replace(url.toString()); };
+  }
+  async function check(){
+    try{ var res = await fetch(VERSION_URL + '?_=' + Date.now(), {cache:'no-store'}); if(!res.ok) return; var data = await res.json(); show(String(data.version || '').trim(), data.environment || data.env || ''); }
+    catch(e){ console.warn('Verificação de versão indisponível:', e); }
+  }
+  window.AppVersionUpdater = { check: check, currentVersion: CURRENT_VERSION };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check); else check();
+  setInterval(check, CHECK_EVERY_MS);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) check(); });
+})();
+</script>
 
 </body>
 </html>
