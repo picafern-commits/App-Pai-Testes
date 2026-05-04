@@ -3411,30 +3411,6 @@ body{
   color:#86efac !important;
 }
 
-
-/* ===== VALOR TRABALHO / VALOR PAGO FINAL ===== */
-#trabalhos-page tbody td:nth-child(4){
-  color:var(--muted,#9fabca) !important;
-  font-weight:700 !important;
-}
-#trabalhos-page tbody td:nth-child(5){
-  color:#86efac !important;
-  font-weight:950 !important;
-  font-size:16px !important;
-}
-#adicionar-page .field:has(#valorTrabalho){
-  background:rgba(4,8,18,.22) !important;
-  border:1px solid rgba(255,255,255,.055) !important;
-}
-#adicionar-page .field:has(#valor){
-  background:linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
-  border:1px solid rgba(34,197,94,.16) !important;
-}
-#adicionar-page .field:has(#valor) label{
-  color:#bbf7d0 !important;
-}
-
-.valor-trabalho-note{display:block;margin-top:4px;font-size:11px;color:var(--muted,#9fabca);font-weight:700;}
 </style>
   
 
@@ -5658,7 +5634,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const APP_VERSION = '1.0.7';
+const APP_VERSION = '1.0.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos', orcamentos:'ge_orcamentos', lastTrabId:'ge_last_trab_id' };
 const LOGS_COLLECTION = 'logs';
 
@@ -8639,7 +8615,7 @@ function renderDashboardEmpresaSmart(){
   const pagamentosLista = Array.isArray(pagamentos) ? pagamentos : [];
   const orcamentosLista = getDashboardOrcamentosLista();
 
-  const totalFat = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
+  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
   const totalDivida = Math.max(totalFat - totalRecebido, 0);
 
@@ -8724,7 +8700,7 @@ function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
   const emAndamento = trabalhos.filter(t=>['Pendente','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
   const concluidos = trabalhos.filter(t=>['Concluído','Pago','Entregue'].includes(normalizeEstado(t.estado))).length;
-  const totalFat = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
+  const totalFat = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
   const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
   const clientesAtivos = new Set(trabalhos.map(t=>(t.cliente||'').trim()).filter(Boolean)).size;
 
@@ -8741,17 +8717,16 @@ function renderDashboard(){
         <div class="mini-label badge" data-state="${escapeHtml(t.estado||'Sem estado')}">${escapeHtml(t.estado||'Sem estado')}</div>
         <strong>${escapeHtml(t.cliente||'-')}</strong>
         <div>${escapeHtml(t.tipoTrabalho||'-')}</div>
-        <div class="recent-meta">${euro(getValorPago(t))} <span class="valor-trabalho-note">Valor trabalho: ${euro(getValorTrabalho(t))}</span> • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
+        <div class="recent-meta">${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)} • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
       </div>`).join('');
 
   const monthMap={};
-  pagamentos.forEach(p=>{
-    const rawDate = p.data || p.workDate || p.dataPagamento || '';
-    if(!rawDate) return;
-    const d=new Date(rawDate);
+  trabalhos.forEach(t=>{
+    if(!t.dataInicio) return;
+    const d=new Date(t.dataInicio);
     if(isNaN(d)) return;
     const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    monthMap[key]=(monthMap[key]||0)+Number(p.valor||0);
+    monthMap[key]=(monthMap[key]||0)+Number(t.valor||0);
   });
   const entries=Object.entries(monthMap).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
   const max=Math.max(...entries.map(([,v])=>v),1);
@@ -8778,15 +8753,15 @@ function buildDashboardChartData(){
   const monthLabels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const monthValues = Array(12).fill(0);
 
-  pagamentosLista.forEach(p => {
-    const rawDate = p.data || p.workDate || p.dataPagamento || '';
+  trabalhosLista.forEach(t => {
+    const rawDate = t.dataInicio || t.data || t.dataFim || t.dataPagamento || '';
     if(!rawDate) return;
     const d = new Date(rawDate);
     if(Number.isNaN(d.getTime())) return;
-    monthValues[d.getMonth()] += Number(p.valor || p.valorPago || 0) || 0;
+    monthValues[d.getMonth()] += Number(t.valor || t.valorPago || 0) || 0;
   });
 
-  const totalFat = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
+  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
   const totalDivida = Math.max(totalFat - totalRecebido, 0);
 
@@ -8898,7 +8873,6 @@ function pagamentoActions(p){
 let trabalhosCurrentPage = 1;
 function getTrabalhosPerPage(){ const el = $('trabalhosPerPage'); const v = Number(el?.value || 20); return Number.isFinite(v) && v > 0 ? v : 20; }
 function updateTrabalhosPagination(totalRows){ const perPage = getTrabalhosPerPage(); const totalPages = Math.max(1, Math.ceil(totalRows / perPage)); if(trabalhosCurrentPage > totalPages) trabalhosCurrentPage = totalPages; if(trabalhosCurrentPage < 1) trabalhosCurrentPage = 1; const info = $('trabalhosPageInfo'); if(info) info.textContent = `Página ${trabalhosCurrentPage} de ${totalPages} • ${totalRows} trabalhos`; const prev = $('trabalhosPrevBtn'); const next = $('trabalhosNextBtn'); if(prev) prev.disabled = trabalhosCurrentPage <= 1; if(next) next.disabled = trabalhosCurrentPage >= totalPages; return { perPage, totalPages, start:(trabalhosCurrentPage-1)*perPage, end:trabalhosCurrentPage*perPage }; }
-
 
 function renderTrabalhos(){
   const term=$('searchTrabalhos').value.trim().toLowerCase();
@@ -9097,8 +9071,8 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     contacto:$('contacto').value.trim(),
     tipoTrabalho:$('tipoTrabalho').value.trim(),
     valorTrabalho:Number($('valorTrabalho')?.value||0),
-    valor:Number($('valor')?.value||0),
-    valorPago:Number($('valor')?.value||0),
+    valor:Number($('valorTrabalho')?.value||0),
+    valorPago:Number($('valor').value||0),
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
@@ -10578,59 +10552,6 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
       </div>
     </div>
   </div>
-
-
-<!-- Sistema de aviso de versão SAFE: não toca no login, Firebase, localStorage ou IndexedDB -->
-<style id="ge-update-safe-style">
-  #geUpdateToast{position:fixed;right:18px;bottom:18px;z-index:999999;max-width:390px;width:calc(100% - 36px);padding:16px;border-radius:20px;background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.96));border:1px solid rgba(96,165,250,.35);box-shadow:0 24px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.08);color:#f8fafc;display:none;backdrop-filter:blur(18px);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
-  #geUpdateToast.ge-show{display:block}
-  #geUpdateToast .ge-title{font-weight:900;font-size:15px;margin:0 36px 6px 0}
-  #geUpdateToast .ge-text{font-size:12px;line-height:1.45;color:#cbd5e1;margin:0 0 14px}
-  #geUpdateToast .ge-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
-  #geUpdateToast button{border:0;border-radius:14px;padding:10px 13px;font-weight:850;cursor:pointer;color:#fff;background:linear-gradient(135deg,#2563eb,#7c3aed)}
-  #geUpdateToast button.ge-secondary{background:rgba(255,255,255,.08);color:#e2e8f0;border:1px solid rgba(255,255,255,.12)}
-  #geUpdateToast .ge-close{position:absolute;right:12px;top:12px;width:32px;height:32px;padding:0;background:rgba(255,255,255,.08);font-size:18px;line-height:1}
-  @media(max-width:640px){#geUpdateToast{left:12px;right:12px;bottom:12px;width:auto;border-radius:18px}#geUpdateToast .ge-actions button{flex:1}}
-</style>
-<div id="geUpdateToast" aria-live="polite">
-  <button class="ge-close" type="button" id="geUpdateClose" aria-label="Fechar">×</button>
-  <div class="ge-title">Nova versão disponível</div>
-  <p class="ge-text" id="geUpdateText">Há uma atualização pronta.</p>
-  <div class="ge-actions">
-    <button class="ge-secondary" type="button" id="geUpdateLater">Mais tarde</button>
-    <button type="button" id="geUpdateNow">Atualizar agora</button>
-  </div>
-</div>
-<script id="ge-update-safe-script">
-(function(){
-  'use strict';
-  var CURRENT_VERSION = '1.0.7';
-  var VERSION_URL = './version.json';
-  var DISMISSED_KEY = 'ge_update_dismissed_version';
-  var CHECK_EVERY_MS = 180000;
-  function byId(id){ return document.getElementById(id); }
-  function dismissed(v){ try{return localStorage.getItem(DISMISSED_KEY) === String(v||'');}catch(e){return false;} }
-  function dismiss(v){ try{localStorage.setItem(DISMISSED_KEY, String(v||''));}catch(e){} var t=byId('geUpdateToast'); if(t)t.classList.remove('ge-show'); }
-  function show(v, env){
-    if(!v || String(v) === CURRENT_VERSION || dismissed(v)) return;
-    var text=byId('geUpdateText');
-    if(text) text.textContent = 'Tens a versão ' + CURRENT_VERSION + '. Já existe a versão ' + v + (env ? ' (' + env + ')' : '') + '. Carrega em atualizar quando quiseres.';
-    var t=byId('geUpdateToast'); if(t)t.classList.add('ge-show');
-    var later=byId('geUpdateLater'), close=byId('geUpdateClose'), now=byId('geUpdateNow');
-    if(later) later.onclick=function(){ dismiss(v); };
-    if(close) close.onclick=function(){ dismiss(v); };
-    if(now) now.onclick=function(){ var url = new URL(window.location.href); url.searchParams.set('v', String(v)); url.searchParams.set('_', String(Date.now())); window.location.replace(url.toString()); };
-  }
-  async function check(){
-    try{ var res = await fetch(VERSION_URL + '?_=' + Date.now(), {cache:'no-store'}); if(!res.ok) return; var data = await res.json(); show(String(data.version || '').trim(), data.environment || data.env || ''); }
-    catch(e){ console.warn('Verificação de versão indisponível:', e); }
-  }
-  window.AppVersionUpdater = { check: check, currentVersion: CURRENT_VERSION };
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check); else check();
-  setInterval(check, CHECK_EVERY_MS);
-  document.addEventListener('visibilitychange', function(){ if(!document.hidden) check(); });
-})();
-</script>
 
 </body>
 </html>
