@@ -3255,6 +3255,13 @@ body{
   vertical-align:middle;
   border-bottom:1px solid rgba(255,255,255,.055);
 }
+
+/* ===== AJUSTE COLUNA TIPO HISTÓRICO v1.1.0 ===== */
+#trabalhos-page thead th:nth-child(3),
+#trabalhos-page tbody td:nth-child(3){
+  min-width:170px;
+  width:18%;
+}
 #trabalhos-page tbody td:nth-child(1) strong{
   display:inline-flex;
   padding:7px 10px;
@@ -3411,6 +3418,30 @@ body{
   color:#86efac !important;
 }
 
+
+/* ===== VALOR TRABALHO / VALOR PAGO FINAL ===== */
+#trabalhos-page tbody td:nth-child(4){
+  color:var(--muted,#9fabca) !important;
+  font-weight:700 !important;
+}
+#trabalhos-page tbody td:nth-child(5){
+  color:#86efac !important;
+  font-weight:950 !important;
+  font-size:16px !important;
+}
+#adicionar-page .field:has(#valorTrabalho){
+  background:rgba(4,8,18,.22) !important;
+  border:1px solid rgba(255,255,255,.055) !important;
+}
+#adicionar-page .field:has(#valor){
+  background:linear-gradient(180deg,rgba(34,197,94,.08),rgba(255,255,255,.025)) !important;
+  border:1px solid rgba(34,197,94,.16) !important;
+}
+#adicionar-page .field:has(#valor) label{
+  color:#bbf7d0 !important;
+}
+
+.valor-trabalho-note{display:block;margin-top:4px;font-size:11px;color:var(--muted,#9fabca);font-weight:700;}
 </style>
   
 
@@ -3690,6 +3721,7 @@ body{
             <div id="pagamentosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
                 <thead><tr>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('workCode')">ID <span id="sortIcon-workCode">↓</span></button></th>
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('cliente')">Cliente <span id="sortIcon-cliente">↕</span></button></th>
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('referencia')">Nome do Trabalho <span id="sortIcon-referencia">↕</span></button></th>
 <th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('data')">Data do Trabalho <span id="sortIcon-data">↕</span></button></th>
@@ -3874,7 +3906,7 @@ body{
                     <tbody id="managedUsersTableBody"></tbody>
                   </table>
                 </div>
-                <div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-actions">
+                <div class="config-tools"><div class="setting-card"><span class="mini-label">Atualizações</span><strong>Sistema de versão ativo</strong><p>Verifica automaticamente de 2 em 2 minutos e mostra changelog quando existir nova versão.</p><button type="button" class="btn btn-secondary" id="manualUpdateCheckBtn">Verificar updates</button><span id="geUpdateStatus"></span></div></div><div class="config-tools"><div class="setting-card"><span class="mini-label">Estado</span><strong id="inputFixInfo">Inputs corrigidos</strong><p>Esta versão volta à base estável para garantir escrita normal em todos os campos.</p></div></div><div class="config-actions">
                   <button class="btn btn-secondary" id="exportBackupBtn">Backup JSON</button>
                 </div>
               </section>
@@ -4044,6 +4076,23 @@ function legacy_confirmPaymentMethod(method){
   try { if(typeof window.renderDashboard === 'function') window.renderDashboard(); else if(typeof renderDashboard === 'function') renderDashboard(); } catch(e) {}
 }
 
+
+
+function marcarComoPago(id){
+  const data = prompt("Data pagamento (YYYY-MM-DD):");
+  if(!data) return;
+
+  let lista = window.trabalhos || JSON.parse(localStorage.getItem("trabalhos")||"[]");
+  lista = lista.map(t=>{
+    if(String(t.id)===String(id)){
+      t.estado="Pago";
+      t.dataPagamento=data;
+    }
+    return t;
+  });
+  localStorage.setItem("trabalhos", JSON.stringify(lista));
+  location.reload();
+}
 
 function getBackupTodayIso(){
   const now = new Date();
@@ -4999,57 +5048,6 @@ body{
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-
-<script>
-function marcarComoPagoSafe(id){
-  const data = prompt("Data de pagamento (YYYY-MM-DD):");
-  if(!data) return;
-
-  let trabalhos = JSON.parse(localStorage.getItem("trabalhos") || "[]");
-
-  trabalhos = trabalhos.map(t=>{
-    if(String(t.id) === String(id)){
-      t.estado = "Pago";
-      t.dataPagamento = data;
-    }
-    return t;
-  });
-
-  localStorage.setItem("trabalhos", JSON.stringify(trabalhos));
-  location.reload();
-}
-
-// inject button safely
-function injectPagoButtons(){
-  document.querySelectorAll("[data-id]").forEach(el=>{
-    if(el.querySelector(".btn-pago")) return;
-
-    const id = el.getAttribute("data-id");
-    if(!id) return;
-
-    const estado = el.innerText.toLowerCase();
-    if(estado.includes("pago")) return;
-
-    const btn=document.createElement("button");
-    btn.textContent="Pago";
-    btn.className="btn-pago";
-    btn.style.marginTop="6px";
-    btn.style.background="#22c55e";
-    btn.style.border="none";
-    btn.style.padding="6px 10px";
-    btn.style.borderRadius="6px";
-    btn.style.color="white";
-    btn.style.fontWeight="700";
-
-    btn.onclick=()=>marcarComoPagoSafe(id);
-
-    el.appendChild(btn);
-  });
-}
-
-setInterval(injectPagoButtons,1500);
-</script>
-
 </body>
   </html>`;
 }
@@ -5685,7 +5683,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const APP_VERSION = '1.0.6';
+const APP_VERSION = '1.1.0';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos', orcamentos:'ge_orcamentos', lastTrabId:'ge_last_trab_id' };
 const LOGS_COLLECTION = 'logs';
 
@@ -6419,7 +6417,655 @@ function buildFlowButtons(t){
   }
 
   if(atual === 'Entregue' || !nextEstado){
-    return `<button class="stage-step stage-control-btn pay-warning" onclick="window.
+    return `<button class="stage-step stage-control-btn pay-warning" onclick="window.marcarComoPagoComValor('${t.id}')">Por pagar</button>`;
+  }
+
+  return `<button class="stage-step stage-control-btn next" onclick="setWorkEstadoById('${t.id}','${nextEstado}')">${escapeHtml(nextEstado)}</button>`;
+}
+
+
+function getPaymentBadgeHtml(t){
+  return t && t.paymentStatus === 'Pago' ? `<span class="payment-badge-inline">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>` : '';
+}
+window.setWorkEstadoById = setWorkEstadoById;
+
+function genId(prefix='id'){
+  if (window.crypto?.randomUUID) return `${prefix}_${window.crypto.randomUUID()}`;
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
+}
+
+function refreshLastTrabIdFromWorks(){
+  const maxExistingId = trabalhos.reduce((max, t) => {
+    const n = getWorkCodeNumber(t?.workCode || t?.ordemId || t?.id || '');
+    return Math.max(max, n);
+  }, 0);
+  lastTrabId = Math.max(Number(lastTrabId || 0) || 0, maxExistingId);
+  try{ localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId)); }catch{}
+  return lastTrabId;
+}
+
+function nextTrabalhoIdPreview(){
+  const nextId = refreshLastTrabIdFromWorks() + 1;
+  return `TRAB-${String(nextId).padStart(4,'0')}`;
+}
+
+function nextTrabalhoId(){
+  lastTrabId = refreshLastTrabIdFromWorks() + 1;
+  localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
+  return `TRAB-${String(lastTrabId).padStart(4,'0')}`;
+}
+
+
+function getWorkCodeNumber(value){
+  const m = String(value || '').match(/(\d+)/);
+  return m ? Number(m[1]) : 0;
+}
+
+function generateWorkCode(existingId=''){
+  if(existingId) return existingId;
+  const maxExisting = trabalhos.reduce((max, t) => Math.max(max, getWorkCodeNumber(t.workCode || t.ordemId || '')), 0);
+  return `TRAB-${String(maxExisting + 1).padStart(4,'0')}`;
+}
+
+function normalizeTrabalhosIds(){
+  let changed = false;
+  let maxExisting = trabalhos.reduce((max, t) => Math.max(max, getWorkCodeNumber(t.workCode || t.ordemId || '')), 0);
+  trabalhos = trabalhos.map(t => {
+    if(t.workCode || t.ordemId) return normalizeTrabalhoStateShape({ ...t, workCode: t.workCode || t.ordemId });
+    changed = true;
+    maxExisting += 1;
+    return normalizeTrabalhoStateShape({ ...t, workCode: `TRAB-${String(maxExisting).padStart(4,'0')}` });
+  });
+  refreshLastTrabIdFromWorks();
+  if(changed) saveLocal();
+}
+
+
+function loadLocal(){
+  try{trabalhos=(JSON.parse(localStorage.getItem(STORAGE_KEYS.trabalhos))||[]).map(normalizeTrabalhoStateShape)}catch{trabalhos=[]}
+  try{clientes=JSON.parse(localStorage.getItem(STORAGE_KEYS.clientes))||[]}catch{clientes=[]}
+  try{pagamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.pagamentos))||[]}catch{pagamentos=[]}
+  try{orcamentos=JSON.parse(localStorage.getItem(STORAGE_KEYS.orcamentos))||[]}catch{orcamentos=[]}
+  if(typeof window !== 'undefined') window.orcamentos = orcamentos;
+  try{ lastTrabId = Number(localStorage.getItem(STORAGE_KEYS.lastTrabId) || 0) || 0 }catch{ lastTrabId = 0 }
+  normalizeTrabalhosIds();
+  refreshLastTrabIdFromWorks();
+}
+function saveLocal(){
+  localStorage.setItem(STORAGE_KEYS.trabalhos, JSON.stringify(trabalhos));
+  localStorage.setItem(STORAGE_KEYS.clientes, JSON.stringify(clientes));
+  localStorage.setItem(STORAGE_KEYS.pagamentos, JSON.stringify(pagamentos));
+  localStorage.setItem(STORAGE_KEYS.orcamentos, JSON.stringify(orcamentos));
+  localStorage.setItem(STORAGE_KEYS.lastTrabId, String(lastTrabId));
+  if(typeof window !== 'undefined'){ window.orcamentos = orcamentos; window.trabalhos = trabalhos; window.clientes = clientes; window.pagamentos = pagamentos; }
+  autoBackupInvisible();
+}
+
+function populateClientOptions(selected=''){
+  const select = $('cliente');
+  if(!select) return;
+  const current = selected || select.value || '';
+  const sorted = clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  select.innerHTML = ['<option value="">Selecionar cliente</option>']
+    .concat(sorted.map(c => `<option value="${escapeHtml(c.nome || '')}">${escapeHtml(c.nome || '')}</option>`))
+    .join('');
+  if(current) select.value = current;
+  fillClientContactFromSelection();
+}
+function updateWorkCodePreview(){
+  const field = $('workCodeDisplay');
+  const idField = $('trabalhoId');
+  if(!field) return;
+  if(idField && idField.value) return;
+  field.value = nextTrabalhoIdPreview();
+}
+
+function fillClientContactFromSelection(){
+  const select = $('cliente');
+  const contacto = $('contacto');
+  if(!select || !contacto) return;
+  const selectedName = select.value;
+  const c = clientes.find(x => (x.nome || '') === selectedName);
+  contacto.value = c ? (c.telefone || '') : '';
+}
+
+
+function normalizeManagedUsers(users){
+  const map = new Map();
+  (Array.isArray(users) ? users : []).forEach((u) => {
+    const email = normalizeRoleEmail(u.email || u.username);
+    if(!email) return;
+    map.set(email, {
+      nome: String(u.nome || u.displayName || '').trim(),
+      displayName: String(u.displayName || u.nome || '').trim(),
+      email,
+      username: email,
+      role: resolveEffectiveRole(email, u.role),
+      pcMode: normalizeAccessMode(u.pcMode),
+      mobileMode: normalizeAccessMode(u.mobileMode)
+    });
+  });
+  MASTER_EMAILS.forEach(email => {
+    const prev = map.get(email) || {};
+    map.set(email, {
+      nome: String(prev.nome || prev.displayName || '').trim(),
+      displayName: String(prev.displayName || prev.nome || '').trim(),
+      email,
+      username: email,
+      role: 'master_admin',
+      pcMode: normalizeAccessMode(prev.pcMode),
+      mobileMode: normalizeAccessMode(prev.mobileMode)
+    });
+  });
+  return Array.from(map.values()).sort((a,b)=> (a.email || '').localeCompare(b.email || ''));
+}
+
+function getManagedUsers(){
+  if(Array.isArray(managedUsersCache) && managedUsersCache.length) return managedUsersCache;
+  try{
+    const stored = JSON.parse(localStorage.getItem('app_users') || 'null');
+    if(Array.isArray(stored) && stored.length){
+      managedUsersCache = normalizeManagedUsers(stored);
+      localStorage.setItem('app_users', JSON.stringify(managedUsersCache));
+      return managedUsersCache;
+    }
+  }catch{}
+  managedUsersCache = normalizeManagedUsers([]);
+  localStorage.setItem('app_users', JSON.stringify(managedUsersCache));
+  return managedUsersCache;
+}
+
+function saveManagedUsers(users){
+  managedUsersCache = normalizeManagedUsers(users);
+  localStorage.setItem('app_users', JSON.stringify(managedUsersCache));
+}
+
+async function loadManagedUsersFromFirestore(){
+  try{
+    await ensureFirebaseCore();
+    if(!firestoreDb) return getManagedUsers();
+    const snap = await getDocs(collection(firestoreDb, ROLE_COLLECTION));
+    const users = [];
+    snap.forEach(docSnap => {
+      const data = docSnap.data() || {};
+      users.push({
+        nome: String(data.nome || data.displayName || '').trim(),
+        email: normalizeRoleEmail(data.email || docSnap.id),
+        role: resolveEffectiveRole(data.email || docSnap.id, data.role),
+        pcMode: normalizeAccessMode(data.pcMode),
+        mobileMode: normalizeAccessMode(data.mobileMode)
+      });
+    });
+    MASTER_EMAILS.forEach(email => {
+      if(!users.some(u => normalizeRoleEmail(u.email) === email)) users.push({ email, role:'master_admin' });
+    });
+    saveManagedUsers(users);
+    return managedUsersCache;
+  }catch(err){
+    console.warn('Não foi possível carregar roles:', err);
+    return getManagedUsers();
+  }
+}
+
+async function renderManagedUsers(){
+  const tbody = $('managedUsersTableBody');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6">A carregar...</td></tr>';
+  const users = await loadManagedUsersFromFirestore();
+  const modeLabel = (mode) => normalizeAccessMode(mode) === 'view' ? 'Só ver' : 'Pode mexer';
+  tbody.innerHTML = users.length ? users.map((u, idx) => `
+    <tr>
+      <td>${escapeHtml(u.nome || '-')}</td>
+      <td>${escapeHtml(u.email || u.username || '-')}</td>
+      <td>${escapeHtml(u.role || 'user')}</td>
+      <td>${escapeHtml(modeLabel(u.pcMode))}</td>
+      <td>${escapeHtml(modeLabel(u.mobileMode))}</td>
+      <td>
+        <div class="row-actions">
+          <button class="small-btn" onclick="window.editManagedUser(${idx})">Editar</button>
+          <button class="small-btn danger" onclick="window.deleteManagedUser(${idx})">Apagar</button>
+        </div>
+      </td>
+    </tr>
+  `).join('') : '<tr><td colspan="6">Sem utilizadores.</td></tr>';
+}
+
+window.editManagedUser = function(index){
+  if(!isMasterAdmin()) return;
+  const users = getManagedUsers();
+  const u = users[index];
+  if(!u) return;
+  $('managedUserIndex').value = String(index);
+  if($('managedDisplayName')) $('managedDisplayName').value = u.nome || u.displayName || '';
+  $('managedUsername').value = u.email || u.username || '';
+  $('managedRole').value = u.role || 'user';
+  if($('managedPcMode')) $('managedPcMode').value = normalizeAccessMode(u.pcMode);
+  if($('managedMobileMode')) $('managedMobileMode').value = normalizeAccessMode(u.mobileMode);
+  switchTab('configuracoes');
+};
+
+window.deleteManagedUser = function(index){
+  if(!isMasterAdmin()) return;
+  const users = getManagedUsers();
+  const u = users[index];
+  if(!u) return;
+  const targetEmail = normalizeRoleEmail(u.email || u.username);
+  if(isMasterEmail(targetEmail)){ alert('O Admin Mestre não pode ser apagado.'); return; }
+  if(!confirm(`Apagar o utilizador ${targetEmail}?`)) return;
+  (async()=>{
+    try{
+      await ensureFirebaseCore();
+      await deleteDoc(doc(firestoreDb, ROLE_COLLECTION, targetEmail));
+      const users = getManagedUsers().filter(item => normalizeRoleEmail(item.email || item.username) !== targetEmail);
+      saveManagedUsers(users);
+      renderManagedUsers();
+    }catch(err){
+      console.error('Erro ao apagar role:', err);
+      alert('Não foi possível apagar a role.');
+    }
+  })();
+  updateWorkCodePreview();
+  updateWorkCodePreview();
+  renderMobileCards();
+};
+
+function autoBackupInvisible(){
+  const payload = {
+    exportadoEm: new Date().toISOString(),
+    appVersion: APP_VERSION,
+    currentUsername,
+    currentRole,
+    trabalhos,
+    clientes,
+    pagamentos
+  };
+  localStorage.setItem('ge_invisible_backup', JSON.stringify(payload));
+}
+function setSyncMessage(msg, level='warn'){
+  syncMessage = msg;
+  const mode = $('modeLine');
+  if (mode) {
+    mode.textContent = `Modo: ${msg}`;
+    mode.classList.remove('sync-ok','sync-warn','sync-bad');
+    mode.classList.add(level === 'ok' ? 'sync-ok' : (level === 'bad' ? 'sync-bad' : 'sync-warn'));
+  }
+  const note = $('syncLoginNote');
+  if (note) {
+    note.innerHTML = `<strong>Sync:</strong> ${msg}`;
+    note.classList.remove('sync-ok','sync-warn','sync-bad');
+    note.classList.add(level === 'ok' ? 'sync-ok' : (level === 'bad' ? 'sync-bad' : 'sync-warn'));
+  }
+}
+function setRoleUI(){
+  if(!currentRole) return;
+  const roleLabel = currentRole === 'master_admin' ? 'Admin Mestre' : (currentRole === 'admin' ? 'Admin' : 'User');
+  const accessLabel = isDeviceViewMode() ? 'Só ver' : 'Pode mexer';
+  document.body.classList.toggle('role-view-user', currentRole === 'user');
+  document.body.classList.toggle('role-view-admin', currentRole === 'admin');
+  $('roleBadge').textContent = roleLabel;
+  $('roleLine').textContent = `Role: ${roleLabel} • ${currentDeviceType}: ${accessLabel}`;
+  $('versionBadge').textContent = APP_VERSION;
+  $('currentUserName').textContent = currentUsername || 'Utilizador';
+  const usersSection = $('usersSection');
+  if(usersSection) usersSection.style.display = isMasterAdmin() ? 'block' : 'none';
+  const workCodeField = $('workCodeDisplay');
+  if(workCodeField){
+    workCodeField.readOnly = !isMasterAdmin() || isDeviceViewMode();
+    if(!workCodeField.value){
+      workCodeField.value = nextTrabalhoIdPreview();
+    }
+  }
+  setSyncMessage(syncReady ? 'Firebase Sync' : syncMessage, syncReady ? 'ok' : 'warn');
+  try{ updateTrabalhoFieldVisibility(); }catch(e){}
+  updateTrabalhoAdvancedFields();
+  applyDeviceAccessRestrictions();
+}
+
+let auditLogsCache = [];
+let auditFilteredLogs = [];
+let auditSelectedLogId = null;
+
+function getActionGroup(action=''){
+  const text = String(action || '').toLowerCase();
+  if(text.includes('delete') || text.includes('apagar')) return 'delete';
+  if(text.includes('update') || text.includes('edit') || text.includes('pago') || text.includes('confirm')) return 'update';
+  if(text.includes('create') || text.includes('add') || text.includes('novo') || text.includes('seed')) return 'create';
+  return 'other';
+}
+function formatAuditWhen(value){
+  const d = new Date(value || '');
+  if(Number.isNaN(d.getTime())) return '-';
+  return d.toLocaleString('pt-PT');
+}
+function normalizeAuditText(value){
+  try{ return JSON.stringify(value || {}).toLowerCase(); }catch(e){ return String(value || '').toLowerCase(); }
+}
+function summarizeAuditDetails(log){
+  const details = log?.details || {};
+  const priorityKeys = ['clienteNome','cliente','nome','titulo','descricao','id','trabalhoId','clienteId','pagamentoId','valor','targetEmail'];
+  const parts = [];
+  for(const key of priorityKeys){
+    const val = details?.[key];
+    if(val === undefined || val === null || val === '') continue;
+    parts.push(`${key}: ${typeof val === 'object' ? JSON.stringify(val) : String(val)}`);
+    if(parts.length >= 2) break;
+  }
+  if(!parts.length){
+    const keys = Object.keys(details || {}).slice(0,2);
+    for(const key of keys){
+      const val = details[key];
+      parts.push(`${key}: ${typeof val === 'object' ? JSON.stringify(val) : String(val)}`);
+    }
+  }
+  return parts.join(' • ') || '-';
+}
+function escapeCsvValue(value){
+  const text = String(value ?? '');
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+function downloadBlobFile(filename, content, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1200);
+}
+async function loadAuditLogs(force=false){
+  if(!isAdminLike()){
+    const body = $('auditTableBody');
+    if(body) body.innerHTML = '<tr><td colspan="5">Sem permissão para ver a auditoria.</td></tr>';
+    const detail = $('auditDetail');
+    if(detail) detail.innerHTML = 'Sem permissão para ver a auditoria.';
+    const note = $('auditAccessNote');
+    if(note) note.style.display = 'block';
+    return [];
+  }
+  const note = $('auditAccessNote');
+  if(note) note.style.display = 'none';
+  if(auditLogsCache.length && !force) return auditLogsCache;
+  const body = $('auditTableBody');
+  if(body) body.innerHTML = '<tr><td colspan="5">A carregar logs...</td></tr>';
+  await ensureFirebaseReady();
+  const snap = await getDocs(collection(firestoreDb, LOGS_COLLECTION));
+  auditLogsCache = snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+    .sort((a,b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+  return auditLogsCache;
+}
+function getAuditFilterState(){
+  return {
+    search: String($('auditSearchInput')?.value || '').trim().toLowerCase(),
+    action: String($('auditActionFilter')?.value || '').trim().toLowerCase(),
+    role: String($('auditRoleFilter')?.value || '').trim().toLowerCase(),
+    dateFrom: $('auditDateFrom')?.value || '',
+    dateTo: $('auditDateTo')?.value || ''
+  };
+}
+function filterAuditLogs(logs){
+  const filters = getAuditFilterState();
+  return logs.filter(log => {
+    const haystack = [log.action, log.actorEmail, log.actorName, log.actorRole, summarizeAuditDetails(log), normalizeAuditText(log.details)].join(' ').toLowerCase();
+    if(filters.search && !haystack.includes(filters.search)) return false;
+    if(filters.action){
+      const actionText = String(log.action || '').toLowerCase();
+      if(filters.action === 'role'){
+        if(!actionText.includes('role')) return false;
+      }else if(!actionText.includes(filters.action)) return false;
+    }
+    if(filters.role && String(log.actorRole || '').toLowerCase() !== filters.role) return false;
+    const iso = String(log.timestamp || '');
+    if(filters.dateFrom && iso.slice(0,10) < filters.dateFrom) return false;
+    if(filters.dateTo && iso.slice(0,10) > filters.dateTo) return false;
+    return true;
+  });
+}
+function renderAuditStats(logs){
+  const groups = { total: logs.length, create:0, update:0, delete:0 };
+  logs.forEach(log => {
+    const group = getActionGroup(log.action);
+    if(group === 'create') groups.create += 1;
+    else if(group === 'update') groups.update += 1;
+    else if(group === 'delete') groups.delete += 1;
+  });
+  if($('auditStatTotal')) $('auditStatTotal').textContent = String(groups.total);
+  if($('auditStatCreate')) $('auditStatCreate').textContent = String(groups.create);
+  if($('auditStatUpdate')) $('auditStatUpdate').textContent = String(groups.update);
+  if($('auditStatDelete')) $('auditStatDelete').textContent = String(groups.delete);
+}
+function renderAuditDetail(log){
+  const detail = $('auditDetail');
+  if(!detail) return;
+  if(!log){
+    detail.className = 'audit-empty';
+    detail.innerHTML = 'Seleciona um registo para ver os detalhes completos.';
+    return;
+  }
+  detail.className = '';
+  const safeDetails = escapeHtml(JSON.stringify(log.details || {}, null, 2));
+  detail.innerHTML = `
+    <div class="audit-meta">
+      <div class="audit-meta-item"><span>Ação</span><strong>${escapeHtml(log.action || '-')}</strong></div>
+      <div class="audit-meta-item"><span>Quando</span><strong>${escapeHtml(formatAuditWhen(log.timestamp))}</strong></div>
+      <div class="audit-meta-item"><span>Utilizador</span><strong>${escapeHtml(log.actorName || log.actorEmail || '-')}</strong><div>${escapeHtml(log.actorEmail || '-')}</div></div>
+      <div class="audit-meta-item"><span>Role</span><strong>${escapeHtml(log.actorRole || '-')}</strong></div>
+      <div class="audit-meta-item"><span>ID do log</span><strong>${escapeHtml(log.id || '-')}</strong></div>
+      <div class="audit-meta-item"><span>Versão</span><strong>${escapeHtml(log.appVersion || '-')}</strong></div>
+    </div>
+    <pre class="audit-json">${safeDetails}</pre>
+  `;
+}
+function renderAuditTable(logs){
+  const body = $('auditTableBody');
+  if(!body) return;
+  if(!logs.length){
+    body.innerHTML = '<tr><td colspan="5">Sem resultados para os filtros escolhidos.</td></tr>';
+    renderAuditDetail(null);
+    return;
+  }
+  body.innerHTML = logs.map(log => {
+    const selected = auditSelectedLogId === log.id ? ' class="active"' : '';
+    const group = getActionGroup(log.action);
+    return `<tr data-log-id="${escapeHtml(log.id || '')}"${selected}>
+      <td>${escapeHtml(formatAuditWhen(log.timestamp))}</td>
+      <td><span class="audit-badge ${group}">${escapeHtml(log.action || '-')}</span></td>
+      <td>${escapeHtml(log.actorName || '-')}<br><small>${escapeHtml(log.actorEmail || '-')}</small></td>
+      <td><span class="audit-badge other">${escapeHtml(log.actorRole || '-')}</span></td>
+      <td>${escapeHtml(summarizeAuditDetails(log))}</td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('tr[data-log-id]').forEach(row => row.addEventListener('click', () => {
+    auditSelectedLogId = row.dataset.logId || null;
+    renderAuditTable(auditFilteredLogs);
+    const selectedLog = auditFilteredLogs.find(item => item.id === auditSelectedLogId) || null;
+    renderAuditDetail(selectedLog);
+  }));
+  const selected = auditFilteredLogs.find(item => item.id === auditSelectedLogId) || auditFilteredLogs[0] || null;
+  if(selected){
+    auditSelectedLogId = selected.id;
+    const activeRow = body.querySelector(`tr[data-log-id="${CSS.escape(String(selected.id))}"]`);
+    if(activeRow) activeRow.classList.add('active');
+  }
+  renderAuditDetail(selected);
+}
+async function renderAuditLogs(force=false){
+  if(!$('logs-page')) return;
+  try{
+    const logs = await loadAuditLogs(force);
+    auditFilteredLogs = filterAuditLogs(logs);
+    renderAuditStats(auditFilteredLogs);
+    renderAuditTable(auditFilteredLogs);
+  }catch(err){
+    console.error('Falha ao renderizar auditoria:', err);
+    const body = $('auditTableBody');
+    if(body) body.innerHTML = '<tr><td colspan="5">Erro ao carregar logs.</td></tr>';
+    renderAuditDetail(null);
+  }
+}
+function exportAuditLogsJson(){
+  const data = auditFilteredLogs.length ? auditFilteredLogs : auditLogsCache;
+  downloadBlobFile(`auditoria-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(data, null, 2), 'application/json;charset=utf-8');
+}
+function exportAuditLogsCsv(){
+  const data = auditFilteredLogs.length ? auditFilteredLogs : auditLogsCache;
+  const rows = [['timestamp','action','actorName','actorEmail','actorRole','summary','detailsJson']];
+  data.forEach(log => rows.push([
+    log.timestamp || '',
+    log.action || '',
+    log.actorName || '',
+    log.actorEmail || '',
+    log.actorRole || '',
+    summarizeAuditDetails(log),
+    JSON.stringify(log.details || {})
+  ]));
+  const csv = rows.map(row => row.map(escapeCsvValue).join(';')).join('\n');
+  downloadBlobFile(`auditoria-${new Date().toISOString().slice(0,10)}.csv`, csv, 'text/csv;charset=utf-8');
+}
+function bindAuditEvents(){
+  ['auditSearchInput','auditActionFilter','auditRoleFilter','auditDateFrom','auditDateTo'].forEach(id => {
+    const el = $(id);
+    if(!el || el.dataset.bound === '1') return;
+    el.dataset.bound = '1';
+    el.addEventListener('input', ()=>renderAuditLogs(false));
+    el.addEventListener('change', ()=>renderAuditLogs(false));
+  });
+  const refreshBtn = $('refreshLogsBtn');
+  if(refreshBtn && refreshBtn.dataset.bound !== '1'){
+    refreshBtn.dataset.bound = '1';
+    refreshBtn.addEventListener('click', ()=>renderAuditLogs(true));
+  }
+  const jsonBtn = $('exportLogsJsonBtn');
+  if(jsonBtn && jsonBtn.dataset.bound !== '1'){
+    jsonBtn.dataset.bound = '1';
+    jsonBtn.addEventListener('click', exportAuditLogsJson);
+  }
+  const csvBtn = $('exportLogsCsvBtn');
+  if(csvBtn && csvBtn.dataset.bound !== '1'){
+    csvBtn.dataset.bound = '1';
+    csvBtn.addEventListener('click', exportAuditLogsCsv);
+  }
+}
+
+function switchTab(tab){
+  try{ sessionStorage.setItem('gestao:lastTab', tab); }catch(e){}
+  navButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
+  bottomButtons.forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
+  pages.forEach(p => p.classList.toggle('active', p.id===`${tab}-page`));
+  const btn=document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+  $('pageTitle').textContent = btn ? btn.textContent.trim() : 'Dashboard';
+  try{ updatePresenceState(true); }catch(e){}
+  if(tab === 'dashboard'){
+    renderDashboard();
+    renderAlerts();
+
+  }
+  if(tab === 'trabalhos') renderTrabalhos();
+  if(tab === 'clientes') renderClientes();
+  if(tab === 'pagamentos') renderPagamentos();
+  if(tab === 'orcamentos') renderOrcamentos();
+  if(tab === 'relatorios') renderRelatorios();
+  if(tab === 'logs') renderAuditLogs(false);
+  try{ renderAdvancedReports(); }catch(e){}
+  if(tab === 'configuracoes'){
+    bindUiScaleSelector();
+    renderManagedUsers();
+  }
+  if(isMobileViewport()) closeMobileSidebar();
+  window.scrollTo({top:0,behavior:'auto'});
+}
+
+navButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
+bottomButtons.forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', ()=>switchTab(b.dataset.go)));
+
+
+bindAuditEvents();
+
+function refreshVisibleViews(){
+  try{ renderAll(); }catch(e){}
+  try{
+    const activePage = document.querySelector('.page.active');
+    const activeTab = activePage ? activePage.id.replace(/-page$/, '') : (sessionStorage.getItem('gestao:lastTab') || 'dashboard');
+    switchTab(activeTab);
+  }catch(e){}
+}
+
+function forceAppRefresh(){
+  try{
+    const activePage = document.querySelector('.page.active');
+    const activeTab = activePage ? activePage.id.replace(/-page$/, '') : (sessionStorage.getItem('gestao:lastTab') || 'dashboard');
+    sessionStorage.setItem('gestao:lastTab', activeTab);
+  }catch(e){}
+  setTimeout(()=>{
+    try{ window.location.reload(); }catch(e){ location.reload(); }
+  }, 120);
+}
+try{
+  const restoreTab = sessionStorage.getItem('gestao:lastTab');
+  if(restoreTab){
+    setTimeout(()=>{ try{ switchTab(restoreTab); }catch(e){} }, 0);
+  }
+}catch(e){}
+
+let firebaseSyncInitPromise = null;
+async function waitForFirebaseSyncReady(timeoutMs = 12000){
+  const start = Date.now();
+  while(!firestoreDb){
+    if(Date.now() - start > timeoutMs) throw new Error('Firebase não ficou pronto a tempo');
+    await new Promise(resolve => setTimeout(resolve, 150));
+  }
+  return true;
+}
+async function initFirebaseSync(){
+  if(firebaseSyncInitPromise) return firebaseSyncInitPromise;
+  firebaseSyncInitPromise = (async()=>{
+    try{
+      if (!firebaseApp) firebaseApp = initializeApp(firebaseConfig);
+      if (!firebaseAuth) firebaseAuth = getAuth(firebaseApp);
+      if (!firestoreDb) firestoreDb = getFirestore(firebaseApp);
+
+      syncReady = true;
+      setSyncMessage('Firebase Sync', 'ok');
+      clearRealtimeListeners();
+      attachRealtimeListeners();
+
+      if(!firebaseAuth.currentUser){
+        console.warn('Sem utilizador autenticado na Firebase; a app não vai tentar auth anónima.');
+        setSyncMessage('Firebase Sync (à espera de login)', 'warn');
+      }
+
+      onAuthStateChanged(firebaseAuth, user => {
+        if (user) {
+          syncReady = true;
+          setSyncMessage('Firebase Sync', 'ok');
+          clearRealtimeListeners();
+          attachRealtimeListeners();
+        }
+        if (currentRole) refreshVisibleViews();
+      });
+
+      await waitForFirebaseSyncReady();
+      return true;
+    }catch(err){
+      console.error('Firebase sync error:', err);
+      syncReady = false;
+      firebaseSyncInitPromise = null;
+      const msg = location.protocol === 'file:'
+        ? 'Abre por servidor/GitHub Pages (não file://)'
+        : err?.code === 'auth/operation-not-allowed'
+          ? 'Ativa Anonymous Auth no Firebase'
+          : 'Local (Firebase indisponível)';
+      setSyncMessage(msg, 'bad');
+      throw err;
+    }
+  })();
+  return firebaseSyncInitPromise;
+}
+
+function clearRealtimeListeners(){
+  unsubs.forEach(fn => { try{ fn(); }catch{} });
   unsubs = [];
 }
 function attachRealtimeListeners(){
@@ -7869,58 +8515,7 @@ body{
 <meta name="theme-color" content="#0b1020">
 <link rel="manifest" href="manifest.json">
 
-</head><body>${bodyHtml}
-<script>
-function marcarComoPagoSafe(id){
-  const data = prompt("Data de pagamento (YYYY-MM-DD):");
-  if(!data) return;
-
-  let trabalhos = JSON.parse(localStorage.getItem("trabalhos") || "[]");
-
-  trabalhos = trabalhos.map(t=>{
-    if(String(t.id) === String(id)){
-      t.estado = "Pago";
-      t.dataPagamento = data;
-    }
-    return t;
-  });
-
-  localStorage.setItem("trabalhos", JSON.stringify(trabalhos));
-  location.reload();
-}
-
-// inject button safely
-function injectPagoButtons(){
-  document.querySelectorAll("[data-id]").forEach(el=>{
-    if(el.querySelector(".btn-pago")) return;
-
-    const id = el.getAttribute("data-id");
-    if(!id) return;
-
-    const estado = el.innerText.toLowerCase();
-    if(estado.includes("pago")) return;
-
-    const btn=document.createElement("button");
-    btn.textContent="Pago";
-    btn.className="btn-pago";
-    btn.style.marginTop="6px";
-    btn.style.background="#22c55e";
-    btn.style.border="none";
-    btn.style.padding="6px 10px";
-    btn.style.borderRadius="6px";
-    btn.style.color="white";
-    btn.style.fontWeight="700";
-
-    btn.onclick=()=>marcarComoPagoSafe(id);
-
-    el.appendChild(btn);
-  });
-}
-
-setInterval(injectPagoButtons,1500);
-</script>
-
-</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
+</head><body>${bodyHtml}</body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
 
 function getAgendaDate(t){
@@ -8069,7 +8664,7 @@ function renderDashboardEmpresaSmart(){
   const pagamentosLista = Array.isArray(pagamentos) ? pagamentos : [];
   const orcamentosLista = getDashboardOrcamentosLista();
 
-  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
+  const totalFat = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
   const totalDivida = Math.max(totalFat - totalRecebido, 0);
 
@@ -8154,7 +8749,7 @@ function renderDashboard(){
   const totalTrabalhos = trabalhos.length;
   const emAndamento = trabalhos.filter(t=>['Pendente','Em curso','Aguardar peça'].includes(normalizeEstado(t.estado))).length;
   const concluidos = trabalhos.filter(t=>['Concluído','Pago','Entregue'].includes(normalizeEstado(t.estado))).length;
-  const totalFat = trabalhos.reduce((s,t)=>s+Number(t.valor||0),0);
+  const totalFat = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
   const totalPago = pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
   const clientesAtivos = new Set(trabalhos.map(t=>(t.cliente||'').trim()).filter(Boolean)).size;
 
@@ -8171,16 +8766,17 @@ function renderDashboard(){
         <div class="mini-label badge" data-state="${escapeHtml(t.estado||'Sem estado')}">${escapeHtml(t.estado||'Sem estado')}</div>
         <strong>${escapeHtml(t.cliente||'-')}</strong>
         <div>${escapeHtml(t.tipoTrabalho||'-')}</div>
-        <div class="recent-meta">${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)} • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
+        <div class="recent-meta">${euro(getValorPago(t))} <span class="valor-trabalho-note">Valor trabalho: ${euro(getValorTrabalho(t))}</span> • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
       </div>`).join('');
 
   const monthMap={};
-  trabalhos.forEach(t=>{
-    if(!t.dataInicio) return;
-    const d=new Date(t.dataInicio);
+  pagamentos.forEach(p=>{
+    const rawDate = p.data || p.workDate || p.dataPagamento || '';
+    if(!rawDate) return;
+    const d=new Date(rawDate);
     if(isNaN(d)) return;
     const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    monthMap[key]=(monthMap[key]||0)+Number(t.valor||0);
+    monthMap[key]=(monthMap[key]||0)+Number(p.valor||0);
   });
   const entries=Object.entries(monthMap).sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
   const max=Math.max(...entries.map(([,v])=>v),1);
@@ -8207,15 +8803,15 @@ function buildDashboardChartData(){
   const monthLabels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const monthValues = Array(12).fill(0);
 
-  trabalhosLista.forEach(t => {
-    const rawDate = t.dataInicio || t.data || t.dataFim || t.dataPagamento || '';
+  pagamentosLista.forEach(p => {
+    const rawDate = p.data || p.workDate || p.dataPagamento || '';
     if(!rawDate) return;
     const d = new Date(rawDate);
     if(Number.isNaN(d.getTime())) return;
-    monthValues[d.getMonth()] += Number(t.valor || t.valorPago || 0) || 0;
+    monthValues[d.getMonth()] += Number(p.valor || p.valorPago || 0) || 0;
   });
 
-  const totalFat = trabalhosLista.reduce((sum, t) => sum + (Number(t.valor || t.valorPago || 0) || 0), 0);
+  const totalFat = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
   const totalDivida = Math.max(totalFat - totalRecebido, 0);
 
@@ -8328,6 +8924,7 @@ let trabalhosCurrentPage = 1;
 function getTrabalhosPerPage(){ const el = $('trabalhosPerPage'); const v = Number(el?.value || 20); return Number.isFinite(v) && v > 0 ? v : 20; }
 function updateTrabalhosPagination(totalRows){ const perPage = getTrabalhosPerPage(); const totalPages = Math.max(1, Math.ceil(totalRows / perPage)); if(trabalhosCurrentPage > totalPages) trabalhosCurrentPage = totalPages; if(trabalhosCurrentPage < 1) trabalhosCurrentPage = 1; const info = $('trabalhosPageInfo'); if(info) info.textContent = `Página ${trabalhosCurrentPage} de ${totalPages} • ${totalRows} trabalhos`; const prev = $('trabalhosPrevBtn'); const next = $('trabalhosNextBtn'); if(prev) prev.disabled = trabalhosCurrentPage <= 1; if(next) next.disabled = trabalhosCurrentPage >= totalPages; return { perPage, totalPages, start:(trabalhosCurrentPage-1)*perPage, end:trabalhosCurrentPage*perPage }; }
 
+
 function renderTrabalhos(){
   const term=$('searchTrabalhos').value.trim().toLowerCase();
   const globalTerm=($('globalSearch')?.value||'').trim().toLowerCase();
@@ -8356,17 +8953,19 @@ function renderClientes(){
   });
   $('clientesTableBody').innerHTML = rows.length ? rows.slice().reverse().map(c=>`<tr><td>${escapeHtml(c.nome||'-')}</td><td>${escapeHtml(c.telefone||'-')}</td><td>${escapeHtml(c.email||'-')}</td><td>${escapeHtml(c.nif||'-')}</td><td><div class="row-actions">${clienteActions(c)}</div></td></tr>`).join('') : '<tr><td colspan="5">Sem clientes registados.</td></tr>';
 }
-let pagamentoSortKey = 'data';
+let pagamentoSortKey = 'workCode';
 let pagamentoSortDir = 'desc';
 
 function getPagamentoSortValue(p, key) {
+  if (key === 'workCode') return getWorkCodeNumber(p.workCode || p.referencia || p.sourceWorkId || p.id || '');
+  if (key === 'referencia') return String(p.referencia || p.workCode || '').toLowerCase();
   if (key === 'data') return new Date(p.workDate || p.data || 0).getTime() || 0;
   if (key === 'valor') return Number(p.valor || 0);
   return String(p[key] || '').toLowerCase();
 }
 
 function updatePagamentoSortIcons() {
-  ['cliente','referencia','data','valor','metodo','invoiceType'].forEach((key) => {
+  ['workCode','cliente','referencia','data','valor','metodo','invoiceType'].forEach((key) => {
     const el = document.getElementById(`sortIcon-${key}`);
     if (!el) return;
     el.textContent = pagamentoSortKey === key ? (pagamentoSortDir === 'asc' ? '↑' : '↓') : '↕';
@@ -8378,7 +8977,7 @@ window.setPagamentoSort = function(key) {
     pagamentoSortDir = pagamentoSortDir === 'asc' ? 'desc' : 'asc';
   } else {
     pagamentoSortKey = key;
-    pagamentoSortDir = key === 'data' || key === 'valor' ? 'desc' : 'asc';
+    pagamentoSortDir = key === 'workCode' || key === 'data' || key === 'valor' ? 'desc' : 'asc';
   }
   renderPagamentos();
 };
@@ -8407,6 +9006,7 @@ function renderPagamentos() {
       const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
       return `
       <tr>
+        <td><strong>${escapeHtml(p.workCode || p.referencia || '-')}</strong></td>
         <td>${escapeHtml(p.cliente || '-')}</td>
         <td>${escapeHtml(p.referencia || '-')}</td>
         <td>${fmtDate(p.workDate || p.data || '')}</td>
@@ -8416,7 +9016,7 @@ function renderPagamentos() {
         <td><div class="row-actions">${isAdminLike() ? `<button class="small-btn danger" onclick="deletePagamento('${p.id}')">Apagar</button>` : ''}</div></td>
       </tr>`;
     }).join('')
-    : '<tr><td colspan="7">Sem pagamentos registados.</td></tr>';
+    : '<tr><td colspan="8">Sem pagamentos registados.</td></tr>';
 
   updatePagamentoSortIcons();
 }
@@ -8525,8 +9125,8 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     contacto:$('contacto').value.trim(),
     tipoTrabalho:$('tipoTrabalho').value.trim(),
     valorTrabalho:Number($('valorTrabalho')?.value||0),
-    valor:Number($('valorTrabalho')?.value||0),
-    valorPago:Number($('valor').value||0),
+    valor:Number($('valor')?.value||0),
+    valorPago:Number($('valor')?.value||0),
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
@@ -8708,7 +9308,7 @@ window.openClientHistory = function(id){
         <table>
           <thead><tr><th>Tipo</th><th>Valor Trabalho</th><th>Valor Pago</th><th>Início</th><th>Fim</th><th>Estado</th></tr></thead>
           <tbody>
-            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(getValorTrabalho(t))}</td><td>${euro(getValorPago(t))}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span></div></td></tr>`).join('') : '<tr><td colspan="6">Sem trabalhos registados.</td></tr>'}
+            ${relatedTrabalhos.length ? relatedTrabalhos.slice().reverse().map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${euro(getValorTrabalho(t))}</td><td>${euro(getValorPago(t))}</td><td>${fmtDate(t.dataInicio)}</td><td>${fmtDate(t.dataFim)}</td><td><div class="status-cell-inline"><span class="badge" data-state="${escapeHtml(t.estado||'-')}">${escapeHtml(t.estado||'-')}</span>${t.estado!=="Pago"?`<button onclick="marcarComoPago(${t.id})" style="margin-left:8px;background:#22c55e;border:none;padding:4px 8px;border-radius:6px;color:white;font-weight:700;">Pago</button>`:""}</div></td></tr>`).join('') : '<tr><td colspan="6">Sem trabalhos registados.</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -8904,7 +9504,42 @@ function showPaymentModal(){
   modal.style.display = 'grid';
 }
 
-window.
+window.marcarComoPagoComValor = function(id){
+  const t = trabalhos.find(x => x.id === id);
+  if(!t) return;
+  pendingPaymentWorkId = id;
+  resetPaymentModalState();
+  $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
+  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}`;
+  if($('paymentDateInput')) {
+    $('paymentDateInput').value = t.dataPagamento || todayLocalDate();
+    $('paymentDateInput').removeAttribute('readonly');
+    $('paymentDateInput').disabled = false;
+  }
+  if($('paymentValueInput')) $('paymentValueInput').value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
+  showPaymentModal();
+};
+
+function closePaymentFlow(){
+  pendingPaymentWorkId = null;
+  resetPaymentModalState();
+  hidePaymentModal();
+  const modal = $('paymentMethodModal');
+  if(modal){
+    modal.className = 'modal hidden';
+    modal.setAttribute('aria-hidden','true');
+    modal.style.cssText = 'display:none !important;';
+  }
+  document.body.classList.remove('modal-open');
+}
+
+$('closePaymentMethodModal')?.addEventListener('click', closePaymentFlow);
+$('cancelPaymentMethodModal')?.addEventListener('click', closePaymentFlow);
+$('paymentMethodModal')?.addEventListener('click', (e)=>{
+  if(e.target.id === 'paymentMethodModal' && !paymentConfirmInFlight){
+    closePaymentFlow();
+  }
+});
 document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape' && !($('paymentMethodModal')?.classList.contains('hidden')) && !paymentConfirmInFlight){
     closePaymentFlow();
@@ -9067,12 +9702,12 @@ function renderMobileCards(){
 
   const pagWrap = $('pagamentosCardsWrap');
   if(pagWrap){
-    pagWrap.innerHTML = pagamentos.length ? pagamentos.slice().reverse().map(p=>{
+    pagWrap.innerHTML = pagamentos.length ? pagamentos.slice().sort((a,b)=>getWorkCodeNumber(b.workCode || b.referencia || '')-getWorkCodeNumber(a.workCode || a.referencia || '')).map(p=>{
       const invoiceType = p.invoiceType || 'Com Fat';
       const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
       return `<article class="mobile-card">
         <div>
-          <div class="mobile-card-title">${escapeHtml(p.cliente || '-')}</div>
+          <div class="mobile-card-title">${escapeHtml(p.workCode || p.referencia || '-')} · ${escapeHtml(p.cliente || '-')}</div>
           <div class="mobile-card-sub">${escapeHtml(p.referencia || '-')}</div>
         </div>
         <div class="mobile-card-grid">
@@ -9735,58 +10370,7 @@ body{
         </thead>
         <tbody>${historyHtml}</tbody>
       </table>
-    
-<script>
-function marcarComoPagoSafe(id){
-  const data = prompt("Data de pagamento (YYYY-MM-DD):");
-  if(!data) return;
-
-  let trabalhos = JSON.parse(localStorage.getItem("trabalhos") || "[]");
-
-  trabalhos = trabalhos.map(t=>{
-    if(String(t.id) === String(id)){
-      t.estado = "Pago";
-      t.dataPagamento = data;
-    }
-    return t;
-  });
-
-  localStorage.setItem("trabalhos", JSON.stringify(trabalhos));
-  location.reload();
-}
-
-// inject button safely
-function injectPagoButtons(){
-  document.querySelectorAll("[data-id]").forEach(el=>{
-    if(el.querySelector(".btn-pago")) return;
-
-    const id = el.getAttribute("data-id");
-    if(!id) return;
-
-    const estado = el.innerText.toLowerCase();
-    if(estado.includes("pago")) return;
-
-    const btn=document.createElement("button");
-    btn.textContent="Pago";
-    btn.className="btn-pago";
-    btn.style.marginTop="6px";
-    btn.style.background="#22c55e";
-    btn.style.border="none";
-    btn.style.padding="6px 10px";
-    btn.style.borderRadius="6px";
-    btn.style.color="white";
-    btn.style.fontWeight="700";
-
-    btn.onclick=()=>marcarComoPagoSafe(id);
-
-    el.appendChild(btn);
-  });
-}
-
-setInterval(injectPagoButtons,1500);
-</script>
-
-</body>
+    </body>
   </html>`;
 }
 
@@ -10024,55 +10608,103 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
   </div>
 
 
-<script>
-function marcarComoPagoSafe(id){
-  const data = prompt("Data de pagamento (YYYY-MM-DD):");
-  if(!data) return;
-
-  let trabalhos = JSON.parse(localStorage.getItem("trabalhos") || "[]");
-
-  trabalhos = trabalhos.map(t=>{
-    if(String(t.id) === String(id)){
-      t.estado = "Pago";
-      t.dataPagamento = data;
+<!-- Sistema de aviso de versão SAFE: não toca no login, Firebase, localStorage de sessão ou IndexedDB -->
+<style id="ge-update-safe-style">
+  #geUpdateToast{position:fixed;right:18px;bottom:18px;z-index:999999;max-width:420px;width:calc(100% - 36px);padding:16px;border-radius:20px;background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.96));border:1px solid rgba(96,165,250,.35);box-shadow:0 24px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.08);color:#f8fafc;display:none;backdrop-filter:blur(18px);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+  #geUpdateToast.ge-show{display:block}
+  #geUpdateToast .ge-title{font-weight:900;font-size:15px;margin:0 36px 6px 0}
+  #geUpdateToast .ge-text{font-size:12px;line-height:1.45;color:#cbd5e1;margin:0 0 12px}
+  #geUpdateToast .ge-changelog{margin:0 0 14px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);display:none}
+  #geUpdateToast .ge-changelog strong{display:block;font-size:12px;margin-bottom:7px;color:#fff}
+  #geUpdateToast .ge-changelog ul{margin:0;padding-left:18px;color:#dbeafe;font-size:12px;line-height:1.45}
+  #geUpdateToast .ge-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  #geUpdateToast button{border:0;border-radius:14px;padding:10px 13px;font-weight:850;cursor:pointer;color:#fff;background:linear-gradient(135deg,#2563eb,#7c3aed)}
+  #geUpdateToast button.ge-secondary{background:rgba(255,255,255,.08);color:#e2e8f0;border:1px solid rgba(255,255,255,.12)}
+  #geUpdateToast .ge-close{position:absolute;right:12px;top:12px;width:32px;height:32px;padding:0;background:rgba(255,255,255,.08);font-size:18px;line-height:1}
+  #geUpdateStatus{margin-left:10px;font-size:12px;opacity:.82}
+  @media(max-width:640px){#geUpdateToast{left:12px;right:12px;bottom:12px;width:auto;border-radius:18px}#geUpdateToast .ge-actions button{flex:1}}
+</style>
+<div id="geUpdateToast" aria-live="polite">
+  <button class="ge-close" type="button" id="geUpdateClose" aria-label="Fechar">×</button>
+  <div class="ge-title">Nova versão disponível</div>
+  <p class="ge-text" id="geUpdateText">Há uma atualização pronta.</p>
+  <div class="ge-changelog" id="geUpdateChangelog"><strong>Novidades</strong><ul id="geUpdateChangelogList"></ul></div>
+  <div class="ge-actions">
+    <button class="ge-secondary" type="button" id="geUpdateLater">Mais tarde</button>
+    <button type="button" id="geUpdateNow">Atualizar agora</button>
+  </div>
+</div>
+<script id="ge-update-safe-script">
+(function(){
+  'use strict';
+  var CURRENT_VERSION = '1.1.0';
+  var VERSION_URL = './version.json';
+  var DISMISSED_KEY = 'ge_update_dismissed_version';
+  var CHECK_EVERY_MS = 120000;
+  var lastKnownRemote = '';
+  function byId(id){ return document.getElementById(id); }
+  function dismissed(v){ try{return localStorage.getItem(DISMISSED_KEY) === String(v||'');}catch(e){return false;} }
+  function dismiss(v){ try{localStorage.setItem(DISMISSED_KEY, String(v||''));}catch(e){} var t=byId('geUpdateToast'); if(t)t.classList.remove('ge-show'); }
+  function setStatus(msg){ var el=byId('geUpdateStatus'); if(el) el.textContent = msg || ''; }
+  function normaliseChangelog(data){
+    var log = data && (data.changelog || data.changes || data.novidades);
+    if(Array.isArray(log)) return log.map(String).filter(Boolean).slice(0,6);
+    if(typeof log === 'string') return log.split('
+').map(function(x){return x.trim();}).filter(Boolean).slice(0,6);
+    return [];
+  }
+  function renderChangelog(items){
+    var box=byId('geUpdateChangelog'), list=byId('geUpdateChangelogList');
+    if(!box || !list) return;
+    list.innerHTML='';
+    if(!items || !items.length){ box.style.display='none'; return; }
+    items.forEach(function(item){ var li=document.createElement('li'); li.textContent=item; list.appendChild(li); });
+    box.style.display='block';
+  }
+  function show(v, env, changelog, manual){
+    if(!v) return;
+    lastKnownRemote = String(v);
+    if(String(v) === CURRENT_VERSION){
+      renderChangelog([]);
+      if(manual) setStatus('App atualizada · versão ' + CURRENT_VERSION);
+      return;
     }
-    return t;
+    if(!manual && dismissed(v)) return;
+    var text=byId('geUpdateText');
+    if(text) text.textContent = 'Tens a versão ' + CURRENT_VERSION + '. Já existe a versão ' + v + (env ? ' (' + env + ')' : '') + '. Carrega em atualizar quando quiseres.';
+    renderChangelog(changelog || []);
+    var t=byId('geUpdateToast'); if(t)t.classList.add('ge-show');
+    setStatus('Nova versão encontrada: ' + v);
+    var later=byId('geUpdateLater'), close=byId('geUpdateClose'), now=byId('geUpdateNow');
+    if(later) later.onclick=function(){ dismiss(v); };
+    if(close) close.onclick=function(){ dismiss(v); };
+    if(now) now.onclick=function(){
+      try{ if('caches' in window) caches.keys().then(function(names){ names.forEach(function(name){ caches.delete(name); }); }); }catch(e){}
+      var url = new URL(window.location.href);
+      url.searchParams.set('v', String(v));
+      url.searchParams.set('_', String(Date.now()));
+      window.location.replace(url.toString());
+    };
+  }
+  async function check(manual){
+    if(manual) setStatus('A verificar...');
+    try{
+      var res = await fetch(VERSION_URL + '?_=' + Date.now(), {cache:'no-store'});
+      if(!res.ok){ if(manual) setStatus('Não consegui verificar agora.'); return; }
+      var data = await res.json();
+      show(String(data.version || '').trim(), data.environment || data.env || '', normaliseChangelog(data), !!manual);
+    }
+    catch(e){ console.warn('Verificação de versão indisponível:', e); if(manual) setStatus('Verificação indisponível.'); }
+  }
+  window.AppVersionUpdater = { check: check, currentVersion: CURRENT_VERSION, lastRemoteVersion: function(){return lastKnownRemote;} };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ check(false); }); else check(false);
+  setInterval(function(){ check(false); }, CHECK_EVERY_MS);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) check(false); });
+  document.addEventListener('click', function(ev){
+    var target = ev.target && ev.target.closest ? ev.target.closest('#manualUpdateCheckBtn') : null;
+    if(target){ ev.preventDefault(); check(true); }
   });
-
-  localStorage.setItem("trabalhos", JSON.stringify(trabalhos));
-  location.reload();
-}
-
-// inject button safely
-function injectPagoButtons(){
-  document.querySelectorAll("[data-id]").forEach(el=>{
-    if(el.querySelector(".btn-pago")) return;
-
-    const id = el.getAttribute("data-id");
-    if(!id) return;
-
-    const estado = el.innerText.toLowerCase();
-    if(estado.includes("pago")) return;
-
-    const btn=document.createElement("button");
-    btn.textContent="Pago";
-    btn.className="btn-pago";
-    btn.style.marginTop="6px";
-    btn.style.background="#22c55e";
-    btn.style.border="none";
-    btn.style.padding="6px 10px";
-    btn.style.borderRadius="6px";
-    btn.style.color="white";
-    btn.style.fontWeight="700";
-
-    btn.onclick=()=>marcarComoPagoSafe(id);
-
-    el.appendChild(btn);
-  });
-}
-
-setInterval(injectPagoButtons,1500);
+})();
 </script>
-
 </body>
 </html>
