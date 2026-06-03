@@ -1,0 +1,79 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+
+    function roleDoc() {
+      return get(/databases/$(database)/documents/user_roles/$(request.auth.token.email));
+    }
+
+    function hasRoleDoc() {
+      return signedIn() && exists(/databases/$(database)/documents/user_roles/$(request.auth.token.email));
+    }
+
+    function role() {
+      return hasRoleDoc() ? roleDoc().data.role : 'user';
+    }
+
+    function isBootstrapMaster() {
+      return signedIn() && request.auth.token.email in ['pica.fern@gmail.com'];
+    }
+
+    function isAdmin() {
+      return isBootstrapMaster() || role() in ['admin', 'master_admin'];
+    }
+
+    function isMaster() {
+      return isBootstrapMaster() || role() == 'master_admin';
+    }
+
+    match /trabalhos/{id} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /clientes/{id} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /pagamentos/{id} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /orcamentos/{id} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /logs/{id} {
+      allow read: if isAdmin();
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+
+    match /user_roles/{userEmail} {
+      allow read: if signedIn();
+      allow create, update, delete: if isMaster();
+    }
+
+    match /presence_status/{id} {
+      allow read: if signedIn();
+      allow create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+
+    match /app_backups/{id} {
+      allow read: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
