@@ -15,7 +15,7 @@ Firebase necessário:
 3. Regras Firestore publicadas
 
 Regras Firestore:
-- usar o ficheiro ../../firestore.rules
+- usar o ficheiro ../firestore.rules
 - nao publicar regras abertas do tipo "allow read, write: if request.auth != null"
 - confirmar que cada utilizador tem perfil em user_roles
 
