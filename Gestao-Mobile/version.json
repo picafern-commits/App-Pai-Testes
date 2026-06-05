@@ -1,13 +1,16 @@
 {
-  "version": "1.2.1",
+  "version": "1.3.0",
   "environment": "mobile",
   "changelog": [
-    "Histórico corrigido: Valor Pago editado fica gravado no trabalho.",
-    "Valor Pago manual passa a ter prioridade sobre o valor antigo da coleção pagamentos.",
-    "Quando existir pagamento associado, o valor também é atualizado em pagamentos."
+    "Adiciona Dashboard Executivo com KPIs, alertas e evolucao mensal.",
+    "Adiciona pagina de Cobrancas para valores em aberto.",
+    "Adiciona Agenda operacional por data.",
+    "Adiciona Kanban de trabalhos por estado.",
+    "Adiciona Relatorio Anual e Ficha de Cliente.",
+    "Adiciona centro de notificacoes e melhora cache PWA."
   ],
-  "build": "1.2.1-valor-pago-historico-corrigido",
-  "updatedAt": "2026-06-05T14:30:00Z",
-  "notes": "Correção da edição do Valor Pago no Histórico: o campo editado passa a gravar no trabalho e a manter pagamentos alinhados.",
-  "name": "App-Pai-Testes-main-v1.2.1-valor-pago-historico-corrigido"
+  "build": "1.3.0-product-enhancements",
+  "updatedAt": "2026-06-05T16:15:00Z",
+  "notes": "Camada de produto com novas paginas operacionais, notificacoes, cobrancas, agenda, kanban, ficha de cliente e relatorio anual.",
+  "name": "App-Pai-Testes-main-v1.3.0-product-enhancements"
 }

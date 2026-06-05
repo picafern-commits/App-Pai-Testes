@@ -36,6 +36,10 @@ function File-Info {
 
   $item = Get-Item -LiteralPath $Path
   $content = Get-Content -LiteralPath $Path -Raw
+  $folder = Split-Path -Parent $Path
+  $repairScript = Join-Path $folder 'js\system-repairs.js'
+  $repairContent = if (Test-Path -LiteralPath $repairScript) { Get-Content -LiteralPath $repairScript -Raw } else { '' }
+  $swPath = Join-Path $folder 'sw.js'
   [pscustomobject]@{
     Path = $Path
     Exists = $true
@@ -45,7 +49,7 @@ function File-Info {
     Scripts = Count-Matches $Path '<script'
     Functions = Count-Matches $Path 'function |=>|window\.'
     Firebase = [bool]($content -match 'firebaseConfig|gstatic.com/firebasejs')
-    ServiceWorker = [bool]($content -match 'serviceWorker|sw\.js')
+    ServiceWorker = [bool]((Test-Path -LiteralPath $swPath) -and (($content -match 'serviceWorker|sw\.js') -or ($repairContent -match 'serviceWorker|sw\.js')))
   }
 }
 
