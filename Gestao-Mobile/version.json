@@ -1,5 +1,5 @@
 {
-  "version": "1.1.8",
+  "version": "1.2.0",
   "environment": "mobile",
   "changelog": [
     "Dashboard corrigido: Clientes com dívida agora compara Valor Trabalho com Valor Pago no Histórico.",
@@ -9,5 +9,5 @@
   "build": "1.1.8-dashboard-divida-valor-pago",
   "updatedAt": "2026-06-05T13:10:00Z",
   "notes": "Correção da lógica de Clientes com dívida no Dashboard sem alterar Firebase, login ou sistema de pagamentos.",
-  "name": "Gestao App"
+  "name": "App-Pai-Testes-main-v1.2.0-dashboard-divida-valor-pago"
 }

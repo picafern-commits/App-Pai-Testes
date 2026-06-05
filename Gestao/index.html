@@ -5789,16 +5789,36 @@ function initUiScale(){
 
 
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
-const getValorTrabalho = (t) => Number(t?.valorTrabalho ?? t?.valorEsperado ?? t?.valor ?? 0) || 0;
+const parseMoneyValue = (value) => {
+  if(value === null || value === undefined || value === '') return 0;
+  if(typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  let s = String(value).trim().replace(/\s/g,'').replace(/€/g,'');
+  if(!s) return 0;
+  if(s.includes(',') && s.includes('.')) s = s.replace(/\./g,'').replace(',', '.');
+  else s = s.replace(',', '.');
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+};
+const getValorTrabalho = (t) => parseMoneyValue(t?.valorTrabalho ?? t?.valorEsperado ?? t?.valor ?? 0);
 const trabalhoEstaPago = (t) => normalizeEstado(t?.estado || '') === 'Pago' || String(t?.paymentStatus || '').toLowerCase() === 'pago' || !!t?.dataPagamento;
+const getPagamentosDoTrabalho = (t) => {
+  const lista = Array.isArray(window.pagamentos || pagamentos) ? (window.pagamentos || pagamentos) : [];
+  if(!t || !lista.length) return [];
+  const id = String(t.id || '');
+  const code = String(t.workCode || '');
+  return lista.filter(p =>
+    (id && String(p.sourceWorkId || p.trabalhoId || '') === id) ||
+    (code && String(p.workCode || p.referencia || '') === code)
+  );
+};
 const getValorPago = (t) => {
   if(!t) return 0;
-  const valorPago = Number(t.valorPago ?? 0);
-  if(Number.isFinite(valorPago) && valorPago > 0) return valorPago;
-  if(trabalhoEstaPago(t)){
-    const legacyValor = Number(t.valor ?? 0);
-    return Number.isFinite(legacyValor) ? legacyValor : 0;
+  const pagamentosTrabalho = getPagamentosDoTrabalho(t);
+  if(pagamentosTrabalho.length){
+    return pagamentosTrabalho.reduce((sum, p) => sum + parseMoneyValue(p.valor ?? p.valorPago ?? 0), 0);
   }
+  const valorPago = parseMoneyValue(t.valorPago ?? 0);
+  if(valorPago > 0) return valorPago;
   return 0;
 };
 const getValorPagoCompat = getValorPago;
@@ -8263,30 +8283,43 @@ function renderDashboardEmpresaSmart(){
 
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
 
-  // Dívida no Dashboard: compara o Valor Trabalho com o Valor Pago guardado no próprio trabalho.
-  // Assim, um cliente só aparece em dívida quando Valor Pago < Valor Trabalho.
+  // Dívida no Dashboard: só entra quando o trabalho já foi ENTREGUE
+  // e ainda existe diferença entre Valor Trabalho e Valor Pago.
+  // Assim, ao passar para Entregue aparece em dívida; ao pagar total desaparece.
   const clientTotals = {};
   trabalhosLista.forEach(t => {
     const nome = String(t.cliente || t.clienteNome || '').trim();
     if(!nome) return;
 
+    const estadoAtual = normalizeEstado(t.estado || '');
+    const trabalhoEntregueOuPago = estadoAtual === 'Entregue' || estadoAtual === 'Pago';
+    if(!trabalhoEntregueOuPago) return;
+
     const valorTrabalho = getValorTrabalho(t);
-    const valorPago = Number(t?.valorPago ?? 0) || 0;
+    const valorPago = getValorPago(t);
     const emAberto = Math.max(valorTrabalho - valorPago, 0);
 
     if(emAberto <= 0.009) return;
 
-    clientTotals[nome] = clientTotals[nome] || { divida:0, trabalhos:0 };
+    clientTotals[nome] = clientTotals[nome] || { divida:0, trabalhos:0, valorTrabalho:0, valorPago:0 };
     clientTotals[nome].divida += emAberto;
+    clientTotals[nome].valorTrabalho += valorTrabalho;
+    clientTotals[nome].valorPago += valorPago;
     clientTotals[nome].trabalhos += 1;
   });
 
-  const clientesDivida = Object.entries(clientTotals)
-    .map(([nome, vals]) => ({ nome, divida: vals.divida || 0, trabalhos: vals.trabalhos || 0 }))
+  const clientesDividaTodos = Object.entries(clientTotals)
+    .map(([nome, vals]) => ({
+      nome,
+      divida: vals.divida || 0,
+      valorTrabalho: vals.valorTrabalho || 0,
+      valorPago: vals.valorPago || 0,
+      trabalhos: vals.trabalhos || 0
+    }))
     .filter(item => item.divida > 0.009)
-    .sort((a,b) => b.divida - a.divida)
-    .slice(0,6);
-  const totalDivida = clientesDivida.reduce((sum, item) => sum + item.divida, 0);
+    .sort((a,b) => b.divida - a.divida);
+  const totalDivida = clientesDividaTodos.reduce((sum, item) => sum + item.divida, 0);
+  const clientesDivida = clientesDividaTodos.slice(0,6);
 
   const orcPendentes = orcamentosLista
     .filter(o => String(o.estado || '').toLowerCase().includes('pend'))
@@ -8296,7 +8329,7 @@ function renderDashboardEmpresaSmart(){
   recebidoEl.textContent = euro(totalRecebido);
   dividaEl.textContent = euro(totalDivida);
   orcEl.textContent = String(orcPendentes.length);
-  cliEl.textContent = String(clientesDivida.length);
+  cliEl.textContent = String(clientesDividaTodos.length);
 
   if(alertCards){
     const trabalhosPendentes = trabalhosLista.filter(t => {
@@ -8310,8 +8343,8 @@ function renderDashboardEmpresaSmart(){
     if(trabalhosPendentes){
       alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Em andamento">Trabalhos</span><strong>${trabalhosPendentes}</strong><p>Trabalhos pendentes ou em andamento.</p></div>`);
     }
-    if(clientesDivida.length){
-      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Pendente">Clientes</span><strong>${clientesDivida.length}</strong><p>Clientes com valores em dívida.</p></div>`);
+    if(clientesDividaTodos.length){
+      alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Pendente">Clientes</span><strong>${clientesDividaTodos.length}</strong><p>Clientes com valores em dívida.</p></div>`);
     }
     if(totalDivida > 0.009){
       alertHtml.push(`<div class="alert-card"><span class="badge" data-state="Pendente">Dívida</span><strong>${euro(totalDivida)}</strong><p>Valor global ainda por receber.</p></div>`);
@@ -8323,7 +8356,7 @@ function renderDashboardEmpresaSmart(){
     <div class="empresa-item">
       <div class="meta">
         <span class="title">${escapeHtml(item.nome)}</span>
-        <span class="sub">Valor Pago inferior ao Valor Trabalho</span>
+        <span class="sub">Pago ${euro(item.valorPago)} de ${euro(item.valorTrabalho)} • ${item.trabalhos} trabalho(s)</span>
       </div>
       <div style="display:grid;justify-items:end;gap:6px;">
         <span class="empresa-pill danger">Dívida</span>
