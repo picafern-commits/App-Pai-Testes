@@ -6411,7 +6411,8 @@ function buildFlowButtons(t){
   const nextEstado = getNextFlowEstado(t.estado || 'Pendente');
 
   if(isPaid || atual === 'Pago'){
-    return `<span class="stage-step done final-paid">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span><button class="stage-step stage-control-btn pay-warning" onclick="window.desmarcarPago('${t.id}')">Tirar Pago</button>`;
+    const removePaidButton = isMasterAdmin() ? `<button class="stage-step stage-control-btn pay-warning" onclick="window.desmarcarPago('${t.id}')">Tirar Pago</button>` : '';
+    return `<span class="stage-step done final-paid">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>${removePaidButton}`;
   }
 
   if(atual === 'Entregue' || !nextEstado){
@@ -9504,7 +9505,10 @@ function showPaymentModal(){
 
 
 window.desmarcarPago = async function(id){
-  if(!adminGuard()) return;
+  if(!isMasterAdmin()){
+    alert('Só o Admin Mestre pode tirar pagamentos.');
+    return false;
+  }
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
   if(!confirm('Tirar o pagamento deste trabalho? O Valor Pago volta a 0,00 € e o registo sai da página Pagamentos.')) return;
