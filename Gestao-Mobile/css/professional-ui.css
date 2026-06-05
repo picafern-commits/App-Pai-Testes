@@ -69,3 +69,19 @@ input,select,textarea{background:rgba(3,7,18,.64)!important;border:1px solid var
 .online-toggle,.online-card{border-radius:22px!important;border:1px solid var(--vr-line)!important;background:rgba(12,18,32,.92)!important;box-shadow:var(--vr-shadow)!important;backdrop-filter:blur(18px)!important}
 @media(max-width:900px){.sidebar{border-right:none!important;border-bottom:1px solid var(--vr-line)!important}.nav-btn:hover,.nav-btn.active{transform:none!important}.stat-card{min-height:112px!important}.login-card{border-radius:28px!important}.login-brand{min-height:auto!important}.modal-card{border-radius:24px!important}.table-wrap{border-radius:18px!important}}
 @media(max-width:700px){.stats-grid{grid-template-columns:1fr!important}.btn,.small-btn{border-radius:14px!important}.panel,.stat-card,.setting-card,.settings-card,.mobile-card{border-radius:20px!important}}
+
+/* v1.1.7 - Remover barra lateral antiga nos botões da sidebar */
+.sidebar .nav-btn::before,
+.sidebar .nav-btn.active::before,
+.sidebar .nav-btn:hover::before{
+  content:none !important;
+  display:none !important;
+}
+.sidebar .nav-btn.active{
+  box-shadow:0 14px 30px rgba(0,0,0,.18) !important;
+}
+.sidebar .nav-btn,
+.sidebar .nav-btn.active,
+.sidebar .nav-btn:hover{
+  border-left:1px solid rgba(255,255,255,.08) !important;
+}

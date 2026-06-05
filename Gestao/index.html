@@ -2701,16 +2701,8 @@ td.acoes-col, .acoes-col{
   border-color:rgba(255,255,255,.10) !important;
   box-shadow:0 12px 26px rgba(0,0,0,.16);
 }
-.nav-btn.active::before{
-  content:"";
-  position:absolute;
-  left:-2px;
-  top:10px;
-  bottom:10px;
-  width:4px;
-  border-radius:999px;
-  background:linear-gradient(180deg, #ff7a18, #24c8ff);
-}
+/* v1.1.7: barra antiga da sidebar removida */
+.nav-btn.active::before{content:none !important;display:none !important;}
 .nav-icon{
   width:32px !important;
   height:32px !important;

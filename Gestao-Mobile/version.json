@@ -1,5 +1,5 @@
 {
-  "version": "1.1.6",
+  "version": "1.1.7",
   "environment": "mobile",
   "changelog": [
     "Corrigido erro que impedia o JavaScript do login de arrancar.",
@@ -7,6 +7,7 @@
     "Sistema de temas corrigido para não partir scripts internos."
   ],
   "build": "1.1.6-login-visual-fix",
-  "updatedAt": "2026-06-05T12:00:00+01:00",
-  "notes": "Correção do login após Visual Refresh 2026, mantendo Sidebar Enterprise, modais, botões, tabelas, login premium, temas e KPI cards."
+  "updatedAt": "2026-06-05T12:35:00Z",
+  "notes": "Correção do login após Visual Refresh 2026, mantendo Sidebar Enterprise, modais, botões, tabelas, login premium, temas e KPI cards.",
+  "name": "Gestao App"
 }
