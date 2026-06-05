@@ -1,13 +1,13 @@
 {
-  "version": "1.1.4",
+  "version": "1.1.5",
   "environment": "mobile",
   "changelog": [
-    "Versão 1.1.2: ZIP completo com todos os ficheiros da APP.",
-    "Valor Trabalho fica separado do Valor Pago no Histórico.",
-    "Ao criar trabalho, Valor Pago começa a 0,00 €.",
-    "Ao marcar como Pago, o valor introduzido no modal passa para Valor Pago e cria/atualiza o pagamento."
+    "Visual Refresh 2026 aplicado sem alterar a lógica da Firebase.",
+    "Sidebar Enterprise com novo glow, navegação ativa e acabamento premium.",
+    "Modais, botões, tabelas, login e cartões KPI redesenhados.",
+    "Novo seletor de temas nas Configurações."
   ],
-  "build": "1.1.4-admin-mestre-tirar-pago",
-  "updatedAt": "2026-06-05T11:35:00+01:00",
-  "notes": "Permite tirar o Pago no Histórico e limpar Valor Pago/Pagamentos."
+  "build": "1.1.5-visual-refresh-2026",
+  "updatedAt": "2026-06-05T12:00:00+01:00",
+  "notes": "Visual Refresh 2026: Sidebar Enterprise, Modais Profissionais, Botões Uniformes, Tabelas Enterprise, Login Premium, Sistema de Temas e KPI Cards modernos."
 }
