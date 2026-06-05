@@ -1,13 +1,13 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "environment": "produção",
   "changelog": [
-    "Dashboard corrigido: Clientes com dívida agora compara Valor Trabalho com Valor Pago no Histórico.",
-    "Cliente só aparece em dívida quando Valor Pago é inferior ao Valor Trabalho.",
-    "Visual Refresh e login mantidos."
+    "Histórico corrigido: Valor Pago editado fica gravado no trabalho.",
+    "Valor Pago manual passa a ter prioridade sobre o valor antigo da coleção pagamentos.",
+    "Quando existir pagamento associado, o valor também é atualizado em pagamentos."
   ],
-  "build": "1.1.8-dashboard-divida-valor-pago",
-  "updatedAt": "2026-06-05T13:10:00Z",
-  "notes": "Correção da lógica de Clientes com dívida no Dashboard sem alterar Firebase, login ou sistema de pagamentos.",
-  "name": "App-Pai-Testes-main-v1.2.0-dashboard-divida-valor-pago"
+  "build": "1.2.1-valor-pago-historico-corrigido",
+  "updatedAt": "2026-06-05T14:30:00Z",
+  "notes": "Correção da edição do Valor Pago no Histórico: o campo editado passa a gravar no trabalho e a manter pagamentos alinhados.",
+  "name": "App-Pai-Testes-main-v1.2.1-valor-pago-historico-corrigido"
 }

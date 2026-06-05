@@ -6148,12 +6148,18 @@ const getPagamentosDoTrabalho = (t) => {
 };
 const getValorPago = (t) => {
   if(!t) return 0;
+
+  // O campo editável do Histórico é a fonte principal.
+  // Antes a APP dava prioridade à coleção "pagamentos", por isso ao corrigir
+  // manualmente o Valor Pago no Histórico o valor voltava ao antigo após refresh.
+  const valorPagoManual = parseMoneyValue(t.valorPago ?? 0);
+  if(valorPagoManual > 0) return valorPagoManual;
+
   const pagamentosTrabalho = getPagamentosDoTrabalho(t);
   if(pagamentosTrabalho.length){
     return pagamentosTrabalho.reduce((sum, p) => sum + parseMoneyValue(p.valor ?? p.valorPago ?? 0), 0);
   }
-  const valorPago = parseMoneyValue(t.valorPago ?? 0);
-  if(valorPago > 0) return valorPago;
+
   return 0;
 };
 const getValorPagoCompat = getValorPago;
@@ -9158,7 +9164,9 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     tipoTrabalho:$('tipoTrabalho').value.trim(),
     valorTrabalho:Number($('valorTrabalho')?.value||0),
     valor:Number($('valorTrabalho')?.value||0),
-    valorPago: original ? getValorPago(original) : 0,
+    // Ao editar um trabalho antigo, guardar o Valor Pago que está no formulário.
+    // Ao criar um trabalho novo, começa sempre a 0 e só muda quando for pago.
+    valorPago: original ? parseMoneyValue($('valor')?.value ?? getValorPago(original)) : 0,
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
@@ -9180,6 +9188,34 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
   saveLocal();
   try{
     await upsertRemote('trabalhos', trabalhos.find(x=>x.id===item.id) || item);
+
+    // Se o trabalho já tinha pagamento registado, manter a coleção pagamentos alinhada
+    // com o Valor Pago corrigido no Histórico.
+    if(original && (trabalhoEstaPago(item) || item.paymentStatus === 'Pago')){
+      const existingPagamento = pagamentos.find(p =>
+        (p.sourceWorkId && p.sourceWorkId === item.id) ||
+        (p.trabalhoId && p.trabalhoId === item.id) ||
+        (p.workCode && item.workCode && p.workCode === item.workCode)
+      );
+      if(existingPagamento){
+        const pagamentoCorrigido = {
+          ...existingPagamento,
+          valor: Number(item.valorPago ?? 0),
+          valorPago: Number(item.valorPago ?? 0),
+          cliente: item.cliente || existingPagamento.cliente || '',
+          referencia: item.workCode || existingPagamento.referencia || '',
+          workCode: item.workCode || existingPagamento.workCode || '',
+          sourceWorkId: item.id,
+          data: item.dataPagamento || existingPagamento.data || '',
+          metodo: item.paymentMethod || item.metodoPagamento || existingPagamento.metodo || 'Manual',
+          invoiceType: item.invoiceType || existingPagamento.invoiceType || 'Com Fat'
+        };
+        await upsertRemote('pagamentos', pagamentoCorrigido);
+        const pi = pagamentos.findIndex(p => p.id === pagamentoCorrigido.id);
+        if(pi >= 0) pagamentos[pi] = pagamentoCorrigido;
+      }
+    }
+
     await logAction(actionType, {
       entity: 'trabalho',
       trabalhoId: item.id,
