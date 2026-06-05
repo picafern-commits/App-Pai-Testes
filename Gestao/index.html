@@ -1634,11 +1634,11 @@ tbody tr:hover{background:rgba(255,255,255,.025)}
 button.stage-step{cursor:pointer;transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease}
 button.stage-step:hover{transform:translateY(-1px)}
 .stage-step.done{background:linear-gradient(180deg, rgba(22,163,74,.24), rgba(21,128,61,.20));border-color:rgba(74,222,128,.42);color:#dcfce7;box-shadow:0 0 0 1px rgba(34,197,94,.10) inset}
-.stage-step.done::before{content:'✓';font-size:11px;font-weight:900;margin-right:6px;color:#bbf7d0}
+.stage-step.done::before{content:'OK';font-size:10px;font-weight:900;margin-right:6px;color:#bbf7d0}
 .stage-step.current{background:linear-gradient(180deg, rgba(37,99,235,.26), rgba(29,78,216,.18));border-color:rgba(96,165,250,.42);color:#dbeafe;box-shadow:0 0 0 1px rgba(59,130,246,.12) inset, 0 6px 14px rgba(37,99,235,.14)}
 .stage-step.current::after{content:'';position:absolute;inset:-2px;border-radius:999px;border:1px solid rgba(147,197,253,.22);pointer-events:none}
 button.stage-step.next{background:linear-gradient(180deg, rgba(245,158,11,.22), rgba(217,119,6,.16));border-color:rgba(252,211,77,.38);color:#fef3c7;box-shadow:0 0 0 1px rgba(245,158,11,.08) inset}
-button.stage-step.next::before{content:'→';font-size:11px;font-weight:900;margin-right:6px;color:#fde68a}
+button.stage-step.next::before{content:'>';font-size:11px;font-weight:900;margin-right:6px;color:#fde68a}
 .stage-step.locked{opacity:.45;filter:saturate(.72)}
 .stage-arrow{color:rgba(148,163,184,.52);font-size:12px;font-weight:900;transform:translateY(-1px)}
 @media (max-width: 900px){
@@ -1690,7 +1690,7 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   box-shadow:0 0 0 1px rgba(245,158,11,.08) inset;
 }
 .stage-control-btn.next::before{
-  content:'→';
+  content:'>';
   font-size:11px;
   font-weight:900;
   margin-right:6px;
@@ -1715,7 +1715,7 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   color:#dcfce7;
 }
 .stage-step.final-paid::before{
-  content:'✓';
+  content:'OK';
   font-size:11px;
   font-weight:900;
   margin-right:6px;
@@ -3110,7 +3110,6 @@ body{
 <meta name="theme-color" content="#0b1020">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="css/professional-ui.css">
-<link rel="stylesheet" href="css/product-enhancements.css">
 
 </head>
 <body>
@@ -3135,7 +3134,7 @@ body{
           </div>
           <div class="field">
             <label>Palavra-passe</label>
-            <input id="loginPassword" type="password" placeholder="••••••••" required />
+            <input id="loginPassword" type="password" placeholder="********" required />
           </div>
           <label class="remember-login">
             <input id="rememberMe" type="checkbox" />
@@ -3151,7 +3150,7 @@ body{
   <div id="appRoot" class="app-shell hidden">
     <div id="onlineUsersWidget" class="online-widget hidden">
       <button id="onlineUsersToggle" type="button" class="online-toggle" title="Mostrar / esconder utilizadores online">
-        <span>👥 Online</span>
+        <span>Online</span>
         <span id="onlineUsersCount" class="online-toggle-count">0</span>
       </button>
       <div id="onlineUsersCard" class="online-card">
@@ -3161,8 +3160,8 @@ body{
             <small>Atualização em tempo real</small>
           </div>
           <div class="online-head-actions">
-            <button id="onlineUsersRefresh" type="button" class="online-head-btn" title="Atualizar">↻</button>
-            <button id="onlineUsersHide" type="button" class="online-head-btn" title="Esconder">✕</button>
+            <button id="onlineUsersRefresh" type="button" class="online-head-btn" title="Atualizar">R</button>
+            <button id="onlineUsersHide" type="button" class="online-head-btn" title="Esconder">x</button>
           </div>
         </div>
         <div id="onlineUsersList" class="online-users-list"></div>
@@ -3178,15 +3177,15 @@ body{
       </div>
 
       <nav class="nav">
-        <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">◈</span><span>Dashboard</span></button>
-        <button class="nav-btn" data-tab="adicionar"><span class="nav-icon">＋</span><span>Adicionar Trabalho</span></button>
-        <button class="nav-btn" data-tab="trabalhos"><span class="nav-icon">☰</span><span>Histórico Trabalhos</span></button>
-        <button class="nav-btn" data-tab="orcamentos"><span class="nav-icon">📝</span><span>Orçamentos</span></button>
-        <button class="nav-btn" data-tab="clientes"><span class="nav-icon">◉</span><span>Clientes</span></button>
-        <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">€</span><span>Pagamentos</span></button>
-        <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">▣</span><span>Relatórios</span></button>
-        <button class="nav-btn admin-only" data-tab="logs"><span class="nav-icon">🧾</span><span>Auditoria</span></button>
-        <button class="nav-btn" data-tab="configuracoes"><span class="nav-icon">⚙</span><span>Configurações</span></button>
+        <button class="nav-btn active" data-tab="dashboard"><span class="nav-icon">D</span><span>Dashboard</span></button>
+        <button class="nav-btn" data-tab="adicionar"><span class="nav-icon">+</span><span>Adicionar Trabalho</span></button>
+        <button class="nav-btn" data-tab="trabalhos"><span class="nav-icon">H</span><span>Histórico Trabalhos</span></button>
+        <button class="nav-btn" data-tab="orcamentos"><span class="nav-icon">O</span><span>Orçamentos</span></button>
+        <button class="nav-btn" data-tab="clientes"><span class="nav-icon">C</span><span>Clientes</span></button>
+        <button class="nav-btn" data-tab="pagamentos"><span class="nav-icon">P</span><span>Pagamentos</span></button>
+        <button class="nav-btn" data-tab="relatorios"><span class="nav-icon">R</span><span>Relatórios</span></button>
+        <button class="nav-btn admin-only" data-tab="logs"><span class="nav-icon">A</span><span>Auditoria</span></button>
+        <button class="nav-btn" data-tab="configuracoes"><span class="nav-icon">Cfg</span><span>Configurações</span></button>
       </nav>
 
       <div class="sidebar-footer">
@@ -3209,9 +3208,9 @@ body{
             <h2 id="pageTitle">Dashboard</h2>
             <div class="subline">
               <span id="roleLine">Role: -</span>
-              <span>•</span>
+              <span>-</span>
               <span id="modeLine">Modo: Local</span>
-              <span>•</span>
+              <span>-</span>
               <span id="currentUserName">Utilizador</span>
             </div>
           </div>
@@ -3379,13 +3378,13 @@ body{
             <div id="pagamentosCardsWrap" class="mobile-cards-wrap"></div><div class="table-wrap">
               <table>
                 <thead><tr>
-<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('workCode')">ID <span id="sortIcon-workCode">↓</span></button></th>
-<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('cliente')">Cliente <span id="sortIcon-cliente">↕</span></button></th>
-<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('referencia')">Nome do Trabalho <span id="sortIcon-referencia">↕</span></button></th>
-<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('data')">Data do Trabalho <span id="sortIcon-data">↕</span></button></th>
-<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('valor')">Valor <span id="sortIcon-valor">↕</span></button></th>
-<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('metodo')">Método <span id="sortIcon-metodo">↕</span></button></th>
-<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('invoiceType')">Fat <span id="sortIcon-invoiceType">↕</span></button></th>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('workCode')">ID <span id="sortIcon-workCode">v</span></button></th>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('cliente')">Cliente <span id="sortIcon-cliente">-</span></button></th>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('referencia')">Nome do Trabalho <span id="sortIcon-referencia">-</span></button></th>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('data')">Data do Trabalho <span id="sortIcon-data">-</span></button></th>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('valor')">Valor <span id="sortIcon-valor">-</span></button></th>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('metodo')">Método <span id="sortIcon-metodo">-</span></button></th>
+<th><button type="button" class="table-sort-btn" onclick="setPagamentoSort('invoiceType')">Fat <span id="sortIcon-invoiceType">-</span></button></th>
 <th>Ações</th></tr></thead>
                 <tbody id="pagamentosTableBody"></tbody>
               </table>
@@ -4242,7 +4241,7 @@ function mostrarAvisoBackup(){
       color:white;
       font-size:13px;
     ">
-      Backup diário criado ✔
+      Backup diário criado OK
       <br>
       <button onclick="exportBackupManual()" style="margin-top:6px">Exportar agora</button>
     </div>
@@ -4382,7 +4381,7 @@ function renderAdvancedReports(){
   const data = buildAdvancedReportData();
 
   avgEl.textContent = formatEuroValue(data.avgValue);
-  topEl.textContent = data.topClient ? `${data.topClient.nome} · ${formatEuroValue(data.topClient.total)}` : '--';
+  topEl.textContent = data.topClient ? `${data.topClient.nome} - ${formatEuroValue(data.topClient.total)}` : '--';
 
   if(!data.ranking.length){
     rankingEl.innerHTML = '<div class="relatorios-empty">Sem dados suficientes para ranking.</div>';
@@ -4409,7 +4408,7 @@ function renderAdvancedReports(){
         <div class="relatorios-list-item">
           <div class="meta">
             <span class="title">${escapeHtml(item.nome)}</span>
-            <span class="sub">${dateText} · ${escapeHtml(stateText)}</span>
+            <span class="sub">${dateText} - ${escapeHtml(stateText)}</span>
           </div>
           <span class="amount">${item.count} reg.</span>
         </div>
@@ -4843,7 +4842,7 @@ function printProfessionalReport(){
     if(timerEl) timerEl.textContent = formatDurationMs(nextTarget - now);
     const today = getTodayIsoForBackup();
     const sentToday = meta.lastBackupDate === today;
-    if(cloudEl) cloudEl.textContent = sentToday ? `Enviado hoje • ${formatBackupDateSafe(meta.lastBackupAt)}` : 'Por enviar hoje';
+    if(cloudEl) cloudEl.textContent = sentToday ? `Enviado hoje - ${formatBackupDateSafe(meta.lastBackupAt)}` : 'Por enviar hoje';
     if(pillEl){
       pillEl.classList.remove('ok','warn','error');
       if(sentToday){
@@ -5134,7 +5133,7 @@ function printProfessionalReport(){
           return `<div class="firebase-backup-item">
             <div class="firebase-backup-meta">
               <strong>${when}</strong>
-              <span>${total} registos • Trabalhos ${snapData.trabalhos.length} • Clientes ${snapData.clientes.length} • Pagamentos ${snapData.pagamentos.length}</span>
+              <span>${total} registos - Trabalhos ${snapData.trabalhos.length} - Clientes ${snapData.clientes.length} - Pagamentos ${snapData.pagamentos.length}</span>
             </div>
             <div class="firebase-backup-actions">
               <button class="small-btn" type="button" onclick="previewFirebaseBackupClean('${item.id.replace(/'/g,"&#39;")}')">Ver</button>
@@ -5578,7 +5577,7 @@ function renderOnlineUsersCard(){
     const email = escapeHtml(user.email || '-');
     const name = escapeHtml((user.username || user.email || 'Utilizador') + you);
     const role = escapeHtml(roleLabel(user.role));
-    const seen = user.updatedAt ? `Ativo agora • ${new Date(Number(user.updatedAt)).toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' })}` : 'Ativo agora';
+    const seen = user.updatedAt ? `Ativo agora - ${new Date(Number(user.updatedAt)).toLocaleTimeString('pt-PT', { hour:'2-digit', minute:'2-digit' })}` : 'Ativo agora';
     return `<div class="online-user-item"><div class="online-user-main"><span class="online-dot"></span><div class="online-user-meta"><div class="online-user-name">${name}</div><div class="online-user-sub">${email}<br>${escapeHtml(seen)}</div></div></div><span class="online-role-pill">${role}</span></div>`;
   }).join('');
 }
@@ -6098,7 +6097,7 @@ function buildFlowButtons(t){
 
   if(isPaid || atual === 'Pago'){
     const removePaidButton = isMasterAdmin() ? `<button class="stage-step stage-control-btn pay-warning" onclick="window.desmarcarPago('${t.id}')">Tirar Pago</button>` : '';
-    return `<span class="stage-step done final-paid">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>${removePaidButton}`;
+    return `<span class="stage-step done final-paid">Pago${t.dataPagamento ? ` - ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>${removePaidButton}`;
   }
 
   if(atual === 'Entregue' || !nextEstado){
@@ -6110,7 +6109,7 @@ function buildFlowButtons(t){
 
 
 function getPaymentBadgeHtml(t){
-  return t && t.paymentStatus === 'Pago' ? `<span class="payment-badge-inline">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>` : '';
+  return t && t.paymentStatus === 'Pago' ? `<span class="payment-badge-inline">Pago${t.dataPagamento ? ` - ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>` : '';
 }
 window.setWorkEstadoById = setWorkEstadoById;
 
@@ -6388,7 +6387,7 @@ function setRoleUI(){
   document.body.classList.toggle('role-view-user', currentRole === 'user');
   document.body.classList.toggle('role-view-admin', currentRole === 'admin');
   $('roleBadge').textContent = roleLabel;
-  $('roleLine').textContent = `Role: ${roleLabel} • ${currentDeviceType}: ${accessLabel}`;
+  $('roleLine').textContent = `Role: ${roleLabel} - ${currentDeviceType}: ${accessLabel}`;
   $('versionBadge').textContent = APP_VERSION;
   $('currentUserName').textContent = currentUsername || 'Utilizador';
   const usersSection = $('usersSection');
@@ -6442,7 +6441,7 @@ function summarizeAuditDetails(log){
       parts.push(`${key}: ${typeof val === 'object' ? JSON.stringify(val) : String(val)}`);
     }
   }
-  return parts.join(' • ') || '-';
+  return parts.join(' - ') || '-';
 }
 function escapeCsvValue(value){
   const text = String(value ?? '');
@@ -7138,7 +7137,7 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   box-shadow:0 0 0 1px rgba(245,158,11,.08) inset;
 }
 .stage-control-btn.next::before{
-  content:'→';
+  content:'>';
   font-size:11px;
   font-weight:900;
   margin-right:6px;
@@ -7163,7 +7162,7 @@ button.desc-status-btn:hover{transform:translateY(-1px)}
   color:#dcfce7;
 }
 .stage-step.final-paid::before{
-  content:'✓';
+  content:'OK';
   font-size:11px;
   font-weight:900;
   margin-right:6px;
@@ -8246,7 +8245,7 @@ function renderCalendario(){
                   <span class="badge" data-state="${escapeHtml(t.estado || '-')}">${escapeHtml(t.estado || '-')}</span>
                 </div>
                 <div>${escapeHtml(t.tipoTrabalho || '-')}</div>
-                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} • Valor: ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</div>
+                <div class="calendar-meta">${escapeHtml(t.contacto || 'Sem contacto')} - Valor: ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</div>
                 ${(t.descricao || '').trim() ? `<div class="calendar-meta">${escapeHtml(t.descricao)}</div>` : ''}
               </div>
               <div class="row-actions">
@@ -8363,7 +8362,7 @@ function renderDashboardEmpresaSmart(){
     <div class="empresa-item">
       <div class="meta">
         <span class="title">${escapeHtml(item.nome)}</span>
-        <span class="sub">Pago ${euro(item.valorPago)} de ${euro(item.valorTrabalho)} • ${item.trabalhos} trabalho(s)</span>
+        <span class="sub">Pago ${euro(item.valorPago)} de ${euro(item.valorTrabalho)} - ${item.trabalhos} trabalho(s)</span>
       </div>
       <div style="display:grid;justify-items:end;gap:6px;">
         <span class="empresa-pill danger">Dívida</span>
@@ -8407,7 +8406,7 @@ function renderDashboard(){
         <div class="mini-label badge" data-state="${escapeHtml(t.estado||'Sem estado')}">${escapeHtml(t.estado||'Sem estado')}</div>
         <strong>${escapeHtml(t.cliente||'-')}</strong>
         <div>${escapeHtml(t.tipoTrabalho||'-')}</div>
-        <div class="recent-meta">${euro(getValorPago(t))} <span class="valor-trabalho-note">Valor trabalho: ${euro(getValorTrabalho(t))}</span> • ${fmtDate(t.dataInicio)} → ${fmtDate(t.dataFim)}</div>
+        <div class="recent-meta">${euro(getValorPago(t))} <span class="valor-trabalho-note">Valor trabalho: ${euro(getValorTrabalho(t))}</span> - ${fmtDate(t.dataInicio)} > ${fmtDate(t.dataFim)}</div>
       </div>`).join('');
 
   const monthMap={};
@@ -8563,7 +8562,7 @@ function pagamentoActions(p){
 }
 let trabalhosCurrentPage = 1;
 function getTrabalhosPerPage(){ const el = $('trabalhosPerPage'); const v = Number(el?.value || 20); return Number.isFinite(v) && v > 0 ? v : 20; }
-function updateTrabalhosPagination(totalRows){ const perPage = getTrabalhosPerPage(); const totalPages = Math.max(1, Math.ceil(totalRows / perPage)); if(trabalhosCurrentPage > totalPages) trabalhosCurrentPage = totalPages; if(trabalhosCurrentPage < 1) trabalhosCurrentPage = 1; const info = $('trabalhosPageInfo'); if(info) info.textContent = `Página ${trabalhosCurrentPage} de ${totalPages} • ${totalRows} trabalhos`; const prev = $('trabalhosPrevBtn'); const next = $('trabalhosNextBtn'); if(prev) prev.disabled = trabalhosCurrentPage <= 1; if(next) next.disabled = trabalhosCurrentPage >= totalPages; return { perPage, totalPages, start:(trabalhosCurrentPage-1)*perPage, end:trabalhosCurrentPage*perPage }; }
+function updateTrabalhosPagination(totalRows){ const perPage = getTrabalhosPerPage(); const totalPages = Math.max(1, Math.ceil(totalRows / perPage)); if(trabalhosCurrentPage > totalPages) trabalhosCurrentPage = totalPages; if(trabalhosCurrentPage < 1) trabalhosCurrentPage = 1; const info = $('trabalhosPageInfo'); if(info) info.textContent = `Página ${trabalhosCurrentPage} de ${totalPages} - ${totalRows} trabalhos`; const prev = $('trabalhosPrevBtn'); const next = $('trabalhosNextBtn'); if(prev) prev.disabled = trabalhosCurrentPage <= 1; if(next) next.disabled = trabalhosCurrentPage >= totalPages; return { perPage, totalPages, start:(trabalhosCurrentPage-1)*perPage, end:trabalhosCurrentPage*perPage }; }
 
 
 function renderTrabalhos(){
@@ -8609,7 +8608,7 @@ function updatePagamentoSortIcons() {
   ['workCode','cliente','referencia','data','valor','metodo','invoiceType'].forEach((key) => {
     const el = document.getElementById(`sortIcon-${key}`);
     if (!el) return;
-    el.textContent = pagamentoSortKey === key ? (pagamentoSortDir === 'asc' ? '↑' : '↓') : '↕';
+    el.textContent = pagamentoSortKey === key ? (pagamentoSortDir === 'asc' ? '^' : 'v') : '-';
   });
 }
 
@@ -9010,13 +9009,13 @@ window.generateInvoice = function(id){
     <div class="card"><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div>
     <div class="card"><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div>
     <div class="card"><strong>Data de início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Data de fim:</strong> ${fmtDate(t.dataFim)}</div>
-    <div class="card"><strong>Estado:</strong> ${escapeHtml(t.estado||'-')}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}</div>
+    <div class="card"><strong>Estado:</strong> ${escapeHtml(t.estado||'-')}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '- ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}</div>
     <div class="card"><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div>
     <div class="card"><strong>Total:</strong> ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</div>
   `);
 };
 
-window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> — ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} • ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor Trabalho:</strong> ${euro(getValorTrabalho(t))}<br><strong>Valor Pago:</strong> ${euro(getValorPago(t))}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '• ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
+window.pdfTrabalho = function(id){ const t=trabalhos.find(x=>x.id===id); if(!t) return; const historicoHtml = normalizeHistoricoEstados(t.historicoEstados, t.estado||'Pendente', t.dataEstado || t.dataInicio || '').map(item=>`<li><strong>${escapeHtml(item.estado||'-')}</strong> - ${escapeHtml(formatDateTime(item.data))}</li>`).join(''); printHtml(`Trabalho ${t.cliente}`, `<h1>Ficha de Trabalho</h1><div class='meta'>${escapeHtml(t.cliente||'-')} - ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(t.cliente||'-')}</div><div class='card'><strong>Contacto:</strong> ${escapeHtml(t.contacto||'-')}</div><div class='card'><strong>Tipo de trabalho:</strong> ${escapeHtml(t.tipoTrabalho||'-')}</div><div class='card'><strong>Valor Trabalho:</strong> ${euro(getValorTrabalho(t))}<br><strong>Valor Pago:</strong> ${euro(getValorPago(t))}</div><div class='card'><strong>Início:</strong> ${fmtDate(t.dataInicio)}<br><strong>Fim:</strong> ${fmtDate(t.dataFim)}</div><div class='card'><strong>Estado:</strong> ${escapeHtml(normalizeEstado(t.estado||'-'))}<br><strong>Pagamento:</strong> ${escapeHtml(t.paymentStatus || 'Pendente')} ${t.dataPagamento ? '- ' + escapeHtml(fmtDate(t.dataPagamento)) : ''}<br><strong>Última alteração:</strong> ${escapeHtml(formatDateTime(t.dataEstado))}</div><div class='card'><strong>Descrição:</strong><br>${escapeHtml(t.descricao||'-')}</div><div class='card'><strong>Histórico de estados:</strong><ul>${historicoHtml || '<li>Sem histórico.</li>'}</ul></div>`); };
 window.pdfCliente = function(id){ const c=clientes.find(x=>x.id===id); if(!c) return; const trabalhosCliente=trabalhos.filter(t=>(t.cliente||'').trim().toLowerCase()===(c.nome||'').trim().toLowerCase()); const linhas=trabalhosCliente.map(t=>`<tr><td>${escapeHtml(t.tipoTrabalho||'-')}</td><td>${fmtDate(t.dataInicio)}</td><td>${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}</td></tr>`).join(''); printHtml(`Cliente ${c.nome}`, `<h1>Ficha de Cliente</h1><div class='meta'>${escapeHtml(c.nome||'-')}</div><div class='card'><strong>Telefone:</strong> ${escapeHtml(c.telefone||'-')}</div><div class='card'><strong>Email:</strong> ${escapeHtml(c.email||'-')}</div><div class='card'><strong>NIF:</strong> ${escapeHtml(c.nif||'-')}</div><div class='card'><strong>Morada:</strong><br>${escapeHtml(c.morada||'-')}</div><h2>Trabalhos associados</h2><table><thead><tr><th>Tipo</th><th>Data</th><th>Valor</th></tr></thead><tbody>${linhas || '<tr><td colspan="3">Sem trabalhos associados</td></tr>'}</tbody></table>`); };
 window.pdfPagamento = function(id){ const p=pagamentos.find(x=>x.id===id); if(!p) return; printHtml(`Pagamento ${p.cliente}`, `<h1>Comprovativo de Pagamento</h1><div class='meta'>${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Cliente:</strong> ${escapeHtml(p.cliente||'-')}</div><div class='card'><strong>Referência:</strong> ${escapeHtml(p.referencia||'-')}</div><div class='card'><strong>Valor:</strong> ${euro(p.valor||0)}</div><div class='card'><strong>Data:</strong> ${fmtDate(p.data)}</div><div class='card'><strong>Método:</strong> ${escapeHtml(p.metodo||'-')}</div><div class='card'><strong>Notas:</strong><br>${escapeHtml(p.notas||'-')}</div>`); };
 
@@ -9139,7 +9138,7 @@ window.showDesc = function(id){
   const t = trabalhos.find(x => x.id === id);
   if(!t) return;
   const descValue = t.descricao || t.descrição || t.description || t.desc || '';
-  $('descModalTitle').textContent = `${t.cliente || '-'} • ${t.tipoTrabalho || '-'}`;
+  $('descModalTitle').textContent = `${t.cliente || '-'} - ${t.tipoTrabalho || '-'}`;
   $('descModalText').textContent = descValue || 'Sem descrição.';
   $('descModal').classList.remove('hidden');
 };
@@ -9237,7 +9236,7 @@ window.marcarComoPagoComValor = function(id){
   pendingPaymentWorkId = id;
   resetPaymentModalState();
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
-  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(getValorParaPagamento(t))}`;
+  $('paymentJobClient').textContent = `${t.cliente || '-'} - ${euro(getValorParaPagamento(t))}`;
   if($('paymentDateInput')) {
     $('paymentDateInput').value = t.dataPagamento || todayLocalDate();
     $('paymentDateInput').removeAttribute('readonly');
@@ -9413,7 +9412,7 @@ function renderMobileCards(){
       return `<article class="mobile-card">
         <div>
           <div class="mobile-card-title">${escapeHtml(t.cliente || '-')}</div>
-          <div class="mobile-card-sub">${escapeHtml(t.tipoTrabalho || '-')} • <strong>${escapeHtml(t.workCode || '-')}</strong></div>
+          <div class="mobile-card-sub">${escapeHtml(t.tipoTrabalho || '-')} - <strong>${escapeHtml(t.workCode || '-')}</strong></div>
         </div>
         <div class="mobile-card-grid">
           <div class="mobile-card-item"><span>ID</span><strong>${escapeHtml(t.workCode || '-')}</strong></div>
@@ -9434,7 +9433,7 @@ function renderMobileCards(){
       const invoiceClass = invoiceType === 'Sem Fat' ? 'sem' : 'com';
       return `<article class="mobile-card">
         <div>
-          <div class="mobile-card-title">${escapeHtml(p.workCode || p.referencia || '-')} · ${escapeHtml(p.cliente || '-')}</div>
+          <div class="mobile-card-title">${escapeHtml(p.workCode || p.referencia || '-')} - ${escapeHtml(p.cliente || '-')}</div>
           <div class="mobile-card-sub">${escapeHtml(p.referencia || '-')}</div>
         </div>
         <div class="mobile-card-grid">
@@ -9656,7 +9655,7 @@ window.approveOrcamento = async function(id){
     dataFim: '',
     estado: 'Pendente',
     invoiceType: 'Com Fat',
-    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' • Data do orçamento: ' + o.data : ''}`
+    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' - Data do orçamento: ' + o.data : ''}`
   };
   trabalhos.push(novoTrabalho);
   saveLocal();
@@ -9686,7 +9685,7 @@ window.approveOrcamentoAsPaid = async function(id){
     dataFim: '',
     estado: 'Pendente',
     invoiceType: 'Com Fat',
-    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' • Data do orçamento: ' + o.data : ''}`
+    descricao: `Criado a partir do orçamento ${o.codigo || ''}${o.notas ? ' - ' + o.notas : ''}${o.data ? ' - Data do orçamento: ' + o.data : ''}`
   };
   trabalhos.push(novoTrabalho);
   saveLocal();
@@ -9787,7 +9786,7 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
   @media(max-width:640px){#geUpdateToast{left:12px;right:12px;bottom:12px;width:auto;border-radius:18px}#geUpdateToast .ge-actions button{flex:1}}
 </style>
 <div id="geUpdateToast" aria-live="polite">
-  <button class="ge-close" type="button" id="geUpdateClose" aria-label="Fechar">×</button>
+  <button class="ge-close" type="button" id="geUpdateClose" aria-label="Fechar">x</button>
   <div class="ge-title">Nova versão disponível</div>
   <p class="ge-text" id="geUpdateText">Há uma atualização pronta.</p>
   <div class="ge-changelog" id="geUpdateChangelog"><strong>Novidades</strong><ul id="geUpdateChangelogList"></ul></div>
@@ -9827,7 +9826,7 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
     lastKnownRemote = String(v);
     if(String(v) === CURRENT_VERSION){
       renderChangelog([]);
-      if(manual) setStatus('App atualizada · versão ' + CURRENT_VERSION);
+      if(manual) setStatus('App atualizada - versão ' + CURRENT_VERSION);
       return;
     }
     if(!manual && dismissed(v)) return;
@@ -9917,6 +9916,5 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
 })();
 </script>
 <script src="js/system-repairs.js"></script>
-<script src="js/product-enhancements.js"></script>
 </body>
 </html>

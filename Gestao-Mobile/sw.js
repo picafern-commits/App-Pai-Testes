@@ -1,12 +1,10 @@
-const CACHE_NAME = 'app-pai-gestao-mobile-v1.3.0';
+const CACHE_NAME = 'app-pai-gestao-mobile-v1.3.1-text-clean';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './css/professional-ui.css',
-  './css/product-enhancements.css',
   './js/system-repairs.js',
-  './js/product-enhancements.js',
   './logo-dark.png',
   './logo-icon-dark.png',
   './icon-192.png',
