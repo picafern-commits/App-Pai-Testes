@@ -5033,53 +5033,6 @@ body{
         <tbody>${historyHtml}</tbody>
       </table>
 
-<script>
-(function(){
-  const KEY='gestao:visualTheme';
-  const themes=[
-    ['default','Escuro Premium'],['corporate','Azul Corporativo'],['orange','Preto/Laranja'],['green','Verde Técnico'],['brinka','Tema Brinka'],['light','Claro Premium']
-  ];
-  function applyTheme(value){
-    const v=value||'default';
-    document.body.classList.remove('theme-corporate','theme-orange','theme-green','theme-brinka','theme-light');
-    if(v!=='default') document.body.classList.add('theme-'+v);
-    try{localStorage.setItem(KEY,v)}catch(e){}
-    const sel=document.getElementById('visualThemeSelect');
-    if(sel) sel.value=v;
-  }
-  function buildThemeCard(){
-    if(document.getElementById('visualThemeCard')) return;
-    const page=document.getElementById('configuracoes-page') || document.querySelector('.config-actions')?.parentElement;
-    if(!page) return;
-    const card=document.createElement('div');
-    card.id='visualThemeCard';
-    card.className='setting-card visual-theme-card';
-    card.innerHTML=`
-      <span class="mini-label">Visual Refresh 2026</span>
-      <strong>Sistema de temas</strong>
-      <p>Altera o visual da APP sem mexer nos dados, Firebase ou permissões.</p>
-      <div class="field" style="margin-top:12px;max-width:420px">
-        <label for="visualThemeSelect">Tema ativo</label>
-        <select id="visualThemeSelect">${themes.map(t=>`<option value="${t[0]}">${t[1]}</option>`).join('')}</select>
-      </div>
-      <div class="theme-preview-grid">
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#7c5cff"></span><span>Premium</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#2f7dff"></span><span>Corporativo</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#ff7a18"></span><span>Laranja</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#21d07a"></span><span>Verde</span></div>
-      </div>`;
-    const anchor=page.querySelector('.config-actions') || page.lastElementChild;
-    if(anchor && anchor.parentElement) anchor.parentElement.insertBefore(card, anchor); else page.appendChild(card);
-    const sel=document.getElementById('visualThemeSelect');
-    if(sel) sel.addEventListener('change',()=>applyTheme(sel.value));
-    applyTheme(localStorage.getItem(KEY)||'default');
-  }
-  window.applyGestaoVisualTheme=applyTheme;
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{applyTheme(localStorage.getItem(KEY)||'default'); setTimeout(buildThemeCard,400);});
-  else {applyTheme(localStorage.getItem(KEY)||'default'); setTimeout(buildThemeCard,400);} 
-  document.addEventListener('click',()=>setTimeout(buildThemeCard,80),true);
-})();
-</script>
 
 </body>
   </html>`;
@@ -5716,7 +5669,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const APP_VERSION = '1.1.2';
+const APP_VERSION = '1.1.6';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos', orcamentos:'ge_orcamentos', lastTrabId:'ge_last_trab_id' };
 const LOGS_COLLECTION = 'logs';
 
@@ -8564,53 +8517,6 @@ body{
 <link rel="manifest" href="manifest.json">
 
 </head><body>${bodyHtml}
-<script>
-(function(){
-  const KEY='gestao:visualTheme';
-  const themes=[
-    ['default','Escuro Premium'],['corporate','Azul Corporativo'],['orange','Preto/Laranja'],['green','Verde Técnico'],['brinka','Tema Brinka'],['light','Claro Premium']
-  ];
-  function applyTheme(value){
-    const v=value||'default';
-    document.body.classList.remove('theme-corporate','theme-orange','theme-green','theme-brinka','theme-light');
-    if(v!=='default') document.body.classList.add('theme-'+v);
-    try{localStorage.setItem(KEY,v)}catch(e){}
-    const sel=document.getElementById('visualThemeSelect');
-    if(sel) sel.value=v;
-  }
-  function buildThemeCard(){
-    if(document.getElementById('visualThemeCard')) return;
-    const page=document.getElementById('configuracoes-page') || document.querySelector('.config-actions')?.parentElement;
-    if(!page) return;
-    const card=document.createElement('div');
-    card.id='visualThemeCard';
-    card.className='setting-card visual-theme-card';
-    card.innerHTML=`
-      <span class="mini-label">Visual Refresh 2026</span>
-      <strong>Sistema de temas</strong>
-      <p>Altera o visual da APP sem mexer nos dados, Firebase ou permissões.</p>
-      <div class="field" style="margin-top:12px;max-width:420px">
-        <label for="visualThemeSelect">Tema ativo</label>
-        <select id="visualThemeSelect">${themes.map(t=>`<option value="${t[0]}">${t[1]}</option>`).join('')}</select>
-      </div>
-      <div class="theme-preview-grid">
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#7c5cff"></span><span>Premium</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#2f7dff"></span><span>Corporativo</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#ff7a18"></span><span>Laranja</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#21d07a"></span><span>Verde</span></div>
-      </div>`;
-    const anchor=page.querySelector('.config-actions') || page.lastElementChild;
-    if(anchor && anchor.parentElement) anchor.parentElement.insertBefore(card, anchor); else page.appendChild(card);
-    const sel=document.getElementById('visualThemeSelect');
-    if(sel) sel.addEventListener('change',()=>applyTheme(sel.value));
-    applyTheme(localStorage.getItem(KEY)||'default');
-  }
-  window.applyGestaoVisualTheme=applyTheme;
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{applyTheme(localStorage.getItem(KEY)||'default'); setTimeout(buildThemeCard,400);});
-  else {applyTheme(localStorage.getItem(KEY)||'default'); setTimeout(buildThemeCard,400);} 
-  document.addEventListener('click',()=>setTimeout(buildThemeCard,80),true);
-})();
-</script>
 
 </body></html>`); win.document.close(); setTimeout(()=>{ win.focus(); win.print(); },300); }
 
@@ -10524,53 +10430,6 @@ body{
         <tbody>${historyHtml}</tbody>
       </table>
     
-<script>
-(function(){
-  const KEY='gestao:visualTheme';
-  const themes=[
-    ['default','Escuro Premium'],['corporate','Azul Corporativo'],['orange','Preto/Laranja'],['green','Verde Técnico'],['brinka','Tema Brinka'],['light','Claro Premium']
-  ];
-  function applyTheme(value){
-    const v=value||'default';
-    document.body.classList.remove('theme-corporate','theme-orange','theme-green','theme-brinka','theme-light');
-    if(v!=='default') document.body.classList.add('theme-'+v);
-    try{localStorage.setItem(KEY,v)}catch(e){}
-    const sel=document.getElementById('visualThemeSelect');
-    if(sel) sel.value=v;
-  }
-  function buildThemeCard(){
-    if(document.getElementById('visualThemeCard')) return;
-    const page=document.getElementById('configuracoes-page') || document.querySelector('.config-actions')?.parentElement;
-    if(!page) return;
-    const card=document.createElement('div');
-    card.id='visualThemeCard';
-    card.className='setting-card visual-theme-card';
-    card.innerHTML=`
-      <span class="mini-label">Visual Refresh 2026</span>
-      <strong>Sistema de temas</strong>
-      <p>Altera o visual da APP sem mexer nos dados, Firebase ou permissões.</p>
-      <div class="field" style="margin-top:12px;max-width:420px">
-        <label for="visualThemeSelect">Tema ativo</label>
-        <select id="visualThemeSelect">${themes.map(t=>`<option value="${t[0]}">${t[1]}</option>`).join('')}</select>
-      </div>
-      <div class="theme-preview-grid">
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#7c5cff"></span><span>Premium</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#2f7dff"></span><span>Corporativo</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#ff7a18"></span><span>Laranja</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#21d07a"></span><span>Verde</span></div>
-      </div>`;
-    const anchor=page.querySelector('.config-actions') || page.lastElementChild;
-    if(anchor && anchor.parentElement) anchor.parentElement.insertBefore(card, anchor); else page.appendChild(card);
-    const sel=document.getElementById('visualThemeSelect');
-    if(sel) sel.addEventListener('change',()=>applyTheme(sel.value));
-    applyTheme(localStorage.getItem(KEY)||'default');
-  }
-  window.applyGestaoVisualTheme=applyTheme;
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{applyTheme(localStorage.getItem(KEY)||'default'); setTimeout(buildThemeCard,400);});
-  else {applyTheme(localStorage.getItem(KEY)||'default'); setTimeout(buildThemeCard,400);} 
-  document.addEventListener('click',()=>setTimeout(buildThemeCard,80),true);
-})();
-</script>
 
 </body>
   </html>`;
@@ -10839,7 +10698,7 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
 <script id="ge-update-safe-script">
 (function(){
   'use strict';
-  var CURRENT_VERSION = '1.1.2';
+  var CURRENT_VERSION = '1.1.6';
   var VERSION_URL = './version.json';
   var DISMISSED_KEY = 'ge_update_dismissed_version';
   var CHECK_EVERY_MS = 120000;
@@ -10851,8 +10710,7 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
   function normaliseChangelog(data){
     var log = data && (data.changelog || data.changes || data.novidades);
     if(Array.isArray(log)) return log.map(String).filter(Boolean).slice(0,6);
-    if(typeof log === 'string') return log.split('
-').map(function(x){return x.trim();}).filter(Boolean).slice(0,6);
+    if(typeof log === 'string') return log.split('\n').map(function(x){return x.trim();}).filter(Boolean).slice(0,6);
     return [];
   }
   function renderChangelog(items){
@@ -10909,6 +10767,8 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
 })();
 </script>
 
+
+
 <script>
 (function(){
   const KEY='gestao:visualTheme';
@@ -10925,25 +10785,24 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
   }
   function buildThemeCard(){
     if(document.getElementById('visualThemeCard')) return;
-    const page=document.getElementById('configuracoes-page') || document.querySelector('.config-actions')?.parentElement;
+    const page=document.getElementById('configuracoes-page') || document.querySelector('.config-actions')?.parentElement || document.querySelector('[data-page="configuracoes"]');
     if(!page) return;
     const card=document.createElement('div');
     card.id='visualThemeCard';
     card.className='setting-card visual-theme-card';
-    card.innerHTML=`
-      <span class="mini-label">Visual Refresh 2026</span>
-      <strong>Sistema de temas</strong>
-      <p>Altera o visual da APP sem mexer nos dados, Firebase ou permissões.</p>
-      <div class="field" style="margin-top:12px;max-width:420px">
-        <label for="visualThemeSelect">Tema ativo</label>
-        <select id="visualThemeSelect">${themes.map(t=>`<option value="${t[0]}">${t[1]}</option>`).join('')}</select>
-      </div>
-      <div class="theme-preview-grid">
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#7c5cff"></span><span>Premium</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#2f7dff"></span><span>Corporativo</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#ff7a18"></span><span>Laranja</span></div>
-        <div class="theme-dot-row"><span class="theme-dot" style="background:#21d07a"></span><span>Verde</span></div>
-      </div>`;
+    const options=themes.map(t=>'<option value="'+t[0]+'">'+t[1]+'</option>').join('');
+    card.innerHTML='<span class="mini-label">Visual Refresh 2026</span>'+
+      '<strong>Sistema de temas</strong>'+
+      '<p>Altera o visual da APP sem mexer nos dados, Firebase ou permissões.</p>'+
+      '<div class="field" style="margin-top:12px;max-width:420px">'+
+      '<label for="visualThemeSelect">Tema ativo</label>'+
+      '<select id="visualThemeSelect">'+options+'</select></div>'+
+      '<div class="theme-preview-grid">'+
+      '<div class="theme-dot-row"><span class="theme-dot" style="background:#7c5cff"></span><span>Premium</span></div>'+
+      '<div class="theme-dot-row"><span class="theme-dot" style="background:#2f7dff"></span><span>Corporativo</span></div>'+
+      '<div class="theme-dot-row"><span class="theme-dot" style="background:#ff7a18"></span><span>Laranja</span></div>'+
+      '<div class="theme-dot-row"><span class="theme-dot" style="background:#21d07a"></span><span>Verde</span></div>'+
+      '</div>';
     const anchor=page.querySelector('.config-actions') || page.lastElementChild;
     if(anchor && anchor.parentElement) anchor.parentElement.insertBefore(card, anchor); else page.appendChild(card);
     const sel=document.getElementById('visualThemeSelect');
@@ -10951,11 +10810,10 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
     applyTheme(localStorage.getItem(KEY)||'default');
   }
   window.applyGestaoVisualTheme=applyTheme;
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{applyTheme(localStorage.getItem(KEY)||'default'); setTimeout(buildThemeCard,400);});
-  else {applyTheme(localStorage.getItem(KEY)||'default'); setTimeout(buildThemeCard,400);} 
+  function init(){ applyTheme(localStorage.getItem(KEY)||'default'); setTimeout(buildThemeCard,400); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
   document.addEventListener('click',()=>setTimeout(buildThemeCard,80),true);
 })();
 </script>
-
 </body>
 </html>

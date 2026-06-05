@@ -1,13 +1,12 @@
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "environment": "produção",
   "changelog": [
-    "Visual Refresh 2026 aplicado sem alterar a lógica da Firebase.",
-    "Sidebar Enterprise com novo glow, navegação ativa e acabamento premium.",
-    "Modais, botões, tabelas, login e cartões KPI redesenhados.",
-    "Novo seletor de temas nas Configurações."
+    "Corrigido erro que impedia o JavaScript do login de arrancar.",
+    "Visual Refresh 2026 mantido.",
+    "Sistema de temas corrigido para não partir scripts internos."
   ],
-  "build": "1.1.5-visual-refresh-2026",
+  "build": "1.1.6-login-visual-fix",
   "updatedAt": "2026-06-05T12:00:00+01:00",
-  "notes": "Visual Refresh 2026: Sidebar Enterprise, Modais Profissionais, Botões Uniformes, Tabelas Enterprise, Login Premium, Sistema de Temas e KPI Cards modernos."
+  "notes": "Correção do login após Visual Refresh 2026, mantendo Sidebar Enterprise, modais, botões, tabelas, login premium, temas e KPI cards."
 }
