@@ -6411,7 +6411,7 @@ function buildFlowButtons(t){
   const nextEstado = getNextFlowEstado(t.estado || 'Pendente');
 
   if(isPaid || atual === 'Pago'){
-    return `<span class="stage-step done final-paid">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span>`;
+    return `<span class="stage-step done final-paid">Pago${t.dataPagamento ? ` • ${escapeHtml(fmtDate(t.dataPagamento))}` : ''}</span><button class="stage-step stage-control-btn pay-warning" onclick="window.desmarcarPago('${t.id}')">Tirar Pago</button>`;
   }
 
   if(atual === 'Entregue' || !nextEstado){
@@ -9501,6 +9501,59 @@ function showPaymentModal(){
   modal.classList.add('show');
   modal.style.display = 'grid';
 }
+
+
+window.desmarcarPago = async function(id){
+  if(!adminGuard()) return;
+  const t = trabalhos.find(x => x.id === id);
+  if(!t) return;
+  if(!confirm('Tirar o pagamento deste trabalho? O Valor Pago volta a 0,00 € e o registo sai da página Pagamentos.')) return;
+
+  const existingPagamento = pagamentos.find(p => (p.sourceWorkId && p.sourceWorkId === t.id) || (p.workCode && t.workCode && p.workCode === t.workCode));
+  const updatedTrabalho = JSON.parse(JSON.stringify(t));
+  updatedTrabalho.estado = 'Entregue';
+  updatedTrabalho.paymentStatus = 'Pendente';
+  updatedTrabalho.paymentMethod = '';
+  updatedTrabalho.metodoPagamento = '';
+  updatedTrabalho.dataPagamento = '';
+  updatedTrabalho.valorPago = 0;
+  updatedTrabalho.dataEstado = new Date().toISOString();
+  updatedTrabalho.historicoEstados = Array.isArray(updatedTrabalho.historicoEstados) ? updatedTrabalho.historicoEstados : [];
+  const last = updatedTrabalho.historicoEstados[updatedTrabalho.historicoEstados.length - 1];
+  if(!last || normalizeEstado(last.estado) !== 'Entregue'){
+    updatedTrabalho.historicoEstados.push({ estado:'Entregue', data:updatedTrabalho.dataEstado, obs:'Pagamento removido' });
+  }
+
+  try{
+    await ensureFirebaseReady();
+    const ops = [upsertRemote('trabalhos', updatedTrabalho)];
+    if(existingPagamento?.id) ops.push(removeRemote('pagamentos', existingPagamento.id));
+    await Promise.all(ops);
+    await logAction('remove_pagamento_trabalho', {
+      entity:'trabalho',
+      trabalhoId: updatedTrabalho.id,
+      pagamentoId: existingPagamento?.id || '',
+      cliente: updatedTrabalho.cliente || '',
+      trabalhoAfter: JSON.parse(JSON.stringify(updatedTrabalho)),
+      pagamentoDeleted: existingPagamento ? JSON.parse(JSON.stringify(existingPagamento)) : null
+    });
+
+    Object.assign(t, updatedTrabalho);
+    if(existingPagamento?.id){
+      pagamentos = pagamentos.filter(p => p.id !== existingPagamento.id);
+    }
+    saveLocal();
+    refreshVisibleViews();
+    setTimeout(()=>{ try{ refreshVisibleViews(); }catch(e){} }, 200);
+    setSyncMessage('Pagamento removido', 'good');
+    return true;
+  }catch(err){
+    console.error(err);
+    setSyncMessage('Erro a remover pagamento no Firebase', 'bad');
+    alert(`Não foi possível tirar o pagamento. ${err?.code ? '(' + err.code + ')' : ''}`.trim());
+    return false;
+  }
+};
 
 window.marcarComoPagoComValor = function(id){
   const t = trabalhos.find(x => x.id === id);
