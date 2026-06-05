@@ -8261,28 +8261,32 @@ function renderDashboardEmpresaSmart(){
   const pagamentosLista = Array.isArray(pagamentos) ? pagamentos : [];
   const orcamentosLista = getDashboardOrcamentosLista();
 
-  const totalFat = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
   const totalRecebido = pagamentosLista.reduce((sum, p) => sum + (Number(p.valor || p.valorPago || 0) || 0), 0);
-  const totalDivida = Math.max(totalFat - totalRecebido, 0);
 
+  // Dívida no Dashboard: compara o Valor Trabalho com o Valor Pago guardado no próprio trabalho.
+  // Assim, um cliente só aparece em dívida quando Valor Pago < Valor Trabalho.
   const clientTotals = {};
   trabalhosLista.forEach(t => {
     const nome = String(t.cliente || t.clienteNome || '').trim();
     if(!nome) return;
-    clientTotals[nome] = clientTotals[nome] || { Fat:0, pago:0 };
-    clientTotals[nome].Fat += Number(t.valor || t.valorPago || 0) || 0;
+
+    const valorTrabalho = getValorTrabalho(t);
+    const valorPago = Number(t?.valorPago ?? 0) || 0;
+    const emAberto = Math.max(valorTrabalho - valorPago, 0);
+
+    if(emAberto <= 0.009) return;
+
+    clientTotals[nome] = clientTotals[nome] || { divida:0, trabalhos:0 };
+    clientTotals[nome].divida += emAberto;
+    clientTotals[nome].trabalhos += 1;
   });
-  pagamentosLista.forEach(p => {
-    const nome = String(p.cliente || p.clienteNome || '').trim();
-    if(!nome) return;
-    clientTotals[nome] = clientTotals[nome] || { Fat:0, pago:0 };
-    clientTotals[nome].pago += Number(p.valor || p.valorPago || 0) || 0;
-  });
+
   const clientesDivida = Object.entries(clientTotals)
-    .map(([nome, vals]) => ({ nome, divida: Math.max((vals.Fat||0) - (vals.pago||0), 0) }))
+    .map(([nome, vals]) => ({ nome, divida: vals.divida || 0, trabalhos: vals.trabalhos || 0 }))
     .filter(item => item.divida > 0.009)
     .sort((a,b) => b.divida - a.divida)
     .slice(0,6);
+  const totalDivida = clientesDivida.reduce((sum, item) => sum + item.divida, 0);
 
   const orcPendentes = orcamentosLista
     .filter(o => String(o.estado || '').toLowerCase().includes('pend'))
@@ -8319,7 +8323,7 @@ function renderDashboardEmpresaSmart(){
     <div class="empresa-item">
       <div class="meta">
         <span class="title">${escapeHtml(item.nome)}</span>
-        <span class="sub">Cliente com valor em aberto</span>
+        <span class="sub">Valor Pago inferior ao Valor Trabalho</span>
       </div>
       <div style="display:grid;justify-items:end;gap:6px;">
         <span class="empresa-pill danger">Dívida</span>
