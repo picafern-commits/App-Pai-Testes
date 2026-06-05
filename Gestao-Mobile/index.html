@@ -4012,7 +4012,7 @@ function legacy_openPaymentMethodModal(id){
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
-  if(valueInput) valueInput.value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
+  if(valueInput) valueInput.value = String(getValorParaPagamento(t) || '').replace('.', ',');
 
   modal.style.display = 'grid';
   modal.classList.add('show');
@@ -5667,7 +5667,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.2';
 const STORAGE_KEYS = { trabalhos:'ge_trabalhos', clientes:'ge_clientes', pagamentos:'ge_pagamentos', orcamentos:'ge_orcamentos', lastTrabId:'ge_last_trab_id' };
 const LOGS_COLLECTION = 'logs';
 
@@ -6131,8 +6131,22 @@ function initUiScale(){
 
 const euro = (v) => Number(v || 0).toLocaleString('pt-PT', {style:'currency', currency:'EUR'});
 const getValorTrabalho = (t) => Number(t?.valorTrabalho ?? t?.valorEsperado ?? t?.valor ?? 0) || 0;
-const getValorPago = (t) => Number(t?.valorPago ?? t?.valor ?? 0) || 0;
-const getValorPagoCompat = (t) => Number(t?.valorPago ?? t?.valor ?? 0) || 0;
+const trabalhoEstaPago = (t) => normalizeEstado(t?.estado || '') === 'Pago' || String(t?.paymentStatus || '').toLowerCase() === 'pago' || !!t?.dataPagamento;
+const getValorPago = (t) => {
+  if(!t) return 0;
+  const valorPago = Number(t.valorPago ?? 0);
+  if(Number.isFinite(valorPago) && valorPago > 0) return valorPago;
+  if(trabalhoEstaPago(t)){
+    const legacyValor = Number(t.valor ?? 0);
+    return Number.isFinite(legacyValor) ? legacyValor : 0;
+  }
+  return 0;
+};
+const getValorPagoCompat = getValorPago;
+const getValorParaPagamento = (t) => {
+  const pago = getValorPago(t);
+  return pago > 0 ? pago : getValorTrabalho(t);
+};
 const fmtDate = (v) => { if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('pt-PT'); };
 const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const isMasterAdmin = () => currentRole === 'master_admin';
@@ -9109,8 +9123,8 @@ $('trabalhoForm')?.addEventListener('submit', async (e)=>{
     contacto:$('contacto').value.trim(),
     tipoTrabalho:$('tipoTrabalho').value.trim(),
     valorTrabalho:Number($('valorTrabalho')?.value||0),
-    valor:Number($('valor')?.value||0),
-    valorPago:Number($('valor')?.value||0),
+    valor:Number($('valorTrabalho')?.value||0),
+    valorPago: original ? getValorPago(original) : 0,
     dataInicio:$('dataInicio').value,
     dataFim:$('dataFim').value,
     estado:$('estado').value,
@@ -9204,7 +9218,7 @@ window.editTrabalho = function(id){
   if($('contacto')) $('contacto').value=t.contacto||'';
   $('tipoTrabalho').value=t.tipoTrabalho||'';
   if($('valorTrabalho')) $('valorTrabalho').value = (t.valorTrabalho ?? t.valor ?? '');
-  $('valor').value = (t.valorPago ?? '');
+  $('valor').value = getValorPago(t) || '';
   $('dataInicio').value=t.dataInicio||'';
   $('dataFim').value=t.dataFim||'';
   $('estado').value=normalizeEstado(t.estado||'Pendente');
@@ -9364,7 +9378,7 @@ window.markAsPaid = async function(id, metodo='Manual', dataPagamento='', valorP
   const t = trabalhos.find(x => x.id === id);
   if(!t) return false;
   const finalPaymentDate = dataPagamento || todayLocalDate();
-  const valorFinal = Number(valorPersonalizado ?? t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0);
+  const valorFinal = Number(valorPersonalizado ?? getValorParaPagamento(t) ?? 0);
   const updatedTrabalho = JSON.parse(JSON.stringify(t));
   updatedTrabalho.estado = 'Pago';
   updatedTrabalho.dataEstado = new Date().toISOString();
@@ -9494,13 +9508,13 @@ window.marcarComoPagoComValor = function(id){
   pendingPaymentWorkId = id;
   resetPaymentModalState();
   $('paymentJobName').textContent = t.tipoTrabalho || 'Trabalho';
-  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(t.valorPago ?? t.valorTrabalho ?? t.valor ?? 0)}`;
+  $('paymentJobClient').textContent = `${t.cliente || '-'} • ${euro(getValorParaPagamento(t))}`;
   if($('paymentDateInput')) {
     $('paymentDateInput').value = t.dataPagamento || todayLocalDate();
     $('paymentDateInput').removeAttribute('readonly');
     $('paymentDateInput').disabled = false;
   }
-  if($('paymentValueInput')) $('paymentValueInput').value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
+  if($('paymentValueInput')) $('paymentValueInput').value = String(getValorParaPagamento(t) || '').replace('.', ',');
   showPaymentModal();
 };
 
@@ -9748,7 +9762,7 @@ function legacy2_openPaymentMethodModal(id){
   if(hiddenId) hiddenId.value = id;
   if(methodInput) methodInput.value = '';
   if(dateInput) dateInput.value = (t.dataPagamento && String(t.dataPagamento).trim()) ? t.dataPagamento : getTodayLocalDateStr();
-  if(valueInput) valueInput.value = String(t.valorPago ?? t.valorTrabalho ?? t.valor ?? '').replace('.', ',');
+  if(valueInput) valueInput.value = String(getValorParaPagamento(t) || '').replace('.', ',');
 
   modal.style.display = 'grid';
   modal.classList.add('show');
@@ -10621,7 +10635,7 @@ $('orcamentoData') && !$('orcamentoData').value && ($('orcamentoData').value = g
 <script id="ge-update-safe-script">
 (function(){
   'use strict';
-  var CURRENT_VERSION = '1.1.0';
+  var CURRENT_VERSION = '1.1.2';
   var VERSION_URL = './version.json';
   var DISMISSED_KEY = 'ge_update_dismissed_version';
   var CHECK_EVERY_MS = 120000;
